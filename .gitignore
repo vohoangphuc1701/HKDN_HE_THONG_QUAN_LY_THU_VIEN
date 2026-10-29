@@ -1,0 +1,21 @@
+# File cấu hình bỏ qua khi up lên Github
+# Bỏ qua thư mục code Java build ra
+target/
+*.class
+
+# Bỏ qua thư viện React
+node_modules/
+dist/
+build/
+
+# Bỏ qua file chứa mật khẩu, cấu hình riêng
+.env
+.env.local
+
+# Bỏ qua file cài đặt của máy (VS Code, IntelliJ, MacOS)
+.vscode/
+.idea/
+.DS_Store
+
+# File rác khi chạy code
+*.log
