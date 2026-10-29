@@ -35,6 +35,7 @@ Hệ thống hoạt động tương tự mô hình mua sắm online: Sinh viên 
 
 ## 📂 Cấu trúc thư mục
 
+```text
 library-management-system/
 ├── backend-spring/                     # [TV4 & TV5] Java 17, Spring Boot 3, MySQL
 │   ├── pom.xml
@@ -56,7 +57,7 @@ library-management-system/
 │       ├── services/                   # [TV3] axiosClient, bookApi, borrowApi
 │       ├── components/
 │       │   ├── common/                 # [TV2 & TV3] BookCard, SearchBar, CartDrawer
-│       │   ├── layout/                 # [TV3] StudentLayout | [TV2] BottomNavMobile | [TV3] NavbarPC
+│       │   ├── layout/                 # [TV3] StudentLayout, NavbarPC | [TV2] BottomNavMobile
 │       │   └── responsive/             # [TV3] FilterSidebarPC, LoansTableViewPC
 │       │                               # [TV2] FilterModalMobile, LoansCardListMobile
 │       ├── pages/                      # [TV2 & TV3] Home, BookList, BookDetail, ActiveLoans, History
