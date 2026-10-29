@@ -35,14 +35,49 @@ Hệ thống hoạt động tương tự mô hình mua sắm online: Sinh viên 
 
 ## 📂 Cấu trúc thư mục
 
-```text
 library-management-system/
-├── backend-spring/      # Source code Java Spring Boot (API, Database, Logic)
-├── frontend-student/    # Source code React dành cho Sinh viên
-├── frontend-admin/      # Source code React dành cho Thủ thư/Admin
-├── database/            # Chứa script khởi tạo CSDL MySQL (.sql)
-├── docs/                # Sơ đồ Use Case, ERD, tài liệu API, báo cáo
-├── tests/               # Các file kiểm thử
-├── .gitignore           # Bỏ qua các file rác (node_modules, target,...)
-├── LICENSE              # Giấy phép MIT
-└── README.md            # Tài liệu hướng dẫn này
+├── backend-spring/                     # [TV4 & TV5] Java 17, Spring Boot 3, MySQL
+│   ├── pom.xml
+│   └── src/main/
+│       ├── resources/                  # Cấu hình DB, JWT, Mail
+│       └── java/com/library/
+│           ├── config/                 # [TV4] SecurityConfig, JwtProvider, WebConfig
+│           ├── common/                 # [TV4] GlobalExceptionHandler, ApiResponse
+│           ├── entity/                 # [TV4] User, Book, BookCopy, BorrowOrder, Fine
+│           ├── repository/             # [TV4] Giao tiếp CSDL (JPA)
+│           ├── service/                # [TV4] Auth, Book, Borrow | [TV5] Qr, Email, Scheduler
+│           └── controller/             # [TV4] Auth, Book, Borrow, Dashboard | [TV5] Qr, Operation
+│
+├── frontend-student/                   # [TV2 & TV3] React (Vite) - Giao diện Sinh viên
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── tailwind.config.js              # Cấu hình breakpoints PC & Mobile
+│   └── src/
+│       ├── services/                   # [TV3] axiosClient, bookApi, borrowApi
+│       ├── components/
+│       │   ├── common/                 # [TV2 & TV3] BookCard, SearchBar, CartDrawer
+│       │   ├── layout/                 # [TV3] StudentLayout | [TV2] BottomNavMobile | [TV3] NavbarPC
+│       │   └── responsive/             # [TV3] FilterSidebarPC, LoansTableViewPC
+│       │                               # [TV2] FilterModalMobile, LoansCardListMobile
+│       ├── pages/                      # [TV2 & TV3] Home, BookList, BookDetail, ActiveLoans, History
+│       ├── App.jsx                     # [TV3] Router
+│       └── main.jsx
+│
+└── frontend-admin/                     # [TV5 & TV6] React (Vite) - Giao diện Quản trị
+    ├── package.json
+    ├── vite.config.js
+    └── src/
+        ├── services/                   # [TV6] adminApi, orderApi, statsApi | [TV5] scanApi
+        ├── components/
+        │   ├── AdminLayout.jsx         # [TV6]
+        │   ├── MetricCard.jsx          # [TV6]
+        │   └── scanner/                # [TV5] Html5QrScanner, ManualSearchModal, BatchReturnGrid
+        ├── pages/
+        │   ├── DashboardOverviewPage.jsx # [TV6]
+        │   ├── InventoryManagementPage.jsx # [TV6]
+        │   ├── OrderWorkflowPage.jsx   # [TV6]
+        │   ├── FineTrackingPage.jsx    # [TV6]
+        │   ├── AuditLogPage.jsx        # [TV6]
+        │   └── ScanStationPage.jsx     # [TV5]
+        ├── App.jsx                     # [TV6]
+        └── main.jsx
