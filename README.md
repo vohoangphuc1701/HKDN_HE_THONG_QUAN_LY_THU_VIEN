@@ -85,7 +85,7 @@ library-management-system/
 
 ## 👥 Phân công nhiệm vụ (6 Thành viên)
 
-👑 Thành viên 1 — Leader / BA / QA
+👑 Thành viên 1 — Leader
 *   Nhiệm vụ:Quản lý tiến độ, vẽ sơ đồ Use Case, quy trình mượn/trả, kiểm thử tổng thể.
 *   Sản phẩm:Kế hoạch, sơ đồ nghiệp vụ, báo cáo kiểm thử.
 
