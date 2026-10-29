@@ -1,4 +1,4 @@
-# 📚 HỆ THỐNG QUẢN LÝ MƯỢN TRẢ SÁCH TRỰC TUYẾN (UTH LIBRARY)
+# 📚 HỆ THỐNG QUẢN LÝ MƯỢN TRẢ SÁCH TRỰC TUYẾN 
 
 **Xây dựng hệ thống quản lý mượn trả sách trực tuyến cho Thư viện Đại học Giao thông Vận tải TP.HCM (UTH)**
 
