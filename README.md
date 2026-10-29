@@ -28,35 +28,10 @@ Hệ thống hoạt động tương tự mô hình mua sắm online: Sinh viên 
 
 ## 🛠 Công nghệ sử dụng
 
-- **Backend:** Java 17, Spring Boot 3, Spring Security, JWT, MySQL, ZXing (Tạo QR), JavaMail (Gửi Email).
-- **Frontend (Sinh viên & Admin):** ReactJS (Vite), React Router, Axios, TailwindCSS, HTML5-QRCode (Quét mã QR qua webcam).
-- **Công cụ:** Docker, Postman, Git.
-## 🛠 Công nghệ sử dụng
-
-Hệ thống được xây dựng trên mô hình phân tán Client-Server hiện đại, tách biệt hoàn toàn giữa Frontend và Backend.
-
-### 1. Backend (Server-side)
-- **Ngôn ngữ & Framework:** Java 17, Spring Boot 3 (RESTful API).
-- **Cơ sở dữ liệu:** MySQL 8.0+, Spring Data JPA (Hibernate), quản lý transaction bằng `@Transactional`.
-- **Bảo mật:** Spring Security, JWT (JSON Web Token), mã hóa mật khẩu BCrypt.
-- **Tích hợp dịch vụ:** 
-  - **ZXing:** Sinh và nhận diện mã QR (Base64).
-  - **Jakarta Mail:** Gửi email tự động qua SMTP.
-  - **Spring Scheduler:** Chạy cron job tự động nhắc hạn trả sách mỗi ngày.
-
-### 2. Frontend (Client-side)
-- **Ngôn ngữ & Framework:** ReactJS (khởi tạo bằng Vite).
-- **Giao tiếp API:** Axios (đính kèm Bearer JWT Token).
-- **Định tuyến & Giao diện:** React Router, TailwindCSS (Responsive Web Design cho cả PC & Mobile).
-- **Thư viện chuyên biệt:**
-  - **HTML5-QRCode:** Quét mã QR trực tiếp qua Webcam (dành cho thủ thư).
-  - **Recharts / Chart.js:** Vẽ biểu đồ thống kê trực quan trên Dashboard Admin.
-
-### 3. Công cụ hỗ trợ (Tools)
-- **Quản lý mã nguồn:** Git & GitHub.
-- **Kiểm thử API:** Postman / Swagger.
-- **Triển khai (Deploy):** Docker (tuỳ chọn), Vercel/Netlify (Frontend).
----
+*   **Frontend (Giao diện):** ReactJS (Vite), TailwindCSS, React Router, Axios, HTML5-QRCode, Recharts.
+*   **Backend (Máy chủ):** Java 17, Spring Boot 3, Spring Security (JWT), ZXing (Mã QR), JavaMail, Spring Scheduler.
+*   **Database (Cơ sở dữ liệu):** MySQL 8.0+, Spring Data JPA.
+*   **Công cụ khác:** Git/GitHub, Postman, Docker.
 
 ## 📂 Cấu trúc thư mục
 
