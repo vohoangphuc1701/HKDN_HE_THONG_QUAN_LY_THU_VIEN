@@ -82,3 +82,14 @@ library-management-system/
         │   └── ScanStationPage.jsx     # [TV5]
         ├── App.jsx                     # [TV6]
         └── main.jsx
+
+## 👥 Phân công nhiệm vụ (6 Thành viên)
+
+| Thành viên | Vai trò | Trách nhiệm chính | Sản phẩm bàn giao |
+| :--- | :--- | :--- | :--- |
+| **Thành viên 1** | Leader / BA / QA | Quản lý tiến độ, vẽ sơ đồ Use Case, quy trình mượn/trả, kiểm thử tổng thể. | Kế hoạch, sơ đồ nghiệp vụ, báo cáo test. |
+| **Thành viên 2** | Frontend Student (Mobile) | Code giao diện Sinh viên trên Điện thoại: BottomNav, Carousel sách, Modal lọc, thẻ sách đang mượn. | `BottomNavMobile.jsx`, `FilterModalMobile.jsx`, `LoansCardListMobile.jsx`... |
+| **Thành viên 3** | Frontend Student (PC) | Code giao diện Sinh viên trên Máy tính: Navbar, Grid sách, Sidebar lọc, Bảng sách đang mượn. Cấu hình API. | `NavbarPC.jsx`, `FilterSidebarPC.jsx`, `LoansTableViewPC.jsx`, `axiosClient.js`... |
+| **Thành viên 4** | Backend & Database | Thiết kế CSDL, cấu hình JWT/Security, API tra cứu sách, tạo đơn, tính phạt, API Dashboard. | CSDL, API Core (`BookController`, `BorrowController`, `SecurityConfig`...) |
+| **Thành viên 5** | Backend Services & QR | Tạo QR (ZXing), quét trả hàng loạt, gửi Email nhắc hạn. Làm giao diện quét QR tại quầy Admin. | `QrService`, `EmailService`, `ScanStationPage.jsx`, `Html5QrScanner.jsx`... |
+| **Thành viên 6** | Frontend Admin Dashboard | Code giao diện Quản trị: Layout Admin, Quản lý kho, Duyệt đơn, Thống kê, Audit log. | `AdminLayout.jsx`, `InventoryManagementPage.jsx`, `DashboardOverviewPage.jsx`... |
