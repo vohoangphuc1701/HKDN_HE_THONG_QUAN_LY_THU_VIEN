@@ -1,0 +1,62 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: library-management-system-backend
+
+  # Tự động nạp thêm file cấu hình mail của TV5 nếu có
+  config:
+    import: "optional:classpath:application-mail.yml"
+
+  # Cấu hình Cơ sở dữ liệu MySQL 8.0+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:library_db}?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&characterEncoding=UTF-8
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  # Cấu hình Spring Data JPA / Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+        jdbc:
+          batch_size: 25
+
+# Cấu hình JWT Token (Bảo mật & Cấp quyền)
+jwt:
+  # Secret key tối thiểu 256-bit (32 bytes) mã hóa HMAC-SHA256
+  secret: c21hcnQtbGlicmFyeS1tYW5hZ2VtZW50LXN5c3RlbS1zZWNyZXQta2V5LTIwMjY=
+  # Thời hạn hiệu lực: 24 giờ (86400000 ms)
+  expiration: 86400000
+
+# Cấu hình CORS cho phép React Frontend kết nối
+app:
+  cors:
+    allowed-origins:
+      - "http://localhost:5173"  # Port mặc định frontend-student
+      - "http://localhost:5174"  # Port mặc định frontend-admin
+      - "http://127.0.0.1:5173"
+      - "http://127.0.0.1:5174"
+
+logging:
+  level:
+    root: INFO
+    com.library: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
