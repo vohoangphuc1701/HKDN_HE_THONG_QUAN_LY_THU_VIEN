@@ -1,6 +1,6 @@
 # 📚 HỆ THỐNG QUẢN LÝ MƯỢN TRẢ SÁCH TRỰC TUYẾN 
 
-**Xây dựng hệ thống quản lý mượn trả sách trực tuyến cho Thư viện Đại học Giao thông Vận tải TP.HCM (UTH)**
+**Xây dựng hệ thống quản lý mượn trả sách trực tuyến cho Thư viện**
 
 Hệ thống hoạt động tương tự mô hình mua sắm online: Sinh viên duyệt kho tài liệu, thêm sách vào "Giỏ mượn", chọn ngày/khung giờ hẹn lấy và trả. Tại thư viện, thủ thư nhận danh sách đơn mượn, đi gom sẵn sách từ kệ ra khu vực chờ. Khi đến lấy sách, sinh viên chỉ cần mở điện thoại quét **Mã QR đơn mượn** tại quầy tiếp nhận, nhận sách và rời đi trong vòng **dưới 30 giây**.
 
