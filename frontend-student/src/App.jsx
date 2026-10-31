@@ -1,11 +1,15 @@
+import React from 'react';
+import StudentLayout from './components/layout/StudentLayout';
+
 function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <h1 className="text-3xl font-bold text-blue-600">
-        Hệ thống Quản lý Thư viện - Sinh viên
-      </h1>
-    </div>
-  )
+    <StudentLayout>
+      <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+        <h2 className="text-2xl font-semibold mb-2">Chào mừng đến với trang sinh viên!</h2>
+        <p className="text-gray-600">Khung giao diện Desktop đang được xây dựng thành công.</p>
+      </div>
+    </StudentLayout>
+  );
 }
 
-export default App
+export default App;
