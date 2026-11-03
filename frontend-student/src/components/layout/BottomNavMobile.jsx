@@ -2,24 +2,24 @@ import React, { useState } from 'react';
 
 /**
  * BottomNavMobile - Thanh điều hướng cố định chân trang cho Mobile Web
- * Phụ trách: Thành viên 2 (TV2 - Mobile)
- * Đáp ứng đặc tả:
- * - 5 nút bấm ngón cái: Trang chủ, Tìm kiếm, Đang mượn, Lịch sử, Cá nhân
- * - Badge cảnh báo số lượng sách đang mượn
- * - Ngăn menu trượt Drawer (Slide-over drawer) cho thông tin cá nhân & lối tắt
- * - Tự động ẩn trên màn hình lớn (md:hidden) để nhường không gian cho NavbarPC của TV3
+ * Đồng bộ 100% nhận diện màu sắc & thành phần theo bản thiết kế Figma FE-PC:
+ * - Tone màu chủ đạo: Xanh mòng két #00666b (uth-primary)
+ * - 5 nút ngón cái: Trang chủ, Danh mục/Tìm sách, Đang mượn, Lịch sử, Tài khoản
+ * - Badge cảnh báo số lượng sách mượn
+ * - Ngăn menu trượt Drawer tài khoản (Đồng bộ thông tin sinh viên "Nguyễn Thành Lâm" từ Figma)
+ * - Ẩn trên màn hình Desktop (md:hidden)
  */
 export default function BottomNavMobile({
   activeTab = 'home',
   onTabChange,
-  activeLoanCount = 2, 
-  hasOverdueWarning = false, 
+  activeLoanCount = 2,
+  hasOverdueWarning = false,
   user = {
-    name: 'Nguyễn Văn A',
-    studentId: '2151050001',
-    email: '2151050001@ut.edu.vn',
+    name: 'Nguyễn Thành Lâm',
+    studentId: '2151050123',
+    email: 'lam.nt@ut.edu.vn',
     major: 'Công nghệ thông tin',
-    cardStatus: 'Hoạt động'
+    cardStatus: 'Đang hoạt động'
   }
 }) {
   const [currentTab, setCurrentTab] = useState(activeTab);
@@ -41,11 +41,11 @@ export default function BottomNavMobile({
       label: 'Trang chủ',
       icon: (active) => (
         <svg
-          className={`w-6 h-6 transition-transform ${active ? 'scale-110' : ''}`}
+          className={`w-6 h-6 transition-all duration-200 ${active ? 'scale-110' : ''}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth={active ? '2.3' : '1.8'}
+          strokeWidth={active ? '2.4' : '1.8'}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -56,33 +56,35 @@ export default function BottomNavMobile({
     },
     {
       id: 'search',
-      label: 'Tìm sách',
+      label: 'Danh mục',
       icon: (active) => (
         <svg
-          className={`w-6 h-6 transition-transform ${active ? 'scale-110' : ''}`}
+          className={`w-6 h-6 transition-all duration-200 ${active ? 'scale-110' : ''}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth={active ? '2.3' : '1.8'}
+          strokeWidth={active ? '2.4' : '1.8'}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
+          <rect width="7" height="7" x="3" y="3" rx="1.5" />
+          <rect width="7" height="7" x="14" y="3" rx="1.5" />
+          <rect width="7" height="7" x="14" y="14" rx="1.5" />
+          <rect width="7" height="7" x="3" y="14" rx="1.5" />
         </svg>
       )
     },
     {
       id: 'loans',
-      label: 'Đang mượn',
+      label: 'Phiếu mượn',
       badge: activeLoanCount,
       icon: (active) => (
         <svg
-          className={`w-6 h-6 transition-transform ${active ? 'scale-110' : ''}`}
+          className={`w-6 h-6 transition-all duration-200 ${active ? 'scale-110' : ''}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth={active ? '2.3' : '1.8'}
+          strokeWidth={active ? '2.4' : '1.8'}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -97,11 +99,11 @@ export default function BottomNavMobile({
       label: 'Lịch sử',
       icon: (active) => (
         <svg
-          className={`w-6 h-6 transition-transform ${active ? 'scale-110' : ''}`}
+          className={`w-6 h-6 transition-all duration-200 ${active ? 'scale-110' : ''}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth={active ? '2.3' : '1.8'}
+          strokeWidth={active ? '2.4' : '1.8'}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -113,14 +115,14 @@ export default function BottomNavMobile({
     },
     {
       id: 'profile',
-      label: 'Cá nhân',
+      label: 'Tài khoản',
       icon: (active) => (
         <svg
-          className={`w-6 h-6 transition-transform ${active ? 'scale-110' : ''}`}
+          className={`w-6 h-6 transition-all duration-200 ${active ? 'scale-110' : ''}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth={active ? '2.3' : '1.8'}
+          strokeWidth={active ? '2.4' : '1.8'}
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -136,7 +138,7 @@ export default function BottomNavMobile({
       {/* ==================== 1. THANH ĐIỀU HƯỚNG CỐ ĐỊNH CHÂN TRANG ==================== */}
       <nav
         aria-label="Thanh điều hướng di động"
-        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] md:hidden transition-all duration-300"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] md:hidden transition-all duration-300"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="grid grid-cols-5 h-16 max-w-lg mx-auto px-1">
@@ -147,26 +149,26 @@ export default function BottomNavMobile({
                 key={item.id}
                 type="button"
                 onClick={() => handleTabClick(item.id)}
-                className={`group relative flex flex-col items-center justify-center py-1 transition-all duration-150 active:scale-90 select-none ${
+                className={`group relative flex flex-col items-center justify-center py-1 transition-all duration-150 active:scale-95 select-none ${
                   isActive
-                    ? 'text-sky-600 font-semibold'
+                    ? 'text-[#00666b] font-semibold'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                {/* Thanh chỉ báo active ở mép trên tab */}
+                {/* Chỉ báo active thanh ngang bo góc mang màu #00666b */}
                 {isActive && (
-                  <span className="absolute top-0 w-8 h-1 bg-sky-600 rounded-b-full transition-all duration-200" />
+                  <span className="absolute top-0 w-9 h-1 bg-[#00666b] rounded-b-full transition-all duration-200 shadow-sm" />
                 )}
 
                 {/* Khối Icon + Badge */}
                 <div className="relative flex items-center justify-center">
                   {item.icon(isActive)}
 
-                  {/* Badge số lượng sách đang mượn */}
+                  {/* Badge số lượng mượn với tone màu UTH */}
                   {item.badge > 0 && (
                     <span
                       className={`absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white rounded-full flex items-center justify-center ring-2 ring-white shadow-sm ${
-                        hasOverdueWarning ? 'bg-rose-500 animate-pulse' : 'bg-sky-600'
+                        hasOverdueWarning ? 'bg-rose-500 animate-pulse' : 'bg-[#00666b]'
                       }`}
                     >
                       {item.badge > 9 ? '9+' : item.badge}
@@ -177,7 +179,7 @@ export default function BottomNavMobile({
                 {/* Nhãn chữ dưới icon */}
                 <span
                   className={`text-[11px] mt-1 leading-none transition-colors ${
-                    isActive ? 'text-sky-600 font-medium' : 'text-slate-500'
+                    isActive ? 'text-[#00666b] font-medium' : 'text-slate-500'
                   }`}
                 >
                   {item.label}
@@ -188,60 +190,59 @@ export default function BottomNavMobile({
         </div>
       </nav>
 
-      {/* ==================== 2. NGĂN MENU TRƯỢT DRAWER (CÁ NHÂN) ==================== */}
-      {/* Lớp nền mờ Backdrop */}
+      {/* ==================== 2. NGĂN MENU TRƯỢT DRAWER (TÀI KHOẢN THEO FIGMA) ==================== */}
       {isDrawerOpen && (
         <div
           onClick={() => setIsDrawerOpen(false)}
-          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm transition-opacity md:hidden"
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm transition-opacity md:hidden"
           aria-hidden="true"
         />
       )}
 
-      {/* Drawer trượt từ dưới lên (Bottom Sheet) hoặc trượt từ phải */}
       <div
         className={`fixed inset-x-0 bottom-0 z-50 max-h-[85vh] bg-white rounded-t-3xl shadow-2xl border-t border-slate-100 flex flex-col md:hidden transform transition-transform duration-300 ease-out ${
           isDrawerOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)' }}
       >
-        {/* Nút thanh trượt kéo nhỏ ở đỉnh drawer */}
+        {/* Handle kéo */}
         <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto my-3" />
 
         {/* Header Drawer */}
         <div className="px-5 pb-3 flex items-center justify-between border-b border-slate-100">
-          <h2 className="text-base font-bold text-slate-800">Tài khoản Sinh viên</h2>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#00666b]" />
+            <h2 className="text-base font-bold text-slate-800">Tài khoản Thư viện</h2>
+          </div>
           <button
             type="button"
             onClick={() => setIsDrawerOpen(false)}
-            className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 active:scale-95 transition-all"
+            className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 active:scale-95 transition-all text-sm font-semibold"
             aria-label="Đóng menu"
           >
             ✕
           </button>
         </div>
 
-        {/* Nội dung bên trong Drawer */}
         <div className="px-5 py-4 overflow-y-auto space-y-4">
-          {/* Card thông tin sinh viên */}
-          <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-100 rounded-2xl">
-            <div className="w-12 h-12 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-              {user.name.charAt(0)}
+          <div className="flex items-center gap-3 p-3.5 bg-[#eaf3f0] border border-[#d1e5e0] rounded-2xl">
+            <div className="w-12 h-12 rounded-full bg-[#00666b] text-white flex items-center justify-center font-bold text-base shadow-sm">
+              NL
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-bold text-slate-800 truncate">{user.name}</h3>
-              <p className="text-xs text-slate-500">MSSV: {user.studentId}</p>
-              <p className="text-[11px] text-sky-700 truncate">{user.email}</p>
+              <h3 className="text-sm font-bold text-slate-900 truncate">{user.name}</h3>
+              <p className="text-xs text-slate-600">MSSV: {user.studentId}</p>
+              <p className="text-[11px] text-[#00666b] font-medium truncate">{user.email}</p>
             </div>
-            <span className="px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700 rounded-full self-start">
+            <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#00666b]/10 text-[#00666b] rounded-full self-start">
               {user.cardStatus}
             </span>
           </div>
 
-          {/* Nhóm lối tắt thao tác nhanh */}
+          {/* Lối tắt nghiệp vụ */}
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
-              Lối tắt & Tiện ích
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
+              Quản lý mượn trả sách
             </p>
 
             <button
@@ -253,15 +254,15 @@ export default function BottomNavMobile({
               className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
             >
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center text-sm font-semibold">
-                  📖
+                <span className="w-8 h-8 rounded-lg bg-[#eaf3f0] text-[#00666b] flex items-center justify-center text-sm font-semibold">
+                  📋
                 </span>
                 <div>
-                  <div className="text-sm font-medium text-slate-700">Sách đang mượn & Phiếu QR</div>
-                  <div className="text-xs text-slate-400">Xem hạn trả, gia hạn online</div>
+                  <div className="text-sm font-medium text-slate-800">Phiếu mượn của bạn</div>
+                  <div className="text-xs text-slate-500">Xem hạn trả, gia hạn online & QR nhận sách</div>
                 </div>
               </div>
-              <span className="text-slate-400">›</span>
+              <span className="text-slate-400 font-bold">›</span>
             </button>
 
             <button
@@ -273,35 +274,19 @@ export default function BottomNavMobile({
               className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
             >
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-semibold">
+                <span className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center text-sm font-semibold">
                   🕒
                 </span>
                 <div>
-                  <div className="text-sm font-medium text-slate-700">Lịch sử mượn & Tiền phạt</div>
-                  <div className="text-xs text-slate-400">Tra cứu phí phạt trễ hạn</div>
+                  <div className="text-sm font-medium text-slate-800">Lịch sử mượn & Tiền phạt</div>
+                  <div className="text-xs text-slate-500">Tra cứu phí phạt trễ hạn minh bạch 100%</div>
                 </div>
               </div>
-              <span className="text-slate-400">›</span>
-            </button>
-
-            <button
-              type="button"
-              className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
-            >
-              <div className="flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-sm font-semibold">
-                  📜
-                </span>
-                <div>
-                  <div className="text-sm font-medium text-slate-700">Nội quy & Hướng dẫn mượn sách</div>
-                  <div className="text-xs text-slate-400">Quy định hẹn lấy sách dưới 30s</div>
-                </div>
-              </div>
-              <span className="text-slate-400">›</span>
+              <span className="text-slate-400 font-bold">›</span>
             </button>
           </div>
 
-          {/* Nút Đăng xuất */}
+          {/* Đăng xuất */}
           <div className="pt-2">
             <button
               type="button"
@@ -312,7 +297,7 @@ export default function BottomNavMobile({
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
-              Đăng xuất khỏi Cổng Thư Viện
+              Đăng xuất
             </button>
           </div>
         </div>
