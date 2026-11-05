@@ -19,3 +19,11 @@ build/
 
 # File rác khi chạy code
 *.log
+
+# AI agent skills & công cụ tự sinh
+.agents/
+.agent/
+design-system/
+
+# Tài liệu cá nhân
+My Doc/
