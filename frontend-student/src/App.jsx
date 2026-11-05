@@ -9,10 +9,36 @@ import { SlidersHorizontal, Check, X, MapPin, Plus, Search, ArrowUpRight } from 
 function MobileApp() {
   const [activeTab, setActiveTab] = useState('home');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [cartCount, setCartCount] = useState(2);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const categories = [
+    { id: 'ALL', label: 'Tất cả' },
+    { id: 'CNTT', label: 'CNTT' },
+    { id: 'KINH_TE', label: 'Kinh tế' },
+    { id: 'LOGISTICS', label: 'Logistics' },
+    { id: 'XAY_DUNG', label: 'Xây dựng' },
+  ];
+
+  const handleAddToCart = (book) => {
+    setCartCount((prev) => prev + 1);
+    setToastMessage(`Đã thêm "${book.title}" vào giỏ sách!`);
+    setTimeout(() => setToastMessage(''), 2500);
+  };
+
+  const filteredBooks = mockBooks.filter((book) => {
+    const matchCat = selectedCategory === 'ALL' || book.category === selectedCategory;
+    const matchSearch =
+      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      book.author.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchCat && matchSearch;
+  });
 
   return (
     <div className="min-h-screen bg-[#f4f8f7] flex flex-col justify-between text-slate-800">
-      {/* ==================== TOPBAR MOBILE ==================== */}
+      {/* ==================== 1. TOPBAR MOBILE (CỐ ĐỊNH ĐỈNH TRANG) ==================== */}
       <header className="sticky top-0 z-30 bg-[#00666b] text-white px-4 py-3 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-lg shadow-inner">
@@ -26,7 +52,7 @@ function MobileApp() {
           </div>
         </div>
 
-        {/* Tiện ích: Giỏ sách & Avatar sinh viên */}
+        {/* Cụm tiện ích: Giỏ sách & Avatar sinh viên */}
         <div className="flex items-center gap-2.5">
           <button
             type="button"
@@ -39,9 +65,11 @@ function MobileApp() {
               <path d="M3 6h18" />
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
-            <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-amber-400 text-slate-900 text-[9px] font-bold rounded-full flex items-center justify-center shadow">
-              2
-            </span>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-amber-400 text-slate-900 text-[9px] font-bold rounded-full flex items-center justify-center shadow">
+                {cartCount}
+              </span>
+            )}
           </button>
 
           {/* Bấm vào avatar trên header để mở Drawer tài khoản */}
@@ -56,12 +84,136 @@ function MobileApp() {
         </div>
       </header>
 
-      {/* ==================== VÙNG NỘI DUNG CHÍNH (SẴN SÀNG CHO CÁC TRANG TIẾP THEO) ==================== */}
-      <main className="flex-1 p-4 max-w-md mx-auto w-full pb-20">
-        {/* Nơi hiển thị các trang nghiệp vụ tiếp theo của TV2 (HomePage, BookListPage, v.v.) */}
+      {/* ==================== 2. VÙNG NỘI DUNG CHÍNH (CUỘN THOẢI MÁI, KHÔNG BỊ CHE) ==================== */}
+      <main className="flex-1 p-3.5 max-w-md mx-auto w-full pb-24 space-y-3.5">
+        {/* TAB 1 & 2: TRANG CHỦ / DANH MỤC SÁCH */}
+        {(activeTab === 'home' || activeTab === 'search') && (
+          <>
+            {/* Thanh tìm kiếm nhanh trên Mobile */}
+            <div className="relative flex items-center">
+              <Search className="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm tên sách, tác giả, môn học..."
+                className="w-full bg-white text-slate-800 placeholder-slate-400 pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00666b] shadow-xs"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Thanh lọc nhanh chuyên ngành cuộn ngang */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition-all ${
+                    selectedCategory === cat.id
+                      ? 'bg-[#00666b] text-white shadow-xs'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tiêu đề danh sách */}
+            <div className="flex items-center justify-between pt-1">
+              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <span>📚</span> {activeTab === 'home' ? 'Kho tài liệu nổi bật' : 'Kết quả tra cứu'} ({filteredBooks.length})
+              </h2>
+              <span className="text-[10px] text-teal-700 font-semibold bg-teal-50 px-2 py-0.5 rounded-full">
+                Hẹn lấy &lt; 30s
+              </span>
+            </div>
+
+            {/* Lưới sách 2 cột cô đọng trên điện thoại */}
+            <div className="grid grid-cols-2 gap-3">
+              {filteredBooks.map((book) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  onAddToCart={handleAddToCart}
+                  onViewDetail={() => alert(`Xem chi tiết: ${book.title}\nVị trí: ${book.location || 'Khu A - Kệ 03'}`)}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* TAB 3: PHIẾU MƯỢN */}
+        {activeTab === 'loans' && (
+          <div className="space-y-3">
+            <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+              <h2 className="text-sm font-bold text-slate-800 mb-1">Phiếu mượn của bạn</h2>
+              <p className="text-xs text-slate-500">Mã đơn: <strong className="text-[#00666b]">DH-UTH-2026-089</strong></p>
+              <div className="mt-2.5 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs">
+                <span className="text-emerald-800 font-semibold">Trạng thái: Đang mượn</span>
+                <span className="text-emerald-700 font-bold">2 cuốn</span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div>
+                  <div className="text-xs font-bold text-slate-800">Lập trình Python cơ bản</div>
+                  <div className="text-[11px] text-slate-500">Mã: CNTT-PY-001 | Hạn trả: 15/11/2026</div>
+                </div>
+                <button
+                  onClick={() => alert('Đã gửi yêu cầu gia hạn trực tuyến!')}
+                  className="px-2.5 py-1 bg-[#00666b] text-white text-[11px] font-semibold rounded-lg"
+                >
+                  Gia hạn
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-slate-800">Kinh tế học vi mô</div>
+                  <div className="text-[11px] text-slate-500">Mã: KT-VM-002 | Hạn trả: 18/11/2026</div>
+                </div>
+                <button
+                  onClick={() => alert('Đã gửi yêu cầu gia hạn trực tuyến!')}
+                  className="px-2.5 py-1 bg-[#00666b] text-white text-[11px] font-semibold rounded-lg"
+                >
+                  Gia hạn
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: LỊCH SỬ */}
+        {activeTab === 'history' && (
+          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+            <h2 className="text-sm font-bold text-slate-800 mb-2">Lịch sử mượn trả</h2>
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+              <div className="text-xs font-bold text-slate-700">Giải tích 1 - Đã trả đúng hạn</div>
+              <div className="text-[11px] text-slate-500">Ngày mượn: 10/10/2026 • Ngày trả: 24/10/2026</div>
+              <div className="text-[11px] text-emerald-600 font-semibold">Phí phạt: 0 VNĐ</div>
+            </div>
+          </div>
+        )}
       </main>
 
-      {/* ==================== THANH ĐIỀU HƯỚNG CHÂN TRANG MOBILE ==================== */}
+      {/* Toast thông báo */}
+      {toastMessage && (
+        <div className="fixed bottom-20 left-4 right-4 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-semibold max-w-sm mx-auto">
+          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* ==================== 3. THANH ĐIỀU HƯỚNG CHÂN TRANG MOBILE (CỐ ĐỊNH ĐÁY) ==================== */}
       <BottomNavMobile
         activeTab={activeTab}
         onTabChange={(tab) => {
@@ -73,7 +225,7 @@ function MobileApp() {
         isDrawerOpen={isDrawerOpen}
         onDrawerOpen={() => setIsDrawerOpen(true)}
         onDrawerClose={() => setIsDrawerOpen(false)}
-        activeLoanCount={2}
+        activeLoanCount={cartCount}
       />
     </div>
   );
