@@ -5,7 +5,7 @@ import BottomNavMobile from './components/layout/BottomNavMobile';
 import BookCard from './components/common/BookCard';
 import mockBooks from './mockPCBooks.json';
 import mockMobileBooks from './mockMobileBooks.json';
-import { SlidersHorizontal, Check, X, MapPin, Plus, Search, ArrowUpRight } from 'lucide-react';
+import { Check, X, Search } from 'lucide-react';
 
 /* ==================== PHẦN 1: GIAO DIỆN MOBILE WEB (TV2) ==================== */
 function MobileApp() {
@@ -224,6 +224,7 @@ function MobileApp() {
 function DesktopBookCatalog() {
     const [selectedCategory, setSelectedCategory] = useState('ALL');
     const [sortBy, setSortBy] = useState('relevant');
+    const [searchQuery, setSearchQuery] = useState('');
     const [toastMessage, setToastMessage] = useState('');
     const [selectedBookDetail, setSelectedBookDetail] = useState(null);
 
@@ -232,15 +233,6 @@ function DesktopBookCatalog() {
         setTimeout(() => setToastMessage(''), 3000);
     };
 
-    const filteredBooks = mockBooks.filter((book) => {
-        if (selectedCategory === 'ALL') return true;
-        return book.category === selectedCategory;
-    }).sort((a, b) => {
-        if (sortBy === 'newest') return b.publishYear - a.publishYear;
-        if (sortBy === 'available') return b.availableQuantity - a.availableQuantity;
-        return a.id - b.id;
-    });
-
     const categories = [
         { key: 'ALL', label: 'Tất cả chuyên ngành', count: 916 },
         { key: 'CÔNG NGHỆ THÔNG TIN', label: 'Công nghệ thông tin', count: 428 },
@@ -248,8 +240,23 @@ function DesktopBookCatalog() {
         { key: 'NGOẠI NGỮ', label: 'Ngoại ngữ', count: 173 }
     ];
 
+    const filteredBooks = mockBooks.filter((book) => {
+        const matchCategory = selectedCategory === 'ALL' || book.category === selectedCategory;
+        const query = searchQuery.trim().toLowerCase();
+        const matchSearch = !query ||
+            book.title.toLowerCase().includes(query) ||
+            book.author.toLowerCase().includes(query) ||
+            (book.code && book.code.toLowerCase().includes(query));
+        return matchCategory && matchSearch;
+    }).sort((a, b) => {
+        if (sortBy === 'newest') return b.publishYear - a.publishYear;
+        if (sortBy === 'available') return b.availableQuantity - a.availableQuantity;
+        return a.id - b.id;
+    });
+
     return (
         <div className="space-y-8 select-none">
+            {/* Hero Banner */}
             <div
                 className="rounded-2xl overflow-hidden flex items-stretch shadow-sm border border-[#c5e8df]"
                 style={{ backgroundColor: '#e8f5f0', minHeight: '340px' }}
@@ -268,9 +275,21 @@ function DesktopBookCatalog() {
                         <Search className="w-4 h-4 text-slate-400 ml-4 shrink-0" />
                         <input
                             type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Bạn đang tìm cuốn sách nào?"
                             className="flex-1 px-3 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none bg-transparent"
                         />
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchQuery('')}
+                                className="p-1 text-slate-400 hover:text-slate-600 mr-1 cursor-pointer"
+                                title="Xóa tìm kiếm"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
                         <button
                             type="button"
                             className="bg-[#00666B] hover:bg-[#005256] text-white text-sm font-semibold px-5 py-3 transition-colors cursor-pointer whitespace-nowrap"
@@ -289,16 +308,125 @@ function DesktopBookCatalog() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6">
-                {filteredBooks.map((book) => (
-                    <BookCard
-                        key={book.id}
-                        book={book}
-                        onAddToCart={handleAddToCart}
-                        onViewDetail={(item) => setSelectedBookDetail(item)}
-                    />
-                ))}
+            {/* Thanh chọn chuyên ngành và Sắp xếp */}
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                    {categories.map((cat) => (
+                        <button
+                            key={cat.key}
+                            type="button"
+                            onClick={() => setSelectedCategory(cat.key)}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                                selectedCategory === cat.key
+                                    ? 'bg-[#00666B] text-white shadow-xs'
+                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                            }`}
+                        >
+                            {cat.label} ({cat.count})
+                        </button>
+                    ))}
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                    <span>Sắp xếp:</span>
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#00666B] cursor-pointer"
+                    >
+                        <option value="relevant">Mặc định</option>
+                        <option value="newest">Mới nhất</option>
+                        <option value="available">Tồn kho nhiều nhất</option>
+                    </select>
+                </div>
             </div>
+
+            {/* Grid danh sách sách */}
+            {filteredBooks.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-500">
+                    <p className="text-sm font-semibold">Không tìm thấy tài liệu phù hợp</p>
+                    <p className="text-xs text-slate-400 mt-1">Vui lòng thử tìm với từ khóa khác hoặc chọn chuyên ngành "Tất cả".</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6">
+                    {filteredBooks.map((book) => (
+                        <BookCard
+                            key={book.id}
+                            book={book}
+                            onAddToCart={handleAddToCart}
+                            onViewDetail={(item) => setSelectedBookDetail(item)}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {/* Modal Chi tiết Sách khi nhấn "Xem chi tiết" */}
+            {selectedBookDetail && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs select-text">
+                    <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative border border-slate-100">
+                        <button
+                            type="button"
+                            onClick={() => setSelectedBookDetail(null)}
+                            className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
+                            title="Đóng"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        <div className="flex gap-4">
+                            <div
+                                style={{ backgroundColor: selectedBookDetail.coverTheme?.bg || '#00666B' }}
+                                className="w-28 h-40 rounded shadow-md text-white p-2.5 flex flex-col justify-between shrink-0"
+                            >
+                                <span className="text-[8px] font-bold uppercase truncate">{selectedBookDetail.category}</span>
+                                <span className="text-[10px] font-bold leading-tight line-clamp-3">{selectedBookDetail.title}</span>
+                                <span className="text-[8px] text-white/80 truncate">{selectedBookDetail.author}</span>
+                            </div>
+                            <div className="flex-1 space-y-1.5 min-w-0">
+                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                                    {selectedBookDetail.code}
+                                </span>
+                                <h3 className="text-base font-bold text-slate-900 leading-snug">{selectedBookDetail.title}</h3>
+                                <p className="text-xs text-slate-600">Tác giả: <strong>{selectedBookDetail.author}</strong></p>
+                                <p className="text-xs text-slate-600">NXB: {selectedBookDetail.publisher} ({selectedBookDetail.publishYear})</p>
+                                <p className="text-xs text-emerald-700 font-semibold">● {selectedBookDetail.statusText || `Còn ${selectedBookDetail.availableQuantity} cuốn sẵn sàng`}</p>
+                                <p className="text-xs text-slate-500">Vị trí: {selectedBookDetail.location || 'Khu A - Kệ 01'}</p>
+                            </div>
+                        </div>
+                        {selectedBookDetail.description && (
+                            <div className="mt-4 pt-3 border-t border-slate-100">
+                                <p className="text-xs text-slate-600 leading-relaxed">{selectedBookDetail.description}</p>
+                            </div>
+                        )}
+                        <div className="mt-5 flex gap-2 justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedBookDetail(null)}
+                                className="px-4 py-2 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 cursor-pointer"
+                            >
+                                Đóng
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    handleAddToCart(selectedBookDetail);
+                                    setSelectedBookDetail(null);
+                                }}
+                                className="bg-[#00666B] hover:bg-[#005256] text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer"
+                            >
+                                Thêm vào giỏ mượn
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Toast Thông báo Thêm vào giỏ */}
+            {toastMessage && (
+                <div className="fixed bottom-6 right-6 z-50 bg-slate-900/95 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-xs font-semibold">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{toastMessage}</span>
+                </div>
+            )}
         </div>
     );
 }
