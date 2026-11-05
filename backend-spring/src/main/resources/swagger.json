@@ -1,0 +1,313 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "University Library Management System API Contract",
+    "description": "API Contract chuẩn hóa cho 3 phân hệ Frontend (TV2 Mobile Web, TV3 PC Web, TV6 Admin Web) và Backend Spring Boot (TV4 & TV5).",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8081",
+      "description": "Local Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "code": { "type": "integer", "example": 200 },
+          "message": { "type": "string", "example": "Thao tác thành công" },
+          "data": { "type": "object" },
+          "errors": { "type": "array", "items": { "type": "string" }, "nullable": true },
+          "timestamp": { "type": "string", "format": "date-time", "example": "2026-11-05T08:00:00" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": { "type": "string", "example": "sinhvien01" },
+          "password": { "type": "string", "example": "123456" }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsIn..." },
+          "tokenType": { "type": "string", "example": "Bearer" },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer", "example": 1 },
+              "username": { "type": "string", "example": "sinhvien01" },
+              "fullName": { "type": "string", "example": "Nguyễn Văn A" },
+              "email": { "type": "string", "example": "vana@university.edu.vn" },
+              "role": { "type": "string", "enum": ["STUDENT", "LIBRARIAN"], "example": "STUDENT" }
+            }
+          }
+        }
+      },
+      "BookDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "title": { "type": "string", "example": "Lập trình Spring Boot từ cơ bản đến nâng cao" },
+          "author": { "type": "string", "example": "Đỗ Tuấn Anh" },
+          "category": { "type": "string", "example": "Công nghệ thông tin" },
+          "documentCode": { "type": "string", "example": "TL-CNTT-001" },
+          "publisher": { "type": "string", "example": "NXB Đại học Quốc Gia" },
+          "publishYear": { "type": "integer", "example": 2024 },
+          "description": { "type": "string", "example": "Giáo trình hướng dẫn Spring Boot 3..." },
+          "coverImage": { "type": "string", "example": "https://picsum.photos/400/600" },
+          "totalQuantity": { "type": "integer", "example": 10 },
+          "availableQuantity": { "type": "integer", "example": 7 },
+          "isAvailable": { "type": "boolean", "example": true }
+        }
+      },
+      "CreateBorrowRequest": {
+        "type": "object",
+        "required": ["bookIds", "pickupDate"],
+        "properties": {
+          "bookIds": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "example": [1, 2]
+          },
+          "pickupDate": { "type": "string", "format": "date", "example": "2026-11-06" },
+          "note": { "type": "string", "example": "Em lấy sách ca sáng" }
+        }
+      },
+      "BorrowOrderResponse": {
+        "type": "object",
+        "properties": {
+          "orderId": { "type": "integer", "example": 101 },
+          "orderCode": { "type": "string", "example": "OD-20261105-001" },
+          "status": { "type": "string", "example": "NEW" },
+          "pickupDate": { "type": "string", "example": "2026-11-06" },
+          "qrCodeBase64": { "type": "string", "example": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg..." },
+          "books": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/BookDto" }
+          }
+        }
+      },
+      "CreateReturnTicketRequest": {
+        "type": "object",
+        "required": ["borrowDetailIds", "scheduledReturnDate"],
+        "properties": {
+          "borrowDetailIds": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "example": [201, 202]
+          },
+          "scheduledReturnDate": { "type": "string", "format": "date", "example": "2026-11-10" }
+        }
+      },
+      "ReturnTicketResponse": {
+        "type": "object",
+        "properties": {
+          "ticketId": { "type": "integer", "example": 501 },
+          "ticketCode": { "type": "string", "example": "RT-20261105-001" },
+          "scheduledReturnDate": { "type": "string", "example": "2026-11-10" },
+          "status": { "type": "string", "example": "PENDING_RETURN" },
+          "qrCodeBase64": { "type": "string", "example": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg..." },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "borrowDetailId": { "type": "integer", "example": 201 },
+                "bookTitle": { "type": "string", "example": "Lập trình Spring Boot..." },
+                "dueDate": { "type": "string", "example": "2026-11-19" }
+              }
+            }
+          }
+        }
+      },
+      "CompleteReturnRequest": {
+        "type": "object",
+        "required": ["items"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["borrowDetailId", "bookCondition"],
+              "properties": {
+                "borrowDetailId": { "type": "integer", "example": 201 },
+                "bookCondition": { "type": "string", "enum": ["NORMAL", "TORN_COVER", "DIRTY_PAGE", "WATER_DAMAGED", "LOST"], "example": "NORMAL" },
+                "damageFee": { "type": "number", "example": 0 },
+                "note": { "type": "string", "example": "Sách nguyên vẹn" }
+              }
+            }
+          },
+          "librarianNote": { "type": "string", "example": "Đã nhận đủ sách" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "summary": "[Chung] Đăng nhập hệ thống",
+        "tags": ["1. Xác thực (Auth)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Đăng nhập thành công, trả về JWT Token" },
+          "400": { "description": "Sai tài khoản hoặc mật khẩu" }
+        }
+      }
+    },
+    "/api/books": {
+      "get": {
+        "summary": "[Chung] Danh sách & Tra cứu sách",
+        "tags": ["2. Sách (Books)"],
+        "parameters": [
+          { "name": "search", "in": "query", "schema": { "type": "string" }, "description": "Từ khóa tìm kiếm theo tên, tác giả, mã TL" },
+          { "name": "category", "in": "query", "schema": { "type": "string" }, "description": "Lọc theo chuyên ngành" },
+          { "name": "onlyAvailable", "in": "query", "schema": { "type": "boolean" }, "description": "Chỉ lấy sách còn khả dụng (>0)" },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 0 } },
+          { "name": "size", "in": "query", "schema": { "type": "integer", "default": 12 } }
+        ],
+        "responses": {
+          "200": { "description": "Danh sách sách phân trang" }
+        }
+      }
+    },
+    "/api/books/{id}": {
+      "get": {
+        "summary": "[Chung] Chi tiết cuốn sách",
+        "tags": ["2. Sách (Books)"],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Thông tin chi tiết cuốn sách và số lượng khả dụng" }
+        }
+      }
+    },
+    "/api/borrows/create": {
+      "post": {
+        "summary": "[Sinh viên] Tạo đơn mượn trực tuyến & Giữ chỗ",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["3. Mượn sách (Borrows)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateBorrowRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Tạo đơn thành công, trừ tồn kho khả dụng, sinh QR Base64" },
+          "400": { "description": "Sách đã hết bản sao khả dụng hoặc sinh viên vượt giới hạn 5 cuốn" }
+        }
+      }
+    },
+    "/api/borrows/my-loans": {
+      "get": {
+        "summary": "[Sinh viên] Danh sách sách đang mượn (để gia hạn hoặc hẹn trả sớm)",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["3. Mượn sách (Borrows)"],
+        "responses": {
+          "200": { "description": "Danh sách chi tiết các cuốn đang cầm, hạn trả, số lần gia hạn" }
+        }
+      }
+    },
+    "/api/borrows/{borrowDetailId}/renew": {
+      "post": {
+        "summary": "[Sinh viên] Gia hạn sách trực tuyến (+7 ngày, tối đa 2 lần)",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["3. Mượn sách (Borrows)"],
+        "parameters": [
+          { "name": "borrowDetailId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Gia hạn thành công, cập nhật dueDate mới" },
+          "400": { "description": "Đã quá hạn hoặc đã vượt quá số lần gia hạn cho phép" }
+        }
+      }
+    },
+    "/api/returns/create-ticket": {
+      "post": {
+        "summary": "[Sinh viên] Tạo phiếu hẹn trả sách sớm & Nhận mã QR",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["4. Trả sách (Returns)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateReturnTicketRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Tạo phiếu thành công, sinh mã QR trả sách Base64" },
+          "400": { "description": "Ngày hẹn trả không hợp lệ (vượt quá dueDate của sách)" }
+        }
+      }
+    },
+    "/api/returns/my-tickets": {
+      "get": {
+        "summary": "[Sinh viên] Xem danh sách các phiếu hẹn trả sách đã tạo",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["4. Trả sách (Returns)"],
+        "responses": {
+          "200": { "description": "Danh sách các phiếu hẹn kèm mã QR để xuất trình tại quầy" }
+        }
+      }
+    },
+    "/api/operations/handover": {
+      "post": {
+        "summary": "[Thủ thư] Quét QR bàn giao sách tại quầy -> Chuyển BORROWED",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["5. Nghiệp vụ Quầy (Desk Operations)"],
+        "parameters": [
+          { "name": "orderCode", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Bàn giao thành công, kích hoạt hạn trả chuẩn 14 ngày, gửi email" }
+        }
+      }
+    },
+    "/api/returns/{ticketId}/complete": {
+      "post": {
+        "summary": "[Thủ thư] Xác nhận hoàn tất trả sách, đối soát hư hại & phục hồi tồn kho",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["5. Nghiệp vụ Quầy (Desk Operations)"],
+        "parameters": [
+          { "name": "ticketId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CompleteReturnRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Hoàn tất trả sách, cộng trả tồn kho khả dụng, tính tiền phạt nếu có" }
+        }
+      }
+    }
+  }
+}
+
