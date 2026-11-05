@@ -1,5 +1,6 @@
 package com.library.entity;
 
+import com.library.enums.ShelfLocation;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -11,15 +12,16 @@ import java.time.LocalDateTime;
 
 /**
  * Thực thể Book - Đại diện cho bảng 'books' trong CSDL MySQL
- * Mô hình tinh gọn: Quản lý trực tiếp tổng số lượng (totalQuantity)
- * và số lượng khả dụng (availableQuantity) trong kho, không dùng BookCopy và vị trí kệ.
+ * Quản lý trực tiếp tổng số lượng (totalQuantity), số lượng khả dụng (availableQuantity)
+ * và vị trí kệ sách (shelfLocation) trong kho.
  */
 @Entity
 @Table(name = "books", indexes = {
     @Index(name = "idx_book_title", columnList = "title"),
     @Index(name = "idx_book_author", columnList = "author"),
     @Index(name = "idx_book_category", columnList = "category"),
-    @Index(name = "idx_book_document_code", columnList = "document_code")
+    @Index(name = "idx_book_document_code", columnList = "document_code"),
+    @Index(name = "idx_book_shelf_location", columnList = "shelf_location")
 })
 @Getter
 @Setter
@@ -50,6 +52,10 @@ public class Book {
     @Size(max = 50, message = "Mã tài liệu tối đa 50 ký tự")
     @Column(name = "document_code", length = 50)
     private String documentCode;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "shelf_location", length = 50)
+    private ShelfLocation shelfLocation;
 
     @Size(max = 150, message = "Nhà xuất bản tối đa 150 ký tự")
     @Column(name = "publisher", length = 150)
@@ -100,4 +106,3 @@ public class Book {
         return this.availableQuantity != null && this.availableQuantity > 0;
     }
 }
-
