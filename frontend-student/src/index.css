@@ -1,14 +1,21 @@
+```css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  * {
+    box-sizing: border-box;
+  }
+
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
   }
-  
+
   body {
+    margin: 0;
+    padding: 0;
     @apply bg-slate-50 text-slate-800 antialiased;
   }
 }
@@ -28,3 +35,4 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+```
