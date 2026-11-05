@@ -4,6 +4,7 @@ import StudentLayout from './components/layout/StudentLayout';
 import BottomNavMobile from './components/layout/BottomNavMobile';
 import BookCard from './components/common/BookCard';
 import mockBooks from './mockPCBooks.json';
+import mockMobileBooks from './mockMobileBooks.json';
 import { SlidersHorizontal, Check, X, MapPin, Plus, Search, ArrowUpRight } from 'lucide-react';
 
 function MobileApp() {
@@ -28,7 +29,7 @@ function MobileApp() {
     setTimeout(() => setToastMessage(''), 2500);
   };
 
-  const filteredBooks = mockBooks.filter((book) => {
+  const filteredBooks = mockMobileBooks.filter((book) => {
     const matchCat = selectedCategory === 'ALL' || book.category === selectedCategory;
     const matchSearch =
       book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

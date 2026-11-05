@@ -21,7 +21,12 @@
       "title": "LẬP TRÌNH\nPYTHON\nCƠ BẢN",
       "series": "TỦ SÁCH ĐẠI HỌC",
       "author": "Nguyễn Văn Hiệp"
-    }
+    },
+    "description": "Giáo trình cung cấp nền tảng lập trình Python từ cơ bản đến nâng cao, xử lý dữ liệu và thuật toán cho sinh viên UTH.",
+    "rating": 4.9,
+    "borrowCount": 142,
+    "featured": true,
+    "isNew": true
   },
   {
     "id": 2,
@@ -45,7 +50,12 @@
       "title": "KINH TẾ HỌC\nVI MÔ",
       "series": "TỦ SÁCH ĐẠI HỌC",
       "author": "N. Gregory Mankiw"
-    }
+    },
+    "description": "Các nguyên lý kinh tế học vi mô cốt lõi, phân tích hành vi người tiêu dùng, chi phí sản xuất và cân bằng thị trường.",
+    "rating": 4.8,
+    "borrowCount": 98,
+    "featured": true,
+    "isNew": false
   },
   {
     "id": 3,
@@ -69,7 +79,12 @@
       "title": "TỰ HỌC\nTIẾNG ANH\nGIAO TIẾP",
       "series": "TỦ SÁCH ĐẠI HỌC",
       "author": "Mai Lan Hương"
-    }
+    },
+    "description": "Phương pháp luyện giao tiếp tiếng Anh tự nhiên, các mẫu câu thông dụng hàng ngày và tình huống thực tế.",
+    "rating": 4.7,
+    "borrowCount": 185,
+    "featured": true,
+    "isNew": false
   },
   {
     "id": 4,
@@ -93,7 +108,12 @@
       "title": "CẤU TRÚC\nDỮ LIỆU &\nGIẢI THUẬT",
       "series": "TỦ SÁCH ĐẠI HỌC",
       "author": "Đỗ Xuân Lôi"
-    }
+    },
+    "description": "Phương pháp tổ chức dữ liệu, danh sách liên kết, cây nhị phân, đồ thị và các thuật toán tìm kiếm, sắp xếp kinh điển.",
+    "rating": 4.9,
+    "borrowCount": 210,
+    "featured": false,
+    "isNew": false
   },
   {
     "id": 5,
@@ -117,7 +137,12 @@
       "title": "TÀI CHÍNH\nDOANH NGHIỆP",
       "series": "TỦ SÁCH ĐẠI HỌC",
       "author": "Nguyễn Minh Kiều"
-    }
+    },
+    "description": "Phân tích báo cáo tài chính, quản trị nguồn vốn lưu động, định giá dự án đầu tư và cấu trúc tài chính doanh nghiệp.",
+    "rating": 4.6,
+    "borrowCount": 76,
+    "featured": false,
+    "isNew": false
   },
   {
     "id": 6,
@@ -141,7 +166,12 @@
       "title": "TỪ VỰNG\nTIẾNG ANH\nTHEO CHỦ ĐỀ",
       "series": "TỦ SÁCH ĐẠI HỌC",
       "author": "Nguyễn Thị Thu Huế"
-    }
+    },
+    "description": "Hệ thống từ vựng tiếng Anh phân loại theo từng chủ đề ứng dụng trong học tập, giao tiếp công sở và thi chứng chỉ.",
+    "rating": 4.7,
+    "borrowCount": 120,
+    "featured": false,
+    "isNew": true
   },
   {
     "id": 7,
@@ -165,7 +195,12 @@
       "title": "NHẬP MÔN\nTRÍ TUỆ\nNHÂN TẠO",
       "series": "TỦ SÁCH ĐẠI HỌC",
       "author": "Đinh Mạnh Tường"
-    }
+    },
+    "description": "Tổng quan về mạng nơ-ron nhân tạo, thuật toán học máy có giám sát, xử lý ngôn ngữ tự nhiên và thị giác máy tính.",
+    "rating": 5.0,
+    "borrowCount": 275,
+    "featured": true,
+    "isNew": true
   },
   {
     "id": 8,
@@ -189,6 +224,11 @@
       "title": "MARKETING\nCĂN BẢN",
       "series": "TỦ SÁCH ĐẠI HỌC",
       "author": "Trần Minh Đạo"
-    }
+    },
+    "description": "Các chiến lược Marketing 4P/7P kinh điển, nghiên cứu hành vi khách hàng và xây dựng chiến dịch tiếp thị số.",
+    "rating": 4.8,
+    "borrowCount": 134,
+    "featured": false,
+    "isNew": false
   }
 ]
