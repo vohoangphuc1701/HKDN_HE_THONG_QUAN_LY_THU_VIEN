@@ -45,8 +45,9 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng người dùng và phân quyền';
 
 -- ==============================================================================
--- 3. BẢNG BOOKS (Danh mục kho sách - Mô hình tinh gọn)
--- Quản lý trực tiếp tổng số lượng (total_quantity) và khả dụng (available_quantity)
+-- 3. BẢNG BOOKS (Danh mục kho sách)
+-- Quản lý trực tiếp tổng số lượng (total_quantity), khả dụng (available_quantity)
+-- và vị trí kệ sách (shelf_location: A1, A2, B1, B2, C1, C2, D1)
 -- ==============================================================================
 CREATE TABLE `books` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -54,6 +55,7 @@ CREATE TABLE `books` (
     `author` VARCHAR(150) NOT NULL COMMENT 'Tác giả chính / Chủ biên',
     `category` VARCHAR(100) NOT NULL COMMENT 'Chuyên ngành/thể loại',
     `document_code` VARCHAR(50) DEFAULT NULL COMMENT 'Mã tài liệu / Phân loại thư viện',
+    `shelf_location` VARCHAR(50) DEFAULT NULL COMMENT 'Vị trí kệ sách (A1, A2, B1, B2, C1, C2, D1)',
     `publisher` VARCHAR(150) DEFAULT NULL COMMENT 'Nhà xuất bản',
     `publish_year` INT DEFAULT NULL COMMENT 'Năm xuất bản',
     `description` TEXT DEFAULT NULL COMMENT 'Tóm tắt nội dung sách',
@@ -65,7 +67,8 @@ CREATE TABLE `books` (
     INDEX `idx_book_title` (`title`),
     INDEX `idx_book_author` (`author`),
     INDEX `idx_book_category` (`category`),
-    INDEX `idx_book_document_code` (`document_code`)
+    INDEX `idx_book_document_code` (`document_code`),
+    INDEX `idx_book_shelf_location` (`shelf_location`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng danh mục sách và tồn kho';
 
 -- ==============================================================================
