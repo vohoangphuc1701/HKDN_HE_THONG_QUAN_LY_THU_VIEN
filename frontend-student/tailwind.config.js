@@ -1,3 +1,4 @@
+```javascript
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -6,11 +7,11 @@ export default {
   ],
   theme: {
     screens: {
-      'xs': '375px',     // Smartphone nhỏ
-      'sm': '640px',     // Mobile breakpoint theo kế hoạch Tuần 1
-      'md': '768px',     // Tablet / Ranh giới Mobile & Desktop
-      'lg': '1024px',    // Desktop (phân hệ PC)
-      'xl': '1280px',
+      xs: '375px',
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
       '2xl': '1536px',
     },
     extend: {
@@ -20,12 +21,12 @@ export default {
       },
       colors: {
         uth: {
-          primary: '#00666b',       // Xanh mòng két chủ đạo theo thiết kế Figma
+          primary: '#00666b',
           hover: '#005458',
           secondary: '#147277',
           dark: '#0a4549',
-          surface: '#f4f8f7',       // Nền xám xanh nhạt trong thiết kế
-          mint: '#eaf3f0',          // Nền thẻ/khối nổi bật
+          surface: '#f4f8f7',
+          mint: '#eaf3f0',
           border: '#d1e5e0',
           accent: '#0d9488',
         },
@@ -47,20 +48,21 @@ export default {
         }
       },
       borderRadius: {
-        'none': '0px',
-        'sm': '3px',
-        'DEFAULT': '4px',
-        'md': '6px',
-        'lg': '8px',
-        'xl': '12px',
+        none: '0px',
+        sm: '3px',
+        DEFAULT: '4px',
+        md: '6px',
+        lg: '8px',
+        xl: '12px',
       },
       boxShadow: {
-        'xs': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-        'sm': '0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.04)',
-        'md': '0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.04)',
-        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04)',
+        xs: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        sm: '0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.04)',
+        md: '0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.04)',
+        lg: '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04)',
       }
     },
   },
   plugins: [],
 }
+```
