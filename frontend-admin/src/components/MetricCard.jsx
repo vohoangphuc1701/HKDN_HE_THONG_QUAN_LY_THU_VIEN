@@ -1,28 +1,38 @@
 /*
- * Thẻ hiển thị các chỉ số tổng quan kèm xu hướng tăng giảm cho Dashboard.
+ * Thẻ hiển thị các chỉ số thống kê tổng quan (tổng sách, đơn chờ gom, quá hạn) kèm xu hướng thay đổi.
  */
-export default function MetricCard({ title, value, change, changeLabel, icon: Icon }) {
+export default function MetricCard({
+  title,
+  value,
+  change,
+  changeLabel,
+  icon: Icon,
+  color = 'blue',
+}) {
   const isUp = change && change.startsWith('+')
   const isDown = change && change.startsWith('-')
   const trendClass = isUp ? 'trend--up' : isDown ? 'trend--down' : ''
+  const iconColorClass = color ? `metric-card__icon--${color}` : 'metric-card__icon--blue'
 
   return (
     <div className="metric-card">
-      <div className="metric-card__header">
-        <span className="metric-card__title">{title}</span>
-        {Icon && (
-          <span className="metric-card__icon">
-            <Icon size={20} />
-          </span>
+      {Icon && (
+        <span className={`metric-card__icon ${iconColorClass}`}>
+          <Icon size={20} />
+        </span>
+      )}
+
+      <div className="metric-card__body">
+        <p>{title}</p>
+        <strong>{value}</strong>
+
+        {change && (
+          <div className={`trend ${trendClass}`}>
+            {change}
+            {changeLabel && <small> {changeLabel}</small>}
+          </div>
         )}
       </div>
-      <div className="metric-card__value">{value}</div>
-      {change && (
-        <div className="metric-card__footer">
-          <span className={`metric-card__trend ${trendClass}`}>{change}</span>
-          {changeLabel && <span className="metric-card__label"> {changeLabel}</span>}
-        </div>
-      )}
     </div>
   )
 }
