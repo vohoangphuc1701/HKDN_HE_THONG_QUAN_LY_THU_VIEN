@@ -230,5 +230,63 @@
     "borrowCount": 134,
     "featured": false,
     "isNew": false
+  },
+  {
+    "id": 9,
+    "code": "LOG-SCM-001",
+    "title": "Quản trị Chuỗi cung ứng và Logistics",
+    "author": "Đặng Đình Đào",
+    "category": "LOGISTICS & VẬN TẢI",
+    "publisher": "NXB Giao thông Vận tải",
+    "publishYear": 2023,
+    "quantity": 14,
+    "availableQuantity": 11,
+    "status": "AVAILABLE",
+    "statusText": "Còn 11 cuốn sẵn sàng",
+    "language": "Tiếng Việt",
+    "pages": 450,
+    "type": "Giáo trình chính",
+    "location": "Khu Vận tải & Logistics · Kệ D1",
+    "coverTheme": {
+      "bg": "#0369a1",
+      "textColor": "#ffffff",
+      "title": "QUẢN TRỊ\nCHUỖI CUNG ỨNG\n& LOGISTICS",
+      "series": "TỦ SÁCH ĐẠI HỌC",
+      "author": "Đặng Đình Đào"
+    },
+    "description": "Nền tảng quản trị logistics hiện đại, thiết kế mạng lưới phân phối, quản lý kho bãi và chuỗi cung ứng quốc tế UTH.",
+    "rating": 4.9,
+    "borrowCount": 168,
+    "featured": true,
+    "isNew": true
+  },
+  {
+    "id": 10,
+    "code": "LOG-CB-002",
+    "title": "Khai thác Cảng biển & Vận tải Quốc tế",
+    "author": "Nguyễn Văn Khoa",
+    "category": "LOGISTICS & VẬN TẢI",
+    "publisher": "NXB Giao thông Vận tải",
+    "publishYear": 2023,
+    "quantity": 10,
+    "availableQuantity": 7,
+    "status": "AVAILABLE",
+    "statusText": "Còn 7 cuốn sẵn sàng",
+    "language": "Tiếng Việt",
+    "pages": 380,
+    "type": "Sách chuyên ngành",
+    "location": "Khu Vận tải & Logistics · Kệ D2",
+    "coverTheme": {
+      "bg": "#0f766e",
+      "textColor": "#ffffff",
+      "title": "KHAI THÁC\nCẢNG BIỂN &\nVẬN TẢI QUỐC TẾ",
+      "series": "TỦ SÁCH ĐẠI HỌC",
+      "author": "Nguyễn Văn Khoa"
+    },
+    "description": "Quy trình vận hành logistics cảng biển, chứng từ vận tải đa phương thức quốc tế và nghiệp vụ giao nhận hàng hóa xuất nhập khẩu.",
+    "rating": 4.8,
+    "borrowCount": 155,
+    "featured": true,
+    "isNew": true
   }
 ]
