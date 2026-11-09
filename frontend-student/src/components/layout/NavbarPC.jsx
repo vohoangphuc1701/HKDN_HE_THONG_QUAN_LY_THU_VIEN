@@ -325,7 +325,7 @@ const NavbarPC = ({
 
             {/* Dropdown Profile - Nâng cấp cỡ chữ lớn, rõ nét và dễ đọc */}
             {showProfile && (
-              <div className="absolute right-0 mt-2.5 w-80 sm:w-84 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200/90 z-50 animate-in fade-in duration-150 overflow-hidden divide-y divide-slate-100">
+              <div className="absolute right-0 mt-2.5 w-84 sm:w-88 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200/90 z-50 animate-in fade-in duration-150 overflow-hidden divide-y divide-slate-100">
                 {/* Header người dùng */}
                 <div className="p-4 bg-gradient-to-br from-slate-50 to-teal-50/50">
                   <div className="flex items-center gap-3">
@@ -355,17 +355,17 @@ const NavbarPC = ({
 
                   {/* Chỉ số nhanh thư viện */}
                   <div className="mt-3.5 grid grid-cols-3 gap-2 pt-3 border-t border-slate-200/70 text-center">
-                    <div className="bg-white rounded-xl p-2.5 border border-slate-100 shadow-2xs">
-                      <span className="block text-xs text-slate-500 font-medium">Đang mượn</span>
-                      <strong className="block text-sm font-bold text-slate-900 mt-0.5">3 cuốn</strong>
+                    <div className="bg-white rounded-xl py-2 px-1 sm:px-2 border border-slate-100 shadow-2xs">
+                      <span className="block text-[11px] sm:text-xs text-slate-500 font-medium whitespace-nowrap">Đang mượn</span>
+                      <strong className="block text-sm font-bold text-slate-900 mt-0.5 tabular-nums">3 cuốn</strong>
                     </div>
-                    <div className="bg-white rounded-xl p-2.5 border border-slate-100 shadow-2xs">
-                      <span className="block text-xs text-slate-500 font-medium">Hạn gần nhất</span>
-                      <strong className="block text-sm font-bold text-amber-700 mt-0.5">15/11</strong>
+                    <div className="bg-white rounded-xl py-2 px-1 sm:px-2 border border-slate-100 shadow-2xs">
+                      <span className="block text-[11px] sm:text-xs text-slate-500 font-medium whitespace-nowrap">Hạn gần nhất</span>
+                      <strong className="block text-sm font-bold text-amber-700 mt-0.5 tabular-nums">15/11</strong>
                     </div>
-                    <div className="bg-white rounded-xl p-2.5 border border-slate-100 shadow-2xs">
-                      <span className="block text-xs text-slate-500 font-medium">Phí phạt</span>
-                      <strong className="block text-sm font-bold text-emerald-700 mt-0.5">0đ</strong>
+                    <div className="bg-white rounded-xl py-2 px-1 sm:px-2 border border-slate-100 shadow-2xs">
+                      <span className="block text-[11px] sm:text-xs text-slate-500 font-medium whitespace-nowrap">Phí phạt</span>
+                      <strong className="block text-sm font-bold text-emerald-700 mt-0.5 tabular-nums">0đ</strong>
                     </div>
                   </div>
                 </div>
