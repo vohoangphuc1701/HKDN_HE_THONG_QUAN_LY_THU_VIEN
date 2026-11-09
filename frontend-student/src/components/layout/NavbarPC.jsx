@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   ShoppingBag,
@@ -26,6 +27,7 @@ const NavbarPC = ({
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const navigate = useNavigate();
 
   const notifRef = useRef(null);
   const profileRef = useRef(null);
@@ -419,7 +421,10 @@ const NavbarPC = ({
                 <div className="p-2 bg-slate-50/50">
                   <button
                     type="button"
-                    onClick={() => setShowProfile(false)}
+                    onClick={() => {
+                      setShowProfile(false);
+                      navigate('/login');
+                    }}
                     className="w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer text-left"
                   >
                     <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center shrink-0">

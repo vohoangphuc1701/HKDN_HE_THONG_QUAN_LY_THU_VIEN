@@ -246,12 +246,41 @@ export default function BookDetailPage({
 
   return (
     <div className="space-y-8 select-none font-sans animate-in fade-in duration-150">
-      {/* Toast thông báo nhanh */}
+      {/* Toast thông báo nhanh cao cấp */}
       {toastMsg && (
-        <div className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 animate-in slide-in-from-top-2 duration-150">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>{toastMsg}</span>
-        </div>
+        <aside
+          role="status"
+          aria-live="polite"
+          className="fixed top-20 right-6 z-50 animate-in fade-in slide-in-from-top-3 duration-200 select-none max-w-sm"
+        >
+          <div className="relative overflow-hidden rounded-2xl bg-slate-900/95 text-white p-3.5 pl-4 pr-4 shadow-2xl shadow-slate-950/40 border border-slate-700/80 backdrop-blur-md ring-1 ring-white/10 flex items-center gap-3">
+            {/* Thanh vạch phát sáng đỉnh */}
+            <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-400" />
+
+            {/* Icon nhận diện thành công */}
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4.5 h-4.5 stroke-[2.2]" />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-teal-300 block">
+                Thư viện UTH
+              </span>
+              <p className="text-xs sm:text-[13px] font-bold text-white leading-snug mt-0.5">
+                {toastMsg}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setToastMsg('')}
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+              title="Đóng thông báo"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </aside>
       )}
 
       {/* 1. THANH ĐIỀU HƯỚNG VÀ BREADCRUMB */}
