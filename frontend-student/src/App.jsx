@@ -9,7 +9,7 @@ import ReturnQrModal from './components/common/ReturnQrModal';
 import FilterSidebarPC from './components/responsive/FilterSidebarPC';
 import LoansTableViewPC from './components/responsive/LoansTableViewPC';
 import LoginPage from './pages/LoginPage';
-// import RegisterPage from './pages/RegisterPage';
+import RegisterPage from './pages/RegisterPage';
 import mockBooks from './mockPCBooks.json';
 import mockMobileBooks from './mockMobileBooks.json';
 import {
@@ -1829,6 +1829,7 @@ function App() {
       <Routes>
         {/* Trang Đăng nhập & Đăng ký theo mẫu thiết kế UTH */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         {/* Các màn hình ứng dụng thư viện */}
         <Route
