@@ -259,17 +259,34 @@ const NavbarPC = ({
             )}
           </div>
 
-          {/* 2. Nút Giỏ sách thanh gọn */}
+          {/* 2. Nút Giỏ mượn sách Pick & Go nổi bật */}
           <button
             type="button"
             onClick={onOpenCart}
-            className="h-9 px-3 rounded-lg flex items-center gap-2 transition-all border border-white/20 bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+            className={`h-9 px-3.5 rounded-xl flex items-center gap-2.5 transition-all cursor-pointer font-heading select-none ${
+              cartCount > 0
+                ? 'bg-gradient-to-r from-amber-400 to-amber-300 text-slate-950 font-black shadow-md hover:shadow-lg hover:from-amber-300 hover:to-amber-200 ring-2 ring-amber-400/40 active:scale-95'
+                : 'border border-white/20 bg-white/10 hover:bg-white/20 text-white'
+            }`}
             aria-label="Giỏ mượn sách"
-            title="Mở giỏ mượn sách"
+            title="Mở giỏ mượn sách Pick & Go"
           >
-            <ShoppingBag className="w-4 h-4 text-white shrink-0" />
-            <span className="hidden lg:inline text-xs font-bold">Giỏ mượn</span>
-            <span className="bg-amber-400 text-slate-900 text-[10px] font-black h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded shadow-xs">
+            <div className="relative flex items-center justify-center">
+              <ShoppingBag className={`w-4 h-4 ${cartCount > 0 ? 'text-slate-950 stroke-[2.4]' : 'text-white'}`} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-amber-400 animate-pulse" />
+              )}
+            </div>
+            <span className={`text-xs ${cartCount > 0 ? 'font-black tracking-tight' : 'font-bold hidden lg:inline'}`}>
+              Giỏ mượn
+            </span>
+            <span
+              className={`text-[11px] font-black h-5 min-w-[22px] px-1.5 flex items-center justify-center rounded-lg shadow-2xs font-mono ${
+                cartCount > 0
+                  ? 'bg-slate-950 text-amber-300'
+                  : 'bg-white/20 text-white'
+              }`}
+            >
               {cartCount}
             </span>
           </button>
