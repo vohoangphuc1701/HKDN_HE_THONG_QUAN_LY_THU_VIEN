@@ -36,7 +36,8 @@ import {
   FileText,
   Headphones,
   MapPin,
-  Phone
+  Phone,
+  ShoppingBag
 } from 'lucide-react';
 
 /* ==================== PHẦN 1: GIAO DIỆN MOBILE WEB (TV2) ==================== */
@@ -509,6 +510,7 @@ function DesktopApp() {
       if (sortBy === 'newest') return (b.publishYear || 0) - (a.publishYear || 0);
       if (sortBy === 'available') return (b.availableQuantity || 0) - (a.availableQuantity || 0);
       if (sortBy === 'borrowCount') return (b.borrowCount || 0) - (a.borrowCount || 0);
+      if (sortBy === 'title') return a.title.localeCompare(b.title);
       return a.id - b.id;
     });
 
@@ -1389,26 +1391,92 @@ function DesktopApp() {
         </div>
       )}
 
-      {/* 3. MÀN HÌNH KHO SÁCH (CÓ BỘ LỌC SIDEBAR FILTER CHUYÊN NGHIỆP) */}
+      {/* 3. MÀN HÌNH KHO SÁCH (CÓ BỘ LỌC SIDEBAR FILTER CHUYÊN NGHIỆP - TV3 DESKTOP) */}
       {activeTab === 'catalog' && (
         <div className="space-y-6 select-none">
-          {/* Header Kho sách */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
-            <div>
-              <h1 className="text-2xl font-black text-slate-900 font-heading tracking-tight">
-                Kho Sách & Giáo Trình UTH
-              </h1>
-              <p className="text-xs text-slate-500 mt-1">
-                Tìm kiếm và lọc tài liệu theo chuyên ngành, tình trạng kho khả dụng và vị trí kệ sách.
-              </p>
+          {/* Header Kho sách với Nền UTH Deep Academic Teal sang trọng và chỉ số năng lực */}
+          <div className="bg-gradient-to-br from-[#002e32] via-[#00474b] to-[#002528] rounded-3xl p-6 sm:p-8 border border-teal-700/60 shadow-xl relative overflow-hidden text-white space-y-5">
+            {/* Họa tiết quầng sáng học thuật & ma trận điểm */}
+            <div className="absolute -top-16 -right-16 w-80 h-80 bg-teal-400/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-16 -left-16 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
+            <div
+              className="absolute inset-0 opacity-[0.035] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"
+              aria-hidden="true"
+            />
+
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-teal-200/80">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('home')}
+                    className="hover:text-white transition-colors cursor-pointer"
+                  >
+                    Trang chủ
+                  </button>
+                  <span className="text-teal-400/60">/</span>
+                  <span className="text-teal-100 font-bold">Kho giáo trình & Tài liệu học thuật</span>
+                  {selectedCategory !== 'ALL' && (
+                    <>
+                      <span className="text-teal-400/60">/</span>
+                      <span className="text-amber-300 font-bold">{selectedCategory}</span>
+                    </>
+                  )}
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl font-black text-white font-heading tracking-tight drop-shadow-xs">
+                  Kho Sách & Giáo Trình Chính Quy UTH
+                </h1>
+
+                <p className="text-xs sm:text-sm text-teal-100/90 max-w-2xl leading-relaxed font-medium">
+                  Tra cứu nguồn tài liệu phục vụ giảng dạy và nghiên cứu, liên thông dữ liệu sách giữa 3 cơ sở đào tạo Thư viện Đại học Giao thông Vận tải TP.HCM.
+                </p>
+              </div>
+
+              {/* Chỉ số năng lực thư viện UTH */}
+              <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap relative z-10">
+                <div className="px-4 py-2.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-sm text-center">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-teal-200/80">Tài liệu</span>
+                  <span className="text-sm font-black text-white font-mono">50.000+ cuốn</span>
+                </div>
+                <div className="px-4 py-2.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-sm text-center">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-teal-200/80">Mạng lưới</span>
+                  <span className="text-sm font-black text-teal-100 font-mono">3 Cơ sở UTH</span>
+                </div>
+                <div className="px-4 py-2.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-sm text-center">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-300">Hạn mức BR01</span>
+                  <span className="text-sm font-black text-amber-300 font-mono">5 cuốn / SV</span>
+                </div>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('home')}
-              className="text-xs text-slate-600 hover:text-[#00666B] font-semibold flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-            >
-              <span>Về Trang chủ</span>
-            </button>
+
+            {/* Dải gợi ý từ khóa tìm nhanh */}
+            <div className="pt-4 border-t border-white/15 flex items-center gap-2 flex-wrap relative z-10">
+              <span className="text-xs font-bold text-teal-200 flex items-center gap-1.5 shrink-0">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>Tìm nhanh:</span>
+              </span>
+              {[
+                'Lập trình Python',
+                'Kinh tế vi mô',
+                'Logistics & Vận tải',
+                'Trí tuệ nhân tạo',
+                'Tiếng Anh chuyên ngành',
+              ].map((kw) => (
+                <button
+                  key={kw}
+                  type="button"
+                  onClick={() => setSearchQuery(kw)}
+                  className={`text-xs px-3.5 py-1.5 rounded-xl border transition-all cursor-pointer font-medium backdrop-blur-xs ${
+                    searchQuery === kw
+                      ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-sm font-black'
+                      : 'bg-white/10 hover:bg-white/20 text-teal-100 border-white/15'
+                  }`}
+                >
+                  {kw}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* BỐ CỤC 2 CỘT: CỘT BỘ LỌC + CỘT GRID SÁCH */}
@@ -1429,17 +1497,93 @@ function DesktopApp() {
 
             {/* Cột phải: Thanh công cụ Catalog & Grid danh mục sách */}
             <div className="flex-1 space-y-5 min-w-0">
-              {/* Thanh điều khiển catalog */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-800">
-                    Hiển thị <span className="text-[#00666B] font-black">{filteredBooks.length}</span> giáo trình
+              {/* Thanh các thẻ lọc đang áp dụng */}
+              {hasActiveFilters && (
+                <div className="flex flex-wrap items-center gap-2 p-3 bg-teal-50/60 rounded-2xl border border-teal-100 text-xs">
+                  <span className="font-bold text-[#00666B] text-[11px] uppercase tracking-wider">
+                    Đang lọc:
                   </span>
-                  {hasActiveFilters && (
-                    <span className="text-[10px] font-semibold text-teal-800 bg-[#e0eff0] px-2 py-0.5 rounded">
-                      Đang áp dụng bộ lọc
+
+                  {searchQuery && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-lg border border-teal-200 text-slate-800 font-medium shadow-2xs">
+                      <span>Từ khóa: <strong>"{searchQuery}"</strong></span>
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
+                        title="Xóa tìm kiếm"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </span>
                   )}
+
+                  {selectedCategory !== 'ALL' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-lg border border-teal-200 text-slate-800 font-medium shadow-2xs">
+                      <span>Ngành: <strong>{selectedCategory}</strong></span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCategory('ALL')}
+                        className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
+                        title="Xóa chuyên ngành"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+
+                  {onlyAvailable && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-lg border border-teal-200 text-emerald-800 font-medium shadow-2xs">
+                      <span>Chỉ sách còn sẵn</span>
+                      <button
+                        type="button"
+                        onClick={() => setOnlyAvailable(false)}
+                        className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
+                        title="Bỏ lọc còn sẵn"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+
+                  {selectedType !== 'ALL' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-lg border border-teal-200 text-slate-800 font-medium shadow-2xs">
+                      <span>Loại: <strong>{selectedType === 'PRINT' ? 'Sách in tại quầy' : 'E-Book / Số'}</strong></span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedType('ALL')}
+                        className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
+                        title="Xóa lọc loại hình"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    className="ml-auto text-[11px] font-bold text-rose-600 hover:text-rose-700 underline cursor-pointer"
+                  >
+                    Xóa tất cả bộ lọc
+                  </button>
+                </div>
+              )}
+
+              {/* Thanh điều khiển catalog */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#e0eff0] text-[#00666B] flex items-center justify-center font-black text-xs font-mono">
+                    {filteredBooks.length}
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 block leading-tight">
+                      Kết quả danh mục
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Hiển thị <strong>{filteredBooks.length}</strong> giáo trình đào tạo
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -1449,52 +1593,55 @@ function DesktopApp() {
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#00666B] cursor-pointer"
+                      className="bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00666B] cursor-pointer"
                     >
                       <option value="relevant">Phù hợp nhất</option>
-                      <option value="newest">Mới nhất</option>
+                      <option value="newest">Mới nhất (Năm xuất bản)</option>
                       <option value="available">Còn sẵn nhiều nhất</option>
                       <option value="borrowCount">Lượt mượn nhiều nhất</option>
+                      <option value="title">Tên sách (A - Z)</option>
                     </select>
                   </div>
 
                   {/* Chuyển chế độ xem */}
-                  <div className="flex items-center border border-slate-200 rounded-lg p-0.5 bg-slate-50">
+                  <div className="flex items-center border border-slate-200 rounded-xl p-0.5 bg-slate-50 shadow-2xs">
                     <button
                       type="button"
                       onClick={() => setViewMode('grid')}
-                      className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                      className={`px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold ${
                         viewMode === 'grid'
-                          ? 'bg-white text-[#00666B] shadow-2xs font-bold'
+                          ? 'bg-white text-[#00666B] shadow-2xs'
                           : 'text-slate-400 hover:text-slate-700'
                       }`}
-                      title="Xem dạng lưới"
+                      title="Xem dạng lưới 3D"
                     >
                       <LayoutGrid className="w-3.5 h-3.5" />
+                      <span className="hidden md:inline">Lưới 3D</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setViewMode('compact')}
-                      className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                      className={`px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold ${
                         viewMode === 'compact'
-                          ? 'bg-white text-[#00666B] shadow-2xs font-bold'
+                          ? 'bg-white text-[#00666B] shadow-2xs'
                           : 'text-slate-400 hover:text-slate-700'
                       }`}
                       title="Xem dạng danh sách gọn"
                     >
                       <List className="w-3.5 h-3.5" />
+                      <span className="hidden md:inline">Danh sách</span>
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Grid sách */}
+              {/* Grid sách hoặc Danh sách gọn */}
               {filteredBooks.length > 0 ? (
                 <div
                   className={
                     viewMode === 'grid'
                       ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
-                      : 'space-y-3'
+                      : 'space-y-3.5'
                   }
                 >
                   {filteredBooks.map((book) => {
@@ -1506,28 +1653,44 @@ function DesktopApp() {
                         onAddToCart={handleAddToCart}
                         onViewDetail={(item) => handleViewBookDetail(item || book)}
                         isInCart={isInCart}
+                        viewMode={viewMode}
                       />
                     );
                   })}
                 </div>
               ) : (
                 /* Empty state khi không tìm thấy kết quả */
-                <div className="bg-white rounded-xl border border-slate-200/90 p-12 text-center space-y-3 shadow-2xs">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-                    <Search className="w-5 h-5" />
+                <div className="bg-white rounded-3xl border border-slate-200/90 p-12 text-center space-y-4 shadow-2xs">
+                  <div className="w-16 h-16 rounded-2xl bg-teal-50 text-[#00666B] flex items-center justify-center mx-auto shadow-xs">
+                    <Search className="w-7 h-7" />
                   </div>
-                  <h3 className="text-sm font-bold text-slate-800">Không tìm thấy tài liệu phù hợp</h3>
-                  <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-                    Không có giáo trình nào khớp với từ khóa "{searchQuery}" hoặc các tiêu chí lọc đang chọn.
-                  </p>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-800">Không tìm thấy tài liệu phù hợp</h3>
+                    <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed mt-1">
+                      Không có giáo trình nào khớp với từ khóa "{searchQuery}" hoặc các tiêu chí lọc đang chọn. Bạn có thể xóa bộ lọc hoặc tìm kiếm bằng từ khóa khác.
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={handleResetFilters}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#00666B] text-white text-xs font-semibold rounded-lg hover:bg-[#005458] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#00666B] hover:bg-[#005458] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Xóa toàn bộ bộ lọc</span>
                   </button>
+                </div>
+              )}
+
+              {/* Tóm tắt chân trang kho sách */}
+              {filteredBooks.length > 0 && (
+                <div className="p-4 bg-white rounded-2xl border border-slate-200/90 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 shadow-2xs">
+                  <span>
+                    Đang hiển thị toàn bộ <strong>{filteredBooks.length}</strong> giáo trình trên hệ thống Thư viện UTH.
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="font-semibold text-slate-700">Dữ liệu thời gian thực</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -1553,6 +1716,40 @@ function DesktopApp() {
         onClose={() => setQrModalOrder(null)}
         order={qrModalOrder}
       />
+
+      {/* Floating Cart Quick Access Pill (Desktop) */}
+      {cartItems.length > 0 && !isCartOpen && (
+        <aside
+          aria-label="Xem giỏ mượn nhanh"
+          className="fixed bottom-8 right-8 z-40 hidden lg:block animate-in fade-in slide-in-from-bottom duration-300 select-none"
+        >
+          <button
+            type="button"
+            onClick={() => setIsCartOpen(true)}
+            className="group flex items-center gap-3 bg-gradient-to-r from-[#002b2e] to-[#00474b] hover:from-[#002022] hover:to-[#00383b] text-white p-2.5 pl-4 pr-4 rounded-2xl shadow-2xl border-2 border-teal-400/40 hover:border-amber-400 transition-all hover:scale-105 active:scale-95 cursor-pointer ring-4 ring-black/10"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black shadow-md group-hover:rotate-6 transition-transform">
+              <ShoppingBag className="w-5 h-5 stroke-[2.5]" />
+            </div>
+            <div className="text-left">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest">
+                  Pick & Go · UTH
+                </span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <div className="text-xs font-black tracking-tight flex items-center gap-1.5 mt-0.5">
+                <span>Giỏ mượn:</span>
+                <span className="text-amber-300 font-mono text-sm">{cartItems.length}/5</span>
+                <span>cuốn</span>
+              </div>
+            </div>
+            <div className="ml-1 w-8 h-8 rounded-xl bg-white/10 group-hover:bg-amber-400 group-hover:text-slate-950 flex items-center justify-center transition-colors">
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </button>
+        </aside>
+      )}
 
       {/* Toast thông báo Desktop */}
       {toastMessage && (
