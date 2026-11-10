@@ -8,6 +8,8 @@ import CartDrawer from './components/common/CartDrawer';
 import ReturnQrModal from './components/common/ReturnQrModal';
 import FilterSidebarPC from './components/responsive/FilterSidebarPC';
 import LoansTableViewPC from './components/responsive/LoansTableViewPC';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import mockBooks from './mockPCBooks.json';
 import mockMobileBooks from './mockMobileBooks.json';
 import {
@@ -339,14 +341,13 @@ function DesktopApp() {
   const navigate = useNavigate();
   const { id: routeBookId } = useParams();
 
-  // Xác định tab từ URL path
-  const getTabFromPath = () => {
-    if (location.pathname === '/books' || location.pathname === '/catalog' || location.pathname.startsWith('/books/')) return 'catalog';
-    if (location.pathname === '/loans') return 'loans';
-    return 'home';
-  };
-
-  const [activeTab, setActiveTabState] = useState(getTabFromPath);
+  // Xác định tab trực tiếp từ URL path
+  const activeTab =
+    location.pathname === '/books' || location.pathname === '/catalog' || location.pathname.startsWith('/books/')
+      ? 'catalog'
+      : location.pathname === '/loans'
+        ? 'loans'
+        : 'home';
   const [heroCampus, setHeroCampus] = useState(1); // 1: Cơ sở 1, 2: Cơ sở 2, 3: Cơ sở 3
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -392,7 +393,6 @@ function DesktopApp() {
 
   // Đồng bộ tab và URL khi đổi tab
   const setActiveTab = (tab) => {
-    setActiveTabState(tab);
     setSelectedBookDetail(null);
     if (tab === 'home' && location.pathname !== '/') {
       navigate('/');
@@ -402,10 +402,6 @@ function DesktopApp() {
       navigate('/loans');
     }
   };
-
-  useEffect(() => {
-    setActiveTabState(getTabFromPath());
-  }, [location.pathname]);
 
   // Giỏ mượn sách khởi tạo mẫu
   const [cartItems, setCartItems] = useState([
@@ -555,32 +551,67 @@ function DesktopApp() {
         <>
           {/* 1. MÀN HÌNH SÁCH ĐANG MƯỢN */}
           {activeTab === 'loans' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-200">
-            <div>
-              <h1 className="text-2xl font-black text-slate-900 font-heading tracking-tight">
-                Hồ Sơ Mượn Sách & Gia Hạn
-              </h1>
-              <p className="text-xs text-slate-500 mt-1">
-                Theo dõi thời hạn các tài liệu đang giữ, gia hạn trực tuyến và lấy mã QR quầy.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('catalog')}
-              className="px-4 py-2 bg-[#00666B] hover:bg-[#005458] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
-            >
-              <Compass className="w-4 h-4" />
-              <span>Tiếp tục mượn sách</span>
-            </button>
-          </div>
+            <div className="space-y-6 animate-in fade-in duration-150">
+              {/* HERO BANNER - NỀN UTH ACADEMIC TEAL ĐẶC TRƯNG CHO HỒ SƠ MƯỢN SÁCH & GIA HẠN */}
+              <div className="relative rounded-3xl overflow-hidden shadow-xl border border-teal-800/40 bg-gradient-to-r from-[#00383b] via-[#004e53] to-[#00282b] text-white p-6 sm:p-8 lg:p-10">
+                {/* Họa tiết ánh sáng & hình học học thuật tinh tế */}
+                <div className="absolute -top-20 -right-20 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-20 left-1/4 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
+                <div
+                  className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"
+                  aria-hidden="true"
+                />
 
-          <LoansTableViewPC
-            onOpenQrModal={(order) => setQrModalOrder(order)}
-            onShowToast={showToast}
-          />
-        </div>
-      )}
+                <div className="relative z-1 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="space-y-2.5 max-w-2xl">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-teal-200 text-xs font-bold w-fit backdrop-blur-md shadow-xs">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Cổng Dịch Vụ Mượn Trả Trực Tuyến · Thư Viện UTH</span>
+                    </div>
+
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-heading tracking-tight text-white leading-tight">
+                      Hồ Sơ Mượn Sách & Gia Hạn
+                    </h1>
+
+                    <p className="text-xs sm:text-sm text-teal-100/90 leading-relaxed font-normal">
+                      Quản lý chi tiết hạn hoàn trả các giáo trình đang giữ, gia hạn trực tuyến thêm 7 ngày (BR03) và nhận sách tại quầy Pick & Go.
+                    </p>
+
+                    <div className="flex items-center gap-4 pt-1 text-xs text-teal-200/90 flex-wrap font-medium">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-300" />
+                        Thời hạn mượn: 14 ngày (BR02)
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-300" />
+                        Gia hạn online: 1 lần (+7 ngày) (BR03)
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-300" />
+                        Liên thông 3 cơ sở trường UTH
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0 self-start md:self-center">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('catalog')}
+                      className="px-4 py-2.5 bg-white text-[#00666B] hover:bg-teal-50 text-xs font-bold rounded-xl transition-all shadow-md cursor-pointer flex items-center gap-2 hover:-translate-y-0.5"
+                    >
+                      <Compass className="w-4 h-4" />
+                      <span>Tiếp tục tìm mượn sách</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <LoansTableViewPC
+                onOpenQrModal={(order) => setQrModalOrder(order)}
+                onShowToast={showToast}
+              />
+            </div>
+          )}
 
       {/* 2. MÀN HÌNH TRANG CHỦ: KHÔNG HIỆN BỘ LỌC, HIỆN SÁCH MỚI & ĐỀ XUẤT */}
       {activeTab === 'home' && (
@@ -1751,12 +1782,41 @@ function DesktopApp() {
         </aside>
       )}
 
-      {/* Toast thông báo Desktop */}
+      {/* Toast thông báo Desktop cao cấp (Impeccable Floating Toast) */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900/95 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold animate-in slide-in-from-bottom duration-200 border border-slate-700 select-none">
-          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>{toastMessage}</span>
-        </div>
+        <aside
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-3 duration-200 select-none max-w-sm"
+        >
+          <div className="relative overflow-hidden rounded-2xl bg-slate-900/95 text-white p-3.5 pl-4 pr-4 shadow-2xl shadow-slate-950/40 border border-slate-700/80 backdrop-blur-md ring-1 ring-white/10 flex items-center gap-3">
+            {/* Thanh vạch phát sáng đỉnh */}
+            <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-400" />
+
+            {/* Icon nhận diện thành công */}
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 flex items-center justify-center shrink-0">
+              <Check className="w-4.5 h-4.5 stroke-[2.2]" />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-teal-300 block">
+                Thư viện UTH
+              </span>
+              <p className="text-xs sm:text-[13px] font-bold text-white leading-snug mt-0.5">
+                {toastMessage}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setToastMessage('')}
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+              title="Đóng thông báo"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </aside>
       )}
     </StudentLayout>
   );
@@ -1766,22 +1826,36 @@ function DesktopApp() {
 function App() {
   return (
     <BrowserRouter>
-      {/* Màn hình nhỏ dưới lg (dưới 1024px) hiển thị Mobile */}
-      <div className="lg:hidden">
-        <MobileApp />
-      </div>
+      <Routes>
+        {/* Trang Đăng nhập & Đăng ký theo mẫu thiết kế UTH */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
-      {/* Màn hình máy tính từ lg (1024px trở lên) hiển thị Desktop */}
-      <div className="hidden lg:block">
-        <Routes>
-          <Route path="/" element={<DesktopApp />} />
-          <Route path="/books" element={<DesktopApp />} />
-          <Route path="/books/:id" element={<DesktopApp />} />
-          <Route path="/loans" element={<DesktopApp />} />
-          <Route path="/home" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
+        {/* Các màn hình ứng dụng thư viện */}
+        <Route
+          path="/*"
+          element={
+            <>
+              {/* Màn hình nhỏ dưới lg (dưới 1024px) hiển thị Mobile */}
+              <div className="lg:hidden">
+                <MobileApp />
+              </div>
+
+              {/* Màn hình máy tính từ lg (1024px trở lên) hiển thị Desktop */}
+              <div className="hidden lg:block">
+                <Routes>
+                  <Route path="/" element={<DesktopApp />} />
+                  <Route path="/books" element={<DesktopApp />} />
+                  <Route path="/books/:id" element={<DesktopApp />} />
+                  <Route path="/loans" element={<DesktopApp />} />
+                  <Route path="/home" element={<Navigate to="/" replace />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </div>
+            </>
+          }
+        />
+      </Routes>
     </BrowserRouter>
   );
 }
