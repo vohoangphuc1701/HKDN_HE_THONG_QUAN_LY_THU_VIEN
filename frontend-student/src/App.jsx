@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import StudentLayout from './components/layout/StudentLayout';
-import BottomNavMobile from './components/layout/BottomNavMobile';
 import BookCard from './components/common/BookCard';
 import BookDetailPage from './components/pages/BookDetailPage';
 import CartDrawer from './components/common/CartDrawer';
@@ -10,6 +9,7 @@ import FilterSidebarPC from './components/responsive/FilterSidebarPC';
 import LoansTableViewPC from './components/responsive/LoansTableViewPC';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import HomePage from './pages/HomePage';
 import mockBooks from './mockPCBooks.json';
 import mockMobileBooks from './mockMobileBooks.json';
 import {
@@ -39,13 +39,26 @@ import {
   Headphones,
   MapPin,
   Phone,
-  ShoppingBag
+  ShoppingBag,
+  Menu,
+  Home,
+  BookMarked,
+  History,
+  User,
+  Bell,
+  HelpCircle,
+  LogOut,
+  ChevronRight,
+  QrCode,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 
 /* ==================== PHẦN 1: GIAO DIỆN MOBILE WEB (TV2) ==================== */
 function MobileApp() {
   const [activeTab, setActiveTab] = useState('home');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [cartCount, setCartCount] = useState(2);
@@ -110,7 +123,7 @@ function MobileApp() {
 
   return (
     <div className="min-h-screen bg-[#f4f8f7] flex flex-col justify-between text-slate-800">
-      <header className="sticky top-0 z-30 bg-[#00666b] text-white px-4 py-3 flex items-center justify-between shadow-md">
+      <header className="sticky top-0 z-30 bg-[#00666b] text-white px-4 sm:px-6 md:px-8 py-3 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-lg shadow-inner">
             <BookOpen className="w-4 h-4 text-white" />
@@ -119,22 +132,45 @@ function MobileApp() {
             <h1 className="text-sm font-bold leading-tight flex items-center gap-1.5">
               Thư viện <span className="text-[10px] text-teal-200 px-1 py-0.2 bg-white/15 rounded">UTH</span>
             </h1>
-            <p className="text-[10px] text-teal-100/80">Cổng Sinh Viên (Mobile)</p>
+            <p className="text-[10px] text-teal-100/80">Cổng Sinh Viên (Mobile & Tablet)</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
+          {/* VỊ TRÍ 3 TỪ PHẢI: Nút Menu ☰ – Mở thanh điều hướng */}
           <button
             type="button"
-            onClick={() => setActiveTab('loans')}
-            className="relative p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-            aria-label="Giỏ sách"
+            onClick={() => {
+              setIsMenuSheetOpen((prev) => !prev);
+              setIsDrawerOpen(false);
+            }}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer border ${
+              isMenuSheetOpen
+                ? 'bg-white text-[#00666b] border-white shadow-md scale-95'
+                : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
+            }`}
+            aria-label="Thanh điều hướng"
+            title="Thanh điều hướng"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-              <path d="M3 6h18" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
+            {isMenuSheetOpen
+              ? <X className="w-4.5 h-4.5" />
+              : <Menu className="w-4.5 h-4.5" />
+            }
+          </button>
+
+          {/* VỊ TRÍ 2 TỪ PHẢI: Nút giỏ sách / Phiếu mượn */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('loans');
+              setIsMenuSheetOpen(false);
+              setIsDrawerOpen(false);
+            }}
+            className="relative p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            aria-label="Phiếu mượn"
+            title="Giỏ mượn sách"
+          >
+            <ShoppingBag className="w-4 h-4 text-white stroke-[2]" />
             {cartCount > 0 && (
               <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-amber-400 text-slate-900 text-[9px] font-bold rounded-full flex items-center justify-center shadow">
                 {cartCount}
@@ -142,79 +178,100 @@ function MobileApp() {
             )}
           </button>
 
+          {/* VỊ TRÍ 1 TỪ PHẢI (ngoài cùng): Avatar User – Mở thông tin tài khoản & đăng xuất */}
           <button
             type="button"
-            onClick={() => setIsDrawerOpen(true)}
-            className="w-8 h-8 rounded-full bg-teal-800 border border-teal-300/40 text-teal-100 flex items-center justify-center text-xs font-bold shadow-sm hover:ring-2 hover:ring-white transition-all cursor-pointer"
-            title="Tài khoản sinh viên"
+            onClick={() => {
+              setIsDrawerOpen((prev) => !prev);
+              setIsMenuSheetOpen(false);
+            }}
+            className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all cursor-pointer border ${
+              isDrawerOpen
+                ? 'bg-white text-[#00666b] border-white ring-2 ring-white/50 shadow-md'
+                : 'bg-teal-800 border-teal-300/40 text-teal-100 hover:ring-2 hover:ring-white shadow-sm'
+            }`}
+            title="Tài khoản sinh viên & Đăng xuất"
+            aria-label="Tài khoản sinh viên"
           >
             NL
           </button>
         </div>
       </header>
 
-      <main className="flex-1 p-3.5 max-w-md mx-auto w-full pb-24 space-y-3.5">
-        {(activeTab === 'home' || activeTab === 'search') && (
-          <>
-            <div className="relative flex items-center">
-              <Search className="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm tên sách, tác giả, môn học..."
-                className="w-full bg-white text-slate-800 placeholder-slate-400 pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00666b] shadow-xs"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 text-slate-400 hover:text-slate-600"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+      {/* TAB TRANG CHỦ: SỬ DỤNG HOMEPAGE CHUẨN RESPONSIVE 3 BREAKPOINTS (MOBILE, TABLET, DESKTOP) */}
+      {activeTab === 'home' && (
+        <HomePage
+          onAddToCart={handleAddToCart}
+          onViewDetail={(item) => setMobileDetailBook(item)}
+          cartItems={Array(cartCount).fill({ id: 999 })}
+          onNavigateTab={setActiveTab}
+        />
+      )}
 
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
-              {categories.map((cat) => (
-                <button
-                  type="button"
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition-all ${
-                    selectedCategory === cat.id
-                      ? 'bg-[#00666b] text-white shadow-xs'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between pt-1">
-              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-[#00666B]" />
-                <span>{activeTab === 'home' ? 'Kho tài liệu nổi bật' : 'Kết quả tra cứu'} ({filteredBooks.length})</span>
-              </h2>
-              <span className="text-[10px] text-teal-700 font-semibold bg-teal-50 px-2 py-0.5 rounded-full">
-                Hẹn lấy nhanh
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {filteredBooks.map((book) => (
-                <BookCard
-                  key={book.id}
-                  book={book}
-                  onAddToCart={handleAddToCart}
-                  onViewDetail={(item) => setMobileDetailBook(item || book)}
+      {/* CÁC TAB KHÁC: GIAO DIỆN CO GIÃN TỰ ĐỘNG THEO TABLET VÀ MOBILE */}
+      {activeTab !== 'home' && (
+        <main className="flex-1 p-3.5 sm:p-6 max-w-md md:max-w-3xl mx-auto w-full pb-28 space-y-3.5">
+          {activeTab === 'search' && (
+            <>
+              <div className="relative flex items-center">
+                <Search className="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Tìm tên sách, tác giả, môn học..."
+                  className="w-full bg-white text-slate-800 placeholder-slate-400 pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00666b] shadow-xs"
                 />
-              ))}
-            </div>
-          </>
-        )}
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
+                {categories.map((cat) => (
+                  <button
+                    type="button"
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition-all ${
+                      selectedCategory === cat.id
+                        ? 'bg-[#00666b] text-white shadow-xs'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-[#00666B]" />
+                  <span>Kết quả tra cứu ({filteredBooks.length})</span>
+                </h2>
+                <span className="text-[10px] text-teal-700 font-semibold bg-teal-50 px-2 py-0.5 rounded-full">
+                  Hẹn lấy nhanh
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                {filteredBooks.map((book) => (
+                  <BookCard
+                    key={book.id}
+                    book={book}
+                    onAddToCart={handleAddToCart}
+                    onViewDetail={(item) => setMobileDetailBook(item || book)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
 
         {activeTab === 'loans' && (
           <div className="space-y-3">
@@ -270,27 +327,353 @@ function MobileApp() {
           </div>
         )}
       </main>
+      )}
 
+      {/* ============================================================
+          FOOTER – THÔNG TIN LIÊN HỆ & BẢN QUYỀN THƯ VIỆN UTH
+      ============================================================ */}
+      {activeTab === 'home' && (
+        <footer className="bg-[#00444a] text-white mt-2 pb-6">
+          {/* Dải màu phân cách */}
+          <div className="h-1 bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-500" />
+
+          <div className="max-w-lg mx-auto px-4 pt-6 space-y-5">
+
+            {/* Logo + Mô tả */}
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                <BookOpen className="w-5 h-5 text-teal-300" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white leading-tight">
+                  Thư viện Đại học Giao thông Vận tải TP.HCM
+                </h3>
+                <p className="text-teal-300/80 text-[11px] mt-0.5 leading-relaxed">
+                  Hệ thống mượn trả sách trực tuyến · Pick &amp; Go nhận sách &lt; 30 giây
+                </p>
+              </div>
+            </div>
+
+            {/* Lưới liên kết + liên hệ */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Cột: Điều hướng */}
+              <div>
+                <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider mb-2">Điều hướng</p>
+                <ul className="space-y-1.5">
+                  {[
+                    { label: 'Trang chủ',     tab: 'home'    },
+                    { label: 'Danh mục sách', tab: 'search'  },
+                    { label: 'Phiếu mượn',    tab: 'loans'   },
+                    { label: 'Lịch sử mượn',  tab: 'history' },
+                  ].map((link) => (
+                    <li key={link.tab}>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab(link.tab)}
+                        className="text-[12px] text-teal-100/70 hover:text-white transition-colors cursor-pointer text-left"
+                      >
+                        {link.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Cột: Liên hệ */}
+              <div>
+                <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider mb-2">Liên hệ</p>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-1.5">
+                    <MapPin className="w-3 h-3 text-teal-400 mt-0.5 shrink-0" />
+                    <span className="text-[11px] text-teal-100/70 leading-tight">
+                      Số 2, Võ Oanh, Bình Thạnh, TP.HCM
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <Phone className="w-3 h-3 text-teal-400 shrink-0" />
+                    <span className="text-[11px] text-teal-100/70">(028) 3899 2862</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <Headphones className="w-3 h-3 text-teal-400 shrink-0" />
+                    <span className="text-[11px] text-teal-100/70">thuvien@ut.edu.vn</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Quy tắc nhanh */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-3 space-y-1.5">
+              <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider">Quy định nhanh</p>
+              <div className="grid grid-cols-2 gap-1.5 text-[11px] text-teal-100/70">
+                <span>📚 Tối đa <strong className="text-white">5 cuốn</strong>/lần</span>
+                <span>⏱ Mượn tối đa <strong className="text-white">14 ngày</strong></span>
+                <span>🔄 Gia hạn <strong className="text-white">1 lần</strong> (+7 ngày)</span>
+                <span>💰 Phạt <strong className="text-white">5.000đ</strong>/ngày/cuốn</span>
+              </div>
+            </div>
+
+            {/* Phân cách + Bản quyền */}
+            <div className="border-t border-white/10 pt-4 flex items-center justify-between">
+              <span className="text-[10px] text-teal-100/40">
+                © 2026 Thư viện UTH · v1.0.0
+              </span>
+              <span className="text-[10px] text-teal-100/40">
+                Đồ án HKDN · Nhóm 6 TV
+              </span>
+            </div>
+          </div>
+        </footer>
+      )}
+
+      {/* BACKDROP mờ khi sheet mở */}
+      <div
+        onClick={() => setIsMenuSheetOpen(false)}
+        className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 ${
+          isMenuSheetOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        aria-hidden
+      />
+
+      {/* BOTTOM SHEET – trượt lên từ dưới */}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-50 max-w-lg mx-auto bg-white rounded-t-3xl shadow-2xl border-t border-slate-100 transform transition-transform duration-300 ease-out ${
+          isMenuSheetOpen ? 'translate-y-0' : 'translate-y-full'
+        }`}
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
+      >
+        {/* Handle kéo */}
+        <div
+          className="w-10 h-1.5 bg-slate-300 rounded-full mx-auto mt-3 mb-1 cursor-pointer"
+          onClick={() => setIsMenuSheetOpen(false)}
+        />
+
+        {/* Tiêu đề Thanh Điều Hướng */}
+        <div className="px-5 pb-3 flex items-center justify-between border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#00666b]" />
+            <h2 className="text-base font-bold text-slate-800">Thanh điều hướng hệ thống</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsMenuSheetOpen(false)}
+            className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs font-bold transition-all cursor-pointer"
+            aria-label="Đóng"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Lưới 4 nút điều hướng chính */}
+        <div className="px-4 pt-3.5 pb-2">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Các chuyên mục chính</p>
+          <div className="grid grid-cols-2 gap-2.5">
+            {[
+              { id: 'home',    icon: Home,       label: 'Trang chủ',      desc: 'Kho sách, sách mới & nổi bật', color: 'bg-teal-50 text-teal-700 border-teal-200/60',    activeBg: 'bg-[#00666b] text-white border-[#00666b]'   },
+              { id: 'search',  icon: Compass,    label: 'Danh mục sách',  desc: 'Tìm kiếm, lọc môn học UTH',    color: 'bg-blue-50 text-blue-700 border-blue-200/60',      activeBg: 'bg-blue-600 text-white border-blue-600'   },
+              { id: 'loans',   icon: BookMarked, label: 'Phiếu mượn',     desc: `${cartCount} đơn đang hoạt động`,color: 'bg-amber-50 text-amber-700 border-amber-200/60', activeBg: 'bg-amber-600 text-white border-amber-600', badge: cartCount },
+              { id: 'history', icon: History,    label: 'Lịch sử & Phạt', desc: 'Nhật ký mượn & đối soát phạt', color: 'bg-purple-50 text-purple-700 border-purple-200/60',activeBg: 'bg-purple-600 text-white border-purple-600' },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => { setActiveTab(item.id); setIsMenuSheetOpen(false); }}
+                  className={`relative p-3.5 rounded-2xl border text-left transition-all active:scale-95 cursor-pointer flex flex-col justify-between ${
+                    isActive ? item.activeBg + ' shadow-md' : item.color
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${isActive ? 'bg-white/20 text-white' : 'bg-white shadow-xs'}`}>
+                      <Icon className="w-5 h-5" />
+                    </span>
+                    {item.badge > 0 && (
+                      <span className="min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                        {item.badge > 9 ? '9+' : item.badge}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold leading-tight">{item.label}</div>
+                    <div className={`text-[10px] mt-0.5 line-clamp-1 ${isActive ? 'text-teal-100' : 'text-slate-500'}`}>{item.desc}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Lối tắt tiện ích nhanh */}
+        <div className="px-4 pt-1 pb-2">
+          <button
+            type="button"
+            onClick={() => { setActiveTab('loans'); setIsMenuSheetOpen(false); }}
+            className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm active:scale-98 transition-all cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <span className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white">
+                <QrCode className="w-5 h-5" />
+              </span>
+              <div className="text-left">
+                <div className="text-xs font-bold leading-tight flex items-center gap-1.5">
+                  Mã QR đơn mượn Pick &amp; Go
+                  <span className="text-[9px] bg-amber-400 text-slate-900 font-extrabold px-1.5 py-0.2 rounded-full">&lt; 30s</span>
+                </div>
+                <div className="text-[10px] text-teal-100 mt-0.5">Mở sẵn mã QR để quét nhận sách tại quầy</div>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-white/80" />
+          </button>
+        </div>
+      </div>
+
+      {/* ============================================================
+          2. THÔNG TIN SINH VIÊN & ĐĂNG XUẤT (Khi ấn Avatar User "NL")
+      ============================================================ */}
+      {/* Backdrop mờ cho User Drawer */}
+      <div
+        onClick={() => setIsDrawerOpen(false)}
+        className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 ${
+          isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        aria-hidden
+      />
+
+      {/* Sheet Thông Tin Sinh Viên */}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-50 max-w-lg mx-auto bg-white rounded-t-3xl shadow-2xl border-t border-slate-100 transform transition-transform duration-300 ease-out max-h-[85vh] flex flex-col ${
+          isDrawerOpen ? 'translate-y-0' : 'translate-y-full'
+        }`}
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)' }}
+      >
+        {/* Handle kéo */}
+        <div
+          className="w-10 h-1.5 bg-slate-300 rounded-full mx-auto mt-3 mb-2 cursor-pointer"
+          onClick={() => setIsDrawerOpen(false)}
+        />
+
+        {/* Tiêu đề Drawer */}
+        <div className="px-5 pb-3 flex items-center justify-between border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-teal-600" />
+            <h2 className="text-base font-bold text-slate-800">Thông tin tài khoản</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsDrawerOpen(false)}
+            className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs font-bold transition-all cursor-pointer"
+            aria-label="Đóng"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Thân Drawer cuộn được */}
+        <div className="overflow-y-auto px-4 py-3.5 space-y-3.5">
+          {/* Card Thẻ Sinh Viên UTH */}
+          <div className="p-4 bg-gradient-to-br from-[#00666b] via-teal-700 to-teal-800 text-white rounded-2xl shadow-sm relative overflow-hidden">
+            <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
+            <div className="flex items-center gap-3.5">
+              <div className="w-13 h-13 rounded-2xl bg-white/20 border-2 border-white/30 text-white flex items-center justify-center font-bold text-lg shadow-inner shrink-0">
+                NL
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold truncate">Nguyễn Thành Lâm</h3>
+                  <span className="px-2 py-0.5 text-[9px] font-extrabold bg-emerald-400 text-slate-900 rounded-full shrink-0">
+                    Thẻ hoạt động
+                  </span>
+                </div>
+                <p className="text-teal-200 text-xs mt-0.5">MSSV: <span className="font-semibold text-white">2151050123</span></p>
+                <p className="text-teal-100/80 text-[11px] truncate">lam.nt@ut.edu.vn • CNTT</p>
+              </div>
+            </div>
+
+            {/* Chỉ số theo quy tắc nghiệp vụ BR01 & BR04 */}
+            <div className="grid grid-cols-3 gap-2 mt-3.5 pt-3 border-t border-white/15 text-center">
+              <div className="bg-white/10 rounded-xl py-1.5 px-1">
+                <div className="text-[10px] text-teal-200">Đang mượn</div>
+                <div className="text-xs font-bold text-white mt-0.5">{cartCount} / 5 cuốn</div>
+              </div>
+              <div className="bg-white/10 rounded-xl py-1.5 px-1">
+                <div className="text-[10px] text-teal-200">Tiền phạt</div>
+                <div className="text-xs font-bold text-emerald-300 mt-0.5">0 VNĐ</div>
+              </div>
+              <div className="bg-white/10 rounded-xl py-1.5 px-1">
+                <div className="text-[10px] text-teal-200">Cơ sở chính</div>
+                <div className="text-xs font-bold text-white mt-0.5">Cơ sở 1</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tiện ích tài khoản & Quy định */}
+          <div className="space-y-1 bg-slate-50 rounded-2xl p-2 border border-slate-100">
+            <button
+              type="button"
+              onClick={() => {
+                setIsDrawerOpen(false);
+                alert('Quy định Thư viện UTH:\n- Tối đa: 5 cuốn/sinh viên\n- Thời hạn: 14 ngày (gia hạn 1 lần +7 ngày)\n- Phạt quá hạn: 5.000đ/ngày/cuốn\n- Lấy sách nhanh tại quầy Pick & Go < 30 giây');
+              }}
+              className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-white active:bg-slate-100 transition-colors text-left cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+                  <HelpCircle className="w-4 h-4" />
+                </span>
+                <div>
+                  <div className="text-xs font-semibold text-slate-800">Nội quy &amp; Hướng dẫn mượn trả</div>
+                  <div className="text-[10px] text-slate-500">Quy định hạn mức sách &amp; đối soát phạt</div>
+                </div>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsDrawerOpen(false);
+                alert('Thông báo nhắc hạn trả sách đã được kích hoạt qua email lam.nt@ut.edu.vn (nhắc trước 2 ngày).');
+              }}
+              className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-white active:bg-slate-100 transition-colors text-left cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                  <Bell className="w-4 h-4" />
+                </span>
+                <div>
+                  <div className="text-xs font-semibold text-slate-800">Thông báo nhắc hạn qua Email</div>
+                  <div className="text-[10px] text-slate-500">Đang bật (Nhắc trước hạn 2 ngày)</div>
+                </div>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+          </div>
+
+          {/* Nút Đăng xuất */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setIsDrawerOpen(false);
+                alert('Đã đăng xuất khỏi Cổng Dịch Vụ Sinh Viên Thư Viện UTH.');
+              }}
+              className="w-full py-3 px-4 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
+            >
+              <LogOut className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>Đăng xuất tài khoản</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Toast thông báo */}
       {toastMessage && (
-        <div className="fixed bottom-20 left-4 right-4 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-semibold max-w-sm mx-auto">
+        <div className="fixed bottom-6 left-4 right-4 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-semibold max-w-sm mx-auto">
           <Check className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
-
-      <BottomNavMobile
-        activeTab={activeTab}
-        onTabChange={(tab) => {
-          setActiveTab(tab);
-          if (tab === 'profile') {
-            setIsDrawerOpen(true);
-          }
-        }}
-        isDrawerOpen={isDrawerOpen}
-        onDrawerOpen={() => setIsDrawerOpen(true)}
-        onDrawerClose={() => setIsDrawerOpen(false)}
-        activeLoanCount={cartCount}
-      />
     </div>
   );
 }
