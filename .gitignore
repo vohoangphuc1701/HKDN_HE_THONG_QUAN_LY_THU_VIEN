@@ -7,6 +7,7 @@ target/
 node_modules/
 dist/
 build/
+.vite/
 
 # Bỏ qua file chứa mật khẩu, cấu hình riêng
 .env
