@@ -67,7 +67,39 @@ public class EmailTemplateHelper {
     }
 
     /*
-     * Tạo nội dung email HTML thông báo mượn sách thành công kèm mã QR nhận sách.
+     * Tạo nội dung email HTML thông báo đơn mượn sách đã chuẩn bị sẵn sàng lấy tại quầy.
+     */
+    public String buildOrderReadyNoticeHtml(
+            String studentName,
+            String studentId,
+            Long orderId,
+            String pickupDeadline,
+            List<BookItem> books,
+            String qrDataUri) {
+
+        String template = loadTemplate();
+        String bookRows = buildBookRows(books);
+        String qrSection = buildQrSection(qrDataUri);
+        String noteInfo = "<div class=\"note-box\"><strong>Lưu ý:</strong> Vui lòng đến nhận sách tại Quầy tiếp nhận Thư viện UTH trước hạn chót. Khi đến nhận sách chỉ cần đưa mã QR trên màn hình điện thoại để thủ thư quét bàn giao trong vòng 30 giây.</div>";
+
+        return template
+                .replace("{{EMAIL_TITLE}}", "Đơn mượn sách #" + orderId + " đã sẵn sàng - Thư viện UTH")
+                .replace("{{BADGE_TEXT}}", "ĐƠN MƯỢN ĐÃ SẴN SÀNG")
+                .replace("{{BADGE_BG_COLOR}}", "#10b981")
+                .replace("{{BADGE_TEXT_COLOR}}", "#ffffff")
+                .replace("{{STUDENT_NAME}}", escapeHtml(studentName))
+                .replace("{{STUDENT_ID}}", escapeHtml(studentId))
+                .replace("{{ORDER_ID}}", String.valueOf(orderId))
+                .replace("{{MESSAGE}}", "Thủ thư đã chuẩn bị sẵn các tài liệu theo đơn mượn của bạn tại quầy tiếp nhận. Vui lòng xuất trình mã QR bên dưới khi đến nhận sách.")
+                .replace("{{DATE_LABEL}}", "Hạn chót nhận sách")
+                .replace("{{DATE_VALUE}}", escapeHtml(pickupDeadline))
+                .replace("{{BOOK_ITEMS}}", bookRows)
+                .replace("{{QR_SECTION}}", qrSection)
+                .replace("{{EXTRA_INFO}}", noteInfo);
+    }
+
+    /*
+     * Tạo nội dung email HTML thông báo đơn mượn sách (tương thích ngược).
      */
     public String buildBorrowNoticeHtml(
             String studentName,
@@ -76,27 +108,80 @@ public class EmailTemplateHelper {
             String dueDate,
             List<BookItem> books,
             String qrDataUri) {
+        return buildOrderReadyNoticeHtml(studentName, studentId, orderId, dueDate, books, qrDataUri);
+    }
+
+    /*
+     * Tạo nội dung email HTML nhắc nhở hạn trả sách sắp đến hạn.
+     */
+    public String buildDueReminderHtml(
+            String studentName,
+            String studentId,
+            Long orderId,
+            String dueDate,
+            int daysRemaining,
+            List<BookItem> books) {
 
         String template = loadTemplate();
-
         String bookRows = buildBookRows(books);
-        String qrSection = buildQrSection(qrDataUri);
-        String noteInfo = "<div class=\"note-box\"><strong>Lưu ý:</strong> Vui lòng đến nhận sách đúng hẹn tại Quầy tiếp nhận Thư viện UTH. Khi đến nhận sách chỉ cần đưa mã QR trên màn hình điện thoại để thủ thư quét bàn giao trong vòng 30 giây.</div>";
+        String reminderMessage = daysRemaining > 0
+                ? "Đơn mượn sách của bạn sẽ đến hạn trả trong vòng " + daysRemaining + " ngày tới. Vui lòng sắp xếp trả sách đúng hạn hoặc thực hiện gia hạn trực tuyến."
+                : "Hôm nay là ngày đến hạn trả sách của bạn. Vui lòng mang sách đến quầy tiếp nhận Thư viện UTH để hoàn tất thủ tục trả.";
+
+        String noteInfo = "<div class=\"note-box\"><strong>Quy định trả sách:</strong> Vui lòng hoàn trả sách trước hoặc đúng ngày hẹn để tránh phát sinh phí phạt trễ hạn theo quy chế Thư viện UTH. Bạn cũng có thể gia hạn trực tuyến nếu sách chưa có người đặt trước.</div>";
 
         return template
-                .replace("{{EMAIL_TITLE}}", "Thông báo đơn mượn sách #" + orderId + " - Thư viện UTH")
-                .replace("{{BADGE_TEXT}}", "ĐƠN MƯỢN ĐÃ SẴN SÀNG")
-                .replace("{{BADGE_BG_COLOR}}", "#10b981")
+                .replace("{{EMAIL_TITLE}}", "Nhắc nhở hạn trả sách đơn #" + orderId + " - Thư viện UTH")
+                .replace("{{BADGE_TEXT}}", "NHẮC NHỞ HẠN TRẢ SÁCH")
+                .replace("{{BADGE_BG_COLOR}}", "#f59e0b")
                 .replace("{{BADGE_TEXT_COLOR}}", "#ffffff")
                 .replace("{{STUDENT_NAME}}", escapeHtml(studentName))
                 .replace("{{STUDENT_ID}}", escapeHtml(studentId))
                 .replace("{{ORDER_ID}}", String.valueOf(orderId))
-                .replace("{{MESSAGE}}", "Đơn mượn sách của bạn đã được thủ thư chuẩn bị sẵn sàng tại quầy tiếp nhận. Vui lòng mang theo thẻ sinh viên hoặc mã QR bên dưới để nhận sách.")
-                .replace("{{DATE_LABEL}}", "Hạn chót nhận / Hạn trả dự kiến")
+                .replace("{{MESSAGE}}", reminderMessage)
+                .replace("{{DATE_LABEL}}", "Hạn chót trả sách")
                 .replace("{{DATE_VALUE}}", escapeHtml(dueDate))
                 .replace("{{BOOK_ITEMS}}", bookRows)
-                .replace("{{QR_SECTION}}", qrSection)
+                .replace("{{QR_SECTION}}", "")
                 .replace("{{EXTRA_INFO}}", noteInfo);
+    }
+
+    /*
+     * Tạo nội dung email HTML cảnh báo sách đã quá hạn trả.
+     */
+    public String buildOverdueReminderHtml(
+            String studentName,
+            String studentId,
+            Long orderId,
+            String dueDate,
+            int overdueDays,
+            long estimatedFine,
+            List<BookItem> books) {
+
+        String template = loadTemplate();
+        String bookRows = buildBookRows(books);
+        String formattedFine = String.format("%,d VNĐ", estimatedFine);
+
+        String extraInfo = "<div class=\"note-box\" style=\"background-color: #fef2f2; border-left-color: #ef4444; color: #991b1b;\">" +
+                "<strong>Cảnh báo quá hạn:</strong> Đơn sách đã quá hạn " + overdueDays + " ngày.<br/>" +
+                "<strong>Phí trễ hạn tạm tính:</strong> " + formattedFine + "<br/>" +
+                "Vui lòng mang tài liệu đến quầy tiếp nhận để hoàn trả ngay hôm nay." +
+                "</div>";
+
+        return template
+                .replace("{{EMAIL_TITLE}}", "CẢNH BÁO QUÁ HẠN: Đơn mượn sách #" + orderId + " - Thư viện UTH")
+                .replace("{{BADGE_TEXT}}", "ĐƠN MƯỢN ĐÃ QUÁ HẠN")
+                .replace("{{BADGE_BG_COLOR}}", "#dc2626")
+                .replace("{{BADGE_TEXT_COLOR}}", "#ffffff")
+                .replace("{{STUDENT_NAME}}", escapeHtml(studentName))
+                .replace("{{STUDENT_ID}}", escapeHtml(studentId))
+                .replace("{{ORDER_ID}}", String.valueOf(orderId))
+                .replace("{{MESSAGE}}", "Đơn mượn sách của bạn đã quá thời hạn trả quy định. Vui lòng nhanh chóng hoàn trả sách cho thư viện.")
+                .replace("{{DATE_LABEL}}", "Ngày hết hạn")
+                .replace("{{DATE_VALUE}}", escapeHtml(dueDate))
+                .replace("{{BOOK_ITEMS}}", bookRows)
+                .replace("{{QR_SECTION}}", "")
+                .replace("{{EXTRA_INFO}}", extraInfo);
     }
 
     /*
@@ -112,7 +197,6 @@ public class EmailTemplateHelper {
             String fineReason) {
 
         String template = loadTemplate();
-
         String bookRows = buildBookRows(books);
 
         String extraInfo;
