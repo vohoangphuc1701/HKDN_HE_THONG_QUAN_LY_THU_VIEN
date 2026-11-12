@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Thực thể ReturnDetail - Đại diện cho bảng 'return_details' trong CSDL MySQL
+ * Thực thể ReturnDetail - Đại diện cho bảng 'return_details' trong CSDL SQL Server (SSMS)
  * Danh sách từng cuốn sách trong phiếu trả và đối soát tình trạng thực tế tại quầy
  */
 @Entity
@@ -51,7 +51,7 @@ public class ReturnDetail {
     @Builder.Default
     private BigDecimal damageFee = BigDecimal.ZERO;
 
-    @Column(name = "note", length = 500)
+    @Column(name = "note", columnDefinition = "NVARCHAR(500)")
     private String note;
 
     @Column(name = "created_at", nullable = false, updatable = false)

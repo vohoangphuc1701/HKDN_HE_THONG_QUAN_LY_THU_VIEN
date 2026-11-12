@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Thực thể Fine - Đại diện cho bảng 'fines' trong CSDL MySQL
+ * Thực thể Fine - Đại diện cho bảng 'fines' trong CSDL SQL Server (SSMS)
  * Quản lý tiền phạt trễ hạn và các khoản phụ thu hư hại/bồi thường sách
  * Công thức: TotalAmount = LateFee (Số ngày trễ * 5.000 VNĐ) + DamageFee
  */
@@ -81,7 +81,7 @@ public class Fine {
     @Column(name = "payment_method", length = 20)
     private PaymentMethod paymentMethod;
 
-    @Column(name = "note", length = 500)
+    @Column(name = "note", columnDefinition = "NVARCHAR(500)")
     private String note;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -105,8 +105,8 @@ public class Fine {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
-        if (this.lateFee == null) this.lateFee = BigDecimal.ZERO;
-        if (this.damageFee == null) this.damageFee = BigDecimal.ZERO;
-        this.totalAmount = this.lateFee.add(this.damageFee);
+        if (this.lateFee != null && this.damageFee != null) {
+            this.totalAmount = this.lateFee.add(this.damageFee);
+        }
     }
 }
