@@ -40,7 +40,7 @@ library-management-system/
 ├── backend-spring/      # Source code Java Spring Boot (API, Database, Logic)
 ├── frontend-student/    # Source code React dành cho Sinh viên
 ├── frontend-admin/      # Source code React dành cho Thủ thư/Admin
-├── database/            # Chứa script khởi tạo CSDL MySQL (.sql)
+├── database/            # Chứa script khởi tạo CSDL SQL Server (.sql)
 ├── docs/                # Sơ đồ Use Case, ERD, tài liệu API, báo cáo
 ├── tests/               # Các file kiểm thử
 ├── .gitignore           # Bỏ qua các file rác (node_modules, target,...)
