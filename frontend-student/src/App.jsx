@@ -10,6 +10,8 @@ import LoansTableViewPC from './components/responsive/LoansTableViewPC';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
+import LoanHistoryPage from './pages/LoanHistoryPage';
+import LoansCardListMobile from './components/responsive/LoansCardListMobile';
 import mockBooks from './mockPCBooks.json';
 import mockMobileBooks from './mockMobileBooks.json';
 import {
@@ -64,6 +66,12 @@ function MobileApp() {
   const [cartCount, setCartCount] = useState(2);
   const [toastMessage, setToastMessage] = useState('');
   const [mobileDetailBook, setMobileDetailBook] = useState(null);
+  const [mobileQrOrder, setMobileQrOrder] = useState(null);
+
+  const showMobileToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 2500);
+  };
 
   const categories = [
     { id: 'ALL', label: 'Tất cả' },
@@ -75,8 +83,7 @@ function MobileApp() {
 
   const handleAddToCart = (book) => {
     setCartCount((prev) => prev + 1);
-    setToastMessage(`Đã thêm "${book.title}" vào giỏ sách!`);
-    setTimeout(() => setToastMessage(''), 2500);
+    showMobileToast(`Đã thêm "${book.title}" vào giỏ sách!`);
   };
 
   const filteredBooks = mockMobileBooks.filter((book) => {
@@ -210,7 +217,7 @@ function MobileApp() {
 
       {/* CÁC TAB KHÁC: GIAO DIỆN CO GIÃN TỰ ĐỘNG THEO TABLET VÀ MOBILE */}
       {activeTab !== 'home' && (
-        <main className="flex-1 p-3.5 sm:p-6 max-w-md md:max-w-3xl mx-auto w-full pb-28 space-y-3.5">
+        <main className="flex-1 p-3.5 sm:p-6 max-w-md sm:max-w-2xl md:max-w-4xl mx-auto w-full pb-20 space-y-3.5">
           {activeTab === 'search' && (
             <>
               <div className="relative flex items-center">
@@ -274,57 +281,17 @@ function MobileApp() {
           )}
 
         {activeTab === 'loans' && (
-          <div className="space-y-3">
-            <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
-              <h2 className="text-sm font-bold text-slate-800 mb-1">Phiếu mượn của bạn</h2>
-              <p className="text-xs text-slate-500">Mã đơn: <strong className="text-[#00666b]">DH-UTH-2026-089</strong></p>
-              <div className="mt-2.5 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs">
-                <span className="text-emerald-800 font-semibold">Trạng thái: Đang mượn</span>
-                <span className="text-emerald-700 font-bold">2 cuốn</span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <div>
-                  <div className="text-xs font-bold text-slate-800">Lập trình Python cơ bản</div>
-                  <div className="text-[11px] text-slate-500">Mã: CNTT-PY-001 | Hạn trả: 15/11/2026</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => alert('Đã gửi yêu cầu gia hạn trực tuyến!')}
-                  className="px-2.5 py-1 bg-[#00666b] text-white text-[11px] font-semibold rounded-lg"
-                >
-                  Gia hạn
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-bold text-slate-800">Kinh tế học vi mô</div>
-                  <div className="text-[11px] text-slate-500">Mã: KT-VM-002 | Hạn trả: 18/11/2026</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => alert('Đã gửi yêu cầu gia hạn trực tuyến!')}
-                  className="px-2.5 py-1 bg-[#00666b] text-white text-[11px] font-semibold rounded-lg"
-                >
-                  Gia hạn
-                </button>
-              </div>
-            </div>
-          </div>
+          <LoansCardListMobile
+            onOpenQrModal={(order) => setMobileQrOrder(order)}
+            onShowToast={showMobileToast}
+          />
         )}
 
         {activeTab === 'history' && (
-          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
-            <h2 className="text-sm font-bold text-slate-800 mb-2">Lịch sử mượn trả</h2>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
-              <div className="text-xs font-bold text-slate-700">Giải tích 1 - Đã trả đúng hạn</div>
-              <div className="text-[11px] text-slate-500">Ngày mượn: 10/10/2026 • Ngày trả: 24/10/2026</div>
-              <div className="text-[11px] text-emerald-600 font-semibold">Phí phạt: 0 VNĐ</div>
-            </div>
-          </div>
+          <LoanHistoryPage
+            onBorrowAgain={handleAddToCart}
+            onShowToast={showMobileToast}
+          />
         )}
       </main>
       )}
@@ -508,7 +475,19 @@ function MobileApp() {
         <div className="px-4 pt-1 pb-2">
           <button
             type="button"
-            onClick={() => { setActiveTab('loans'); setIsMenuSheetOpen(false); }}
+            onClick={() => {
+              setIsMenuSheetOpen(false);
+              setMobileQrOrder({
+                code: 'DH-UTH-2026-089',
+                campus: 'Cơ sở 1 - Võ Oanh (Bình Thạnh)',
+                pickupDate: 'Hôm nay (Giờ làm việc 07:30 - 20:30)',
+                books: [
+                  { title: 'Nhập môn Trí tuệ nhân tạo & Học máy', code: 'CNTT-AI-005' },
+                  { title: 'Khai phá dữ liệu lớn với Spark', code: 'CNTT-BD-006' },
+                ],
+                status: 'READY_FOR_PICKUP',
+              });
+            }}
             className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm active:scale-98 transition-all cursor-pointer"
           >
             <div className="flex items-center gap-3">
@@ -666,6 +645,13 @@ function MobileApp() {
           </div>
         </div>
       </div>
+
+      {/* Modal Mã QR Đơn Mượn / Phiếu Hẹn Trả trên Mobile */}
+      <ReturnQrModal
+        isOpen={Boolean(mobileQrOrder)}
+        onClose={() => setMobileQrOrder(null)}
+        order={mobileQrOrder}
+      />
 
       {/* Toast thông báo */}
       {toastMessage && (
