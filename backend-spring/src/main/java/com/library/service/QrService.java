@@ -5,12 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Base64;
 import java.util.List;
 
 /*
- * Dịch vụ xử lý nghiệp vụ mã hóa mã QR cho mượn và trả sách.
- * Hỗ trợ mã hóa orderId, returnTicketId và danh sách sách thành chuỗi QR Base64.
+ * Dịch vụ xử lý nghiệp vụ mã hóa mã QR cho mượn và phiếu hẹn trả sách.
+ * Hỗ trợ sinh chuỗi QR Base64 cho đơn mượn và phiếu hẹn trả.
  */
 @Service
 public class QrService {
@@ -27,7 +26,7 @@ public class QrService {
     }
 
     /*
-     * Mã hóa orderId, mã sinh viên và danh sách sách thành chuỗi QR Base64.
+     * Mã hóa orderId, mã sinh viên và danh sách sách thành chuỗi QR Base64 cho đơn mượn.
      */
     public String generateBorrowQrBase64(Long orderId, String studentId, List<String> books) {
         log.info("Mã hóa QR đơn mượn: orderId={}, studentId={}, số lượng sách={}", orderId, studentId, books != null ? books.size() : 0);
@@ -36,11 +35,20 @@ public class QrService {
     }
 
     /*
-     * Mã hóa orderId và sinh viên thành chuỗi QR Base64.
+     * Mã hóa orderId và mã sinh viên thành chuỗi QR Base64 cho đơn mượn.
      */
     public String generateBorrowQrBase64(Long orderId, String studentId) {
         log.info("Mã hóa QR đơn mượn: orderId={}, studentId={}", orderId, studentId);
         String content = QrCodeUtil.buildBorrowContent(orderId, studentId, System.currentTimeMillis());
+        return QrCodeUtil.generateQrBase64(content);
+    }
+
+    /*
+     * Mã hóa returnTicketId, ngày hẹn trả và danh sách sách thành chuỗi QR Base64 cho phiếu hẹn trả.
+     */
+    public String generateReturnTicketQrBase64(String returnTicketId, String appointmentDate, List<String> books) {
+        log.info("Mã hóa QR phiếu hẹn trả: ticketId={}, ngày hẹn={}, số sách={}", returnTicketId, appointmentDate, books != null ? books.size() : 0);
+        String content = QrCodeUtil.buildReturnTicketContent(returnTicketId, appointmentDate, books, System.currentTimeMillis());
         return QrCodeUtil.generateQrBase64(content);
     }
 
@@ -79,7 +87,15 @@ public class QrService {
     }
 
     /*
-     * Tạo ảnh mã QR dạng byte cho phiếu trả sách kèm danh sách sách.
+     * Tạo ảnh mã QR dạng byte cho phiếu hẹn trả sách.
+     */
+    public byte[] generateReturnTicketQrImage(String returnTicketId, String appointmentDate, List<String> books) {
+        String content = QrCodeUtil.buildReturnTicketContent(returnTicketId, appointmentDate, books, System.currentTimeMillis());
+        return QrCodeUtil.generateQrImage(content);
+    }
+
+    /*
+     * Tạo ảnh mã QR dạng byte cho phiếu trả sách.
      */
     public byte[] generateReturnQrImage(String returnTicketId, List<String> books) {
         String content = QrCodeUtil.buildReturnContent(returnTicketId, books, System.currentTimeMillis());
@@ -102,10 +118,10 @@ public class QrService {
     }
 
     /*
-     * Tạo chuỗi Data URI của mã QR phiếu trả để nhúng vào thẻ img.
+     * Tạo chuỗi Data URI của mã QR phiếu hẹn trả để nhúng vào thẻ img.
      */
-    public String generateReturnQrDataUri(String returnTicketId, List<String> books) {
-        return "data:image/png;base64," + generateReturnQrBase64(returnTicketId, books);
+    public String generateReturnTicketQrDataUri(String returnTicketId, String appointmentDate, List<String> books) {
+        return "data:image/png;base64," + generateReturnTicketQrBase64(returnTicketId, appointmentDate, books);
     }
 
     /*

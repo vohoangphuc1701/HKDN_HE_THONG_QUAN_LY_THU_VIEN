@@ -19,7 +19,7 @@ import java.util.Map;
 
 /*
  * Tiện ích tạo và mã hóa QR Code cho hệ thống mượn trả sách.
- * Sử dụng thư viện ZXing để sinh mã QR từ nội dung đơn mượn và trả sách.
+ * Sử dụng thư viện ZXing để sinh mã QR từ nội dung đơn mượn và phiếu hẹn trả sách.
  * Hỗ trợ xuất ra mảng byte ảnh PNG hoặc chuỗi Base64.
  */
 public final class QrCodeUtil {
@@ -114,6 +114,18 @@ public final class QrCodeUtil {
             throw new IllegalArgumentException("orderId và studentId không được để trống");
         }
         return String.format("BORROW|%d|%s|%d", orderId, studentId.trim(), timestamp);
+    }
+
+    /*
+     * Tạo chuỗi nội dung mã QR cho phiếu hẹn trả sách kèm ngày hẹn và danh sách sách.
+     */
+    public static String buildReturnTicketContent(String returnTicketId, String appointmentDate, List<String> bookList, long timestamp) {
+        if (returnTicketId == null || returnTicketId.isBlank()) {
+            throw new IllegalArgumentException("returnTicketId không được để trống");
+        }
+        String appDate = (appointmentDate != null && !appointmentDate.isBlank()) ? appointmentDate.trim() : "N/A";
+        String booksStr = (bookList != null && !bookList.isEmpty()) ? String.join(";", bookList) : "NONE";
+        return String.format("RETURN_TICKET|ticketId:%s|date:%s|books:%s|time:%d", returnTicketId.trim(), appDate, booksStr, timestamp);
     }
 
     /*
