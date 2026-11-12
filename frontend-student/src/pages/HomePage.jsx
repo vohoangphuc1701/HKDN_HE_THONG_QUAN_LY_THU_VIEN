@@ -1,75 +1,135 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Search,
-  BookOpen,
-  Sparkles,
-  Zap,
-  Clock,
-  ShieldCheck,
-  Check,
-  Plus,
-  MapPin,
   ArrowRight,
-  ChevronRight,
-  Star,
-  X,
-  TrendingUp,
+  BookOpen,
+  Check,
+  Clock,
+  Laptop,
   Layers,
-  Filter,
-  CheckCircle2,
-  Calendar,
-  ShoppingBag
+  MapPin,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  X,
+  Zap,
 } from 'lucide-react';
 import BookCard from '../components/common/BookCard';
-import mockMobileBooks from '../mockMobileBooks.json';
+import mockPCBooks from '../mockPCBooks.json';
 
 /**
- * HomePage - Trang chủ Cổng Dịch Vụ Sinh Viên Thư Viện UTH
- * Thiết kế chuẩn đa điểm ngắt (Responsive Breakpoints):
- * 1. MOBILE (Mặc định: dưới 768px): Gọn gàng, vuốt chạm mượt mà, ngón cái dễ thao tác, lưới 2 cột.
- * 2. TABLET (Từ 768px trở lên, md:): Không gian thoáng, bố cục banner 2 cột, lưới 3 cột sách, thanh tìm kiếm mở rộng.
- * 3. DESKTOP (Từ 1024px trở lên, lg:): Lưới 4-5 cột rộng rãi, tích hợp đầy đủ chi tiết học thuật.
- * 
- * Phụ trách: TV2 (Mobile Web) phối hợp TV3 (Desktop)
+ * HomePage - Trang chủ Cổng Dịch Vụ Sinh Viên Thư Viện UTH (Mobile & Tablet < 1024px - TV2)
+ * Đồng bộ 1-1 nội dung, dữ liệu sách (mockPCBooks.json), chuyên ngành và quy trình Pick & Go từ DesktopApp (TV3 PC).
  */
+const HERO_CAMPUSES = [
+  {
+    id: 1,
+    name: 'Cơ sở 1',
+    address: 'Số 2, Đường Võ Oanh, P.25, Q. Bình Thạnh, TP.HCM',
+    image: '/assets/campus-co-so-1.jpg',
+    code: 'CS1',
+  },
+  {
+    id: 2,
+    name: 'Cơ sở 2',
+    address: 'Số 10, Đường số 12, P. An Khánh, TP. Thủ Đức, TP.HCM',
+    image: '/assets/campus-co-so-2.jpg',
+    code: 'CS2',
+  },
+  {
+    id: 3,
+    name: 'Cơ sở 3',
+    address: 'Số 70, Đường Tô Ký, P. Trung Mỹ Tây, Quận 12, TP.HCM',
+    image: '/assets/campus-co-so-3.jpg',
+    code: 'CS3',
+  },
+];
+
+const QUICK_KEYWORDS = [
+  'Lập trình Python',
+  'Trí tuệ nhân tạo',
+  'Chuỗi cung ứng',
+  'Kinh tế vi mô',
+  'Tiếng Anh giao tiếp',
+];
+
+const RECOMMEND_TABS = [
+  { key: 'ALL', label: 'Tất cả đề xuất' },
+  { key: 'CÔNG NGHỆ THÔNG TIN', label: 'Công nghệ thông tin' },
+  { key: 'KINH TẾ', label: 'Kinh tế & Quản trị' },
+  { key: 'LOGISTICS & VẬN TẢI', label: 'Logistics & Vận tải' },
+  { key: 'NGOẠI NGỮ', label: 'Ngoại ngữ' },
+];
+
 export default function HomePage({
   onAddToCart,
   onViewDetail,
   cartItems = [],
-  onNavigateTab
+  onNavigateTab,
+  onQuickSearch,
+  onSelectCategory,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('ALL');
-  const [onlyAvailable, setOnlyAvailable] = useState(false);
+  const [recommendCategory, setRecommendCategory] = useState('ALL');
+  const [heroCampus, setHeroCampus] = useState(1);
   const [toastMessage, setToastMessage] = useState('');
 
-  // Danh mục chuyên ngành chuẩn UTH
-  const categories = [
-    { id: 'ALL', label: 'Tất cả tài liệu', count: mockMobileBooks.length },
-    { id: 'CÔNG NGHỆ THÔNG TIN', label: 'Công nghệ thông tin', count: mockMobileBooks.filter(b => b.category === 'CÔNG NGHỆ THÔNG TIN').length || 4 },
-    { id: 'KINH TẾ', label: 'Kinh tế & Quản trị', count: mockMobileBooks.filter(b => b.category === 'KINH TẾ').length || 3 },
-    { id: 'LOGISTICS', label: 'Logistics & Vận tải', count: mockMobileBooks.filter(b => b.category === 'LOGISTICS').length || 2 },
-    { id: 'XÂY DỰNG', label: 'Kỹ thuật Xây dựng', count: mockMobileBooks.filter(b => b.category === 'XÂY DỰNG').length || 2 },
-  ];
-
-  // Lọc danh sách sách
-  const filteredBooks = useMemo(() => {
-    return mockMobileBooks.filter((book) => {
-      const matchCat = selectedCategory === 'ALL' || book.category === selectedCategory;
-      const matchQuery =
-        !searchQuery.trim() ||
-        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (book.code && book.code.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchStock = !onlyAvailable || (book.availableQuantity && book.availableQuantity > 0);
-      return matchCat && matchQuery && matchStock;
-    });
-  }, [searchQuery, selectedCategory, onlyAvailable]);
-
-  // Danh sách sách mới / nổi bật cho Slider
-  const featuredBooks = useMemo(() => {
-    return mockMobileBooks.filter(b => b.featured || b.isNew || (b.rating && b.rating >= 4.8)).slice(0, 6);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroCampus((prev) => (prev === 3 ? 1 : prev + 1));
+    }, 3000);
+    return () => clearInterval(timer);
   }, []);
+
+  const categories = useMemo(
+    () => [
+      { id: 'ALL', label: 'Tất cả tài liệu', count: mockPCBooks.length },
+      {
+        id: 'CÔNG NGHỆ THÔNG TIN',
+        label: 'Công nghệ thông tin',
+        count: mockPCBooks.filter((b) => b.category === 'CÔNG NGHỆ THÔNG TIN').length,
+      },
+      {
+        id: 'KINH TẾ',
+        label: 'Kinh tế & Quản trị',
+        count: mockPCBooks.filter((b) => b.category === 'KINH TẾ').length,
+      },
+      {
+        id: 'LOGISTICS & VẬN TẢI',
+        label: 'Logistics & Vận tải',
+        count: mockPCBooks.filter((b) => b.category === 'LOGISTICS & VẬN TẢI').length,
+      },
+      {
+        id: 'NGOẠI NGỮ',
+        label: 'Ngoại ngữ chuyên ngành',
+        count: mockPCBooks.filter((b) => b.category === 'NGOẠI NGỮ').length,
+      },
+    ],
+    []
+  );
+
+  const newBooks = useMemo(
+    () =>
+      mockPCBooks
+        .filter((b) => b.isNew || (b.publishYear && b.publishYear >= 2023))
+        .sort((a, b) => (b.publishYear || 0) - (a.publishYear || 0))
+        .slice(0, 4),
+    []
+  );
+
+  const featuredBook = newBooks[0];
+  const otherNewBooks = newBooks.slice(1, 4);
+
+  const recommendedBooks = useMemo(
+    () =>
+      mockPCBooks
+        .filter((b) => recommendCategory === 'ALL' || b.category === recommendCategory)
+        .sort((a, b) => (b.borrowCount || 0) - (a.borrowCount || 0))
+        .slice(0, 4),
+    [recommendCategory]
+  );
+
+  const currentCampus = HERO_CAMPUSES.find((c) => c.id === heroCampus) || HERO_CAMPUSES[0];
 
   const handleAdd = (book) => {
     if (onAddToCart) {
@@ -81,380 +141,483 @@ export default function HomePage({
   };
 
   const handleDetail = (book) => {
-    if (onViewDetail) {
-      onViewDetail(book);
+    if (onViewDetail) onViewDetail(book);
+  };
+
+  const triggerCatalogSearch = (keyword) => {
+    if (onQuickSearch) {
+      onQuickSearch(keyword);
+    } else if (onNavigateTab) {
+      onNavigateTab('search');
     }
   };
 
+  const triggerCategoryOpen = (categoryId) => {
+    if (onSelectCategory) {
+      onSelectCategory(categoryId);
+    } else if (onNavigateTab) {
+      onNavigateTab('search');
+    }
+  };
+
+  const handleHeroSubmit = (e) => {
+    e.preventDefault();
+    triggerCatalogSearch(searchQuery);
+  };
+
   return (
-    <div className="w-full min-h-screen bg-[#f4f8f7] text-slate-800 pb-28 md:pb-16 select-none">
-      
-      {/* =========================================================================
-          KHỐI 1: HERO GREETING & BANNER ĐA THIẾT BỊ
-          - Mobile (< 768px): Lời chào ấm cúng, gọn gàng, thanh search nổi bật
-          - Tablet (>= 768px): Banner 2 cột thoáng đãng, thanh search kích thước lớn
-          - Desktop (>= 1024px): Banner học thuật trang trọng chuẩn thương hiệu UTH
-          ========================================================================= */}
-      <section className="bg-gradient-to-b from-[#00666b] via-[#005458] to-[#0a4549] text-white px-4 pt-5 pb-7 sm:px-6 md:px-8 md:pt-8 md:pb-10 lg:px-12 rounded-b-3xl shadow-lg relative overflow-hidden">
-        {/* Họa tiết trang trí nền */}
-        <div className="absolute -top-16 -right-16 w-64 h-64 bg-teal-400/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-80 h-32 bg-white/5 rounded-full blur-xl pointer-events-none" />
+    <div className="w-full bg-[#f4f8f7] text-slate-800 pb-10 select-none overflow-x-hidden">
+      {/* KHỐI 1: HERO BANNER - Đồng bộ thông điệp & ảnh 3 cơ sở UTH từ TV3 PC */}
+      <section
+        className="bg-gradient-to-br from-[#00383b] via-[#00474b] to-[#002629] text-white px-4 pt-5 pb-7 sm:px-6 md:px-8 md:pt-8 md:pb-9 rounded-b-3xl shadow-xl relative overflow-hidden"
+        aria-label="Giới thiệu Thư viện UTH"
+      >
+        <div className="absolute -top-20 -left-20 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 right-1/4 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"
+          aria-hidden="true"
+        />
 
-        <div className="max-w-7xl mx-auto relative z-10">
-          
-          {/* Lời chào & Huy hiệu */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full text-[11px] md:text-xs font-semibold text-teal-100 border border-white/20 mb-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Thư viện Số UTH · Cổng Sinh Viên</span>
-              </div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white">
-                Mượn sách trực tuyến,<br className="hidden sm:inline" /> Nhận tại quầy <span className="text-amber-300">dưới 30 giây</span>.
-              </h1>
-              <p className="mt-1.5 text-xs sm:text-sm text-teal-100/90 max-w-xl leading-relaxed">
-                Khám phá kho giáo trình, đặt lịch hẹn lấy và gia hạn trực tuyến dễ dàng mọi lúc mọi nơi.
-              </p>
+        <div className="max-w-4xl mx-auto relative z-10 grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-6 items-stretch">
+          {/* Cột trái: Thông điệp, tìm kiếm & cam kết */}
+          <div className="md:col-span-7 flex flex-col justify-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-teal-200 text-[11px] font-bold mb-3 w-fit backdrop-blur-md">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span className="truncate">Đại học Giao thông Vận tải TP.HCM · Cổng Thư Viện Số</span>
             </div>
 
-            {/* Khối cam kết 3 tiêu chí dịch vụ (Đồng bộ icon chuẩn Lucide như Desktop) */}
-            <div className="hidden md:flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2.5 shrink-0 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/15">
-              <div className="flex items-center gap-2 text-xs font-medium text-teal-50">
-                <div className="w-6 h-6 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center">
-                  <Zap className="w-3.5 h-3.5" />
-                </div>
-                <span>Hẹn lấy &lt; 30 giây</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-medium text-teal-50">
-                <div className="w-6 h-6 rounded-lg bg-teal-400/20 text-teal-200 flex items-center justify-center">
-                  <BookOpen className="w-3.5 h-3.5" />
-                </div>
-                <span>Tối đa 5 cuốn</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-medium text-teal-50">
-                <div className="w-6 h-6 rounded-lg bg-emerald-400/20 text-emerald-300 flex items-center justify-center">
-                  <Calendar className="w-3.5 h-3.5" />
-                </div>
-                <span>Mượn 14 ngày</span>
-              </div>
-            </div>
-          </div>
+            <h1 className="text-2xl sm:text-3xl font-black font-heading tracking-tight leading-[1.16] text-white">
+              Mở trang sách mới,<br className="hidden sm:inline" /> dẫn lối tương lai học thuật.
+            </h1>
+            <p className="mt-2.5 text-xs sm:text-sm text-teal-100/90 leading-relaxed max-w-xl font-medium">
+              Tra cứu giáo trình chính quy UTH, chọn tài liệu vào Giỏ mượn trực tuyến và đến quầy nhận sách nhanh chóng với mã QR.
+            </p>
 
-          {/* =========================================================================
-              THANH TÌM KIẾM THÔNG MINH (RESPONSIVE SEARCH BAR)
-              ========================================================================= */}
-          <div className="mt-5 md:mt-7 max-w-3xl">
-            <div className="relative flex items-center bg-white rounded-2xl shadow-xl border border-teal-100 p-1 sm:p-1.5 transition-all focus-within:ring-3 focus-within:ring-teal-300">
-              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-teal-700 ml-3 shrink-0" />
+            {/* Form tìm kiếm nhanh trên Hero */}
+            <form
+              onSubmit={handleHeroSubmit}
+              className="mt-4 flex items-center bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-white/20 focus-within:border-teal-300 focus-within:ring-2 focus-within:ring-teal-400/40 p-1"
+            >
+              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-[#00666B] ml-2.5 shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm tên giáo trình, tác giả, mã môn học (VD: Python, Kinh tế...)"
-                className="w-full text-slate-800 placeholder:text-slate-400 px-3 py-2 sm:py-2.5 text-xs sm:text-sm bg-transparent focus:outline-none"
+                placeholder="Tìm sách, tác giả hay giáo trình..."
+                className="flex-1 min-w-0 px-2.5 py-2 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none bg-transparent font-medium"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors mr-1 cursor-pointer"
-                  title="Xoá tìm kiếm"
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded cursor-pointer shrink-0"
+                  aria-label="Xóa từ khóa"
                 >
                   <X className="w-4 h-4" />
                 </button>
               )}
               <button
-                type="button"
-                className="bg-[#00666b] hover:bg-[#005458] text-white px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-xs shrink-0 cursor-pointer"
+                type="submit"
+                className="bg-[#00666B] hover:bg-[#005256] text-white text-xs font-bold px-3.5 sm:px-4 py-2 rounded-xl transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
               >
                 Tìm kiếm
               </button>
+            </form>
+
+            {/* Từ khóa tìm nhanh của TV3 PC */}
+            <div className="mt-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 md:flex-wrap">
+              <span className="text-[11px] font-semibold text-teal-200 shrink-0">Tìm nhanh:</span>
+              {QUICK_KEYWORDS.map((kw) => (
+                <button
+                  key={kw}
+                  type="button"
+                  onClick={() => triggerCatalogSearch(kw)}
+                  className="text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-teal-100 px-2.5 py-1 rounded-lg border border-white/15 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+                >
+                  {kw}
+                </button>
+              ))}
             </div>
-            
-            {/* Cam kết nhỏ gọn dạng pill trên Mobile (Icon chuẩn Lucide) */}
-            <div className="flex md:hidden items-center justify-between text-[11px] text-teal-100/90 mt-2 px-1">
-              <span className="flex items-center gap-1.5 font-medium">
-                <Zap className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span>Quét QR lấy sách tức thì</span>
-              </span>
-              <span className="inline-flex items-center gap-1 text-amber-300 font-bold">
-                <Clock className="w-3.5 h-3.5" />
-                <span>Hạn mượn 14 ngày</span>
-              </span>
+
+            {/* 3 Cam kết tốc độ Pick & Go */}
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-3 py-2 rounded-xl border border-white/15">
+                <div className="w-7 h-7 rounded-lg bg-emerald-400/20 text-emerald-300 flex items-center justify-center shrink-0">
+                  <Zap className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <strong className="block text-[11px] font-bold text-white leading-tight truncate">Nhận sách tại quầy</strong>
+                  <span className="text-[10px] text-teal-200/80 block truncate">Quy trình Pick &amp; Go</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-3 py-2 rounded-xl border border-white/15">
+                <div className="w-7 h-7 rounded-lg bg-teal-400/20 text-teal-200 flex items-center justify-center shrink-0">
+                  <Clock className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <strong className="block text-[11px] font-bold text-white leading-tight truncate">Thủ thư gom trước</strong>
+                  <span className="text-[10px] text-teal-200/80 block truncate">Sắp sẵn ra khay chờ</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-3 py-2 rounded-xl border border-white/15">
+                <div className="w-7 h-7 rounded-lg bg-cyan-400/20 text-cyan-200 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <strong className="block text-[11px] font-bold text-white leading-tight truncate">Minh bạch hạn trả</strong>
+                  <span className="text-[10px] text-teal-200/80 block truncate">Gia hạn online 24/7</span>
+                </div>
+              </div>
             </div>
           </div>
 
+          {/* Cột phải: Ảnh 3 Cơ sở UTH tự động chuyển đổi */}
+          <div className="md:col-span-5 relative rounded-2xl overflow-hidden min-h-[210px] sm:min-h-[250px] md:min-h-full border border-white/15 shadow-lg">
+            {HERO_CAMPUSES.map((campus) => {
+              const isActive = heroCampus === campus.id;
+              return (
+                <img
+                  key={campus.id}
+                  src={campus.image}
+                  alt={campus.name}
+                  className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ${
+                    isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'
+                  }`}
+                />
+              );
+            })}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-black/25 to-black/10 pointer-events-none" />
+
+            <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-slate-900/80 backdrop-blur-md p-1 rounded-xl border border-white/20">
+              {HERO_CAMPUSES.map((campus) => {
+                const isActive = heroCampus === campus.id;
+                return (
+                  <button
+                    key={campus.id}
+                    type="button"
+                    onClick={() => setHeroCampus(campus.id)}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                      isActive
+                        ? 'bg-[#00666B] text-white'
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    {isActive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+                    <span>{campus.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="absolute bottom-3 left-3 right-3 bg-slate-900/85 backdrop-blur-md border border-white/20 rounded-xl p-3 text-white flex items-center justify-between gap-2 z-10">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-[#00666B] flex items-center justify-center shrink-0">
+                  <BookOpen className="w-4 h-4 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold block truncate">{currentCampus.name}</span>
+                  <span className="text-[10px] text-teal-200/90 block truncate">{currentCampus.address}</span>
+                </div>
+              </div>
+              <span className="text-[10px] font-mono font-bold bg-[#00666B] px-2 py-0.5 rounded border border-white/20 shrink-0">
+                {currentCampus.code}
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* =========================================================================
-          NỘI DUNG CHÍNH TRANG CHỦ (MAIN WRAPPER THEO BREAKPOINTS)
-          - Tràn toàn màn hình w-full trên Mobile & Tablet (< 1024px)
-          - Đệm lề responsive: px-3.5 (mobile), px-6 (sm/tablet), px-8 (desktop)
-          - Giới hạn tối đa max-w-7xl trên màn hình lớn Desktop
-          ========================================================================= */}
-      <main className="w-full max-w-7xl mx-auto px-3.5 sm:px-6 md:px-8 mt-4 sm:mt-6 space-y-6">
-
-        {/* =========================================================================
-            KHỐI 2: DẢI CHUYÊN NGÀNH (CATEGORY CHIPS / PILLS)
-            - Mobile: Vuốt ngang no-scrollbar
-            - Tablet & Desktop: Trải đều dạng hàng ngang đẹp mắt
-            ========================================================================= */}
-        <section aria-label="Danh mục chuyên ngành">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-[#00666b]" />
-              <span>Chuyên ngành đào tạo</span>
-            </h2>
-            <span className="text-[11px] text-slate-500 font-medium">
-              {categories.length} nhóm ngành
+      {/* NỘI DUNG CHÍNH */}
+      <main className="w-full max-w-4xl mx-auto px-3.5 sm:px-6 mt-4 sm:mt-6 space-y-6">
+        {/* DẢI TRẠNG THÁI & CHỈ SỐ THƯ VIỆN */}
+        <section className="bg-white border border-slate-200/90 rounded-2xl p-3.5 sm:px-5 shadow-xs space-y-2.5 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
             </span>
+            <span className="font-bold text-slate-900">Thư viện đang mở cửa:</span>
+            <span className="text-slate-600">07:30 – 20:30 (Thứ 2 – Thứ 7)</span>
+          </div>
+
+          <div className="grid grid-cols-1 xs:grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-[11px] text-slate-600">
+            <div className="flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5 text-[#00666B] shrink-0" />
+              <span>Tài liệu in: <strong className="text-slate-900">50.000+</strong></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Laptop className="w-3.5 h-3.5 text-[#00666B] shrink-0" />
+              <span>E-Book số: <strong className="text-slate-900">120.000+</strong></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#00666B] shrink-0" />
+              <span>Phục vụ: <strong className="text-slate-900">3 Cơ sở UTH</strong></span>
+            </div>
+          </div>
+        </section>
+
+        {/* KHÁM PHÁ THEO CHUYÊN NGÀNH (4 nhóm ngành TV3 PC) */}
+        <section aria-label="Khám phá theo chuyên ngành" className="space-y-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm sm:text-base font-black text-slate-900 font-heading flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-[#00666b]" />
+                <span>Khám phá theo chuyên ngành</span>
+              </h2>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Nguồn tài liệu thiết thực theo chương trình đào tạo UTH.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => triggerCategoryOpen('ALL')}
+              className="text-xs font-bold text-[#00666B] flex items-center gap-1 shrink-0 cursor-pointer"
+            >
+              <span>Xem tất cả</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 text-xs md:flex-wrap">
-            {categories.map((cat) => {
-              const active = selectedCategory === cat.id;
-              return (
-                <button
-                  type="button"
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3.5 py-2 rounded-xl font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
-                    active
-                      ? 'bg-[#00666b] text-white shadow-md shadow-teal-900/10 scale-102 ring-2 ring-teal-600/30'
-                      : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <span>{cat.label}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                      active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                    }`}
-                  >
-                    {cat.count}
-                  </span>
-                </button>
-              );
-            })}
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => triggerCategoryOpen(cat.id)}
+                className="px-3.5 py-2 rounded-xl bg-white text-slate-700 border border-slate-200/90 hover:border-[#00666b] hover:text-[#00666b] font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer shadow-2xs"
+              >
+                <span>{cat.label}</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-slate-100 text-slate-600">
+                  {cat.count}
+                </span>
+              </button>
+            ))}
           </div>
         </section>
 
-        {/* =========================================================================
-            KHỐI 3: SLIDER SÁCH MỚI & NỔI BẬT (SLIDER VUỐT NGANG - ĐẶC TẢ TV2 BUỔI 5)
-            - Vuốt mượt trên điện thoại, phím cuộn trên máy tính bảng
-            ========================================================================= */}
-        {(!searchQuery && selectedCategory === 'ALL') && (
-          <section aria-label="Sách mới & Nổi bật" className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-                  <Sparkles className="w-4 h-4 text-amber-600" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-tight">
-                    Tài liệu mới &amp; Mượn nhiều nhất
-                  </h3>
-                  <p className="text-[10px] sm:text-xs text-slate-500">Giáo trình cập nhật năm học 2026</p>
-                </div>
+        {/* TIÊU ĐIỂM & SÁCH MỚI CẬP NHẬT */}
+        <section
+          aria-label="Tiêu điểm và sách mới cập nhật"
+          className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs space-y-4"
+        >
+          <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+            <div className="flex items-start gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-[#e0eff0] text-[#00666B] flex items-center justify-center shrink-0 mt-0.5">
+                <Sparkles className="w-4 h-4" />
               </div>
-              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-teal-700 font-bold bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200/60">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Tuyển chọn</span>
-              </span>
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-base font-black text-slate-900 font-heading">
+                  Tiêu Điểm &amp; Sách Mới Cập Nhật
+                </h2>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Tài liệu và giáo trình vừa bổ sung vào kho thư viện UTH
+                </p>
+              </div>
             </div>
-
-            {/* Dải cuộn ngang Carousel */}
-            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 pt-1 -mx-1 px-1">
-              {featuredBooks.map((book) => {
-                const inCart = cartItems.some((c) => c.id === book.id);
-                return (
-                  <div
-                    key={`featured-${book.id}`}
-                    onClick={() => handleDetail(book)}
-                    className="w-36 sm:w-44 md:w-48 shrink-0 bg-[#f8faf9] rounded-2xl border border-slate-200 hover:border-teal-500 p-2.5 flex flex-col justify-between shadow-xs hover:shadow-md transition-all cursor-pointer group"
-                  >
-                    {/* Bìa sách 3D mini */}
-                    <div
-                      style={{ backgroundColor: book.coverTheme?.bg || '#00666b' }}
-                      className="w-full h-28 sm:h-36 rounded-xl text-white p-2.5 flex flex-col justify-between shadow-md relative overflow-hidden group-hover:scale-102 transition-transform"
-                    >
-                      <div className="absolute inset-y-0 left-0 w-2 bg-black/25 border-r border-white/20" />
-                      <span className="text-[8px] font-bold text-right tracking-tight opacity-90">UTH</span>
-                      <h4 className="text-[9px] sm:text-[11px] font-black uppercase text-center line-clamp-3 leading-tight px-1 drop-shadow-sm">
-                        {book.title}
-                      </h4>
-                      <span className="text-[7px] sm:text-[8px] text-center font-mono opacity-80">
-                        {book.code || 'GIÁO TRÌNH'}
-                      </span>
-                    </div>
-
-                    {/* Thông tin & Nút thêm nhanh */}
-                    <div className="mt-2.5 flex flex-col justify-between flex-1">
-                      <div>
-                        <span className="text-[9px] font-bold text-teal-700 uppercase tracking-wider block truncate">
-                          {book.category}
-                        </span>
-                        <h5 className="text-[11px] sm:text-xs font-bold text-slate-800 line-clamp-1 mt-0.5" title={book.title}>
-                          {book.title}
-                        </h5>
-                        <p className="text-[10px] text-slate-500 truncate">{book.author}</p>
-                      </div>
-
-                      <div className="mt-2 pt-2 border-t border-slate-200/80 flex items-center justify-between">
-                        <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          Còn {book.availableQuantity} cuốn
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAdd(book);
-                          }}
-                          className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
-                            inCart
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                              : 'bg-[#00666b] hover:bg-[#005458] text-white shadow-xs'
-                          }`}
-                          title="Thêm vào giỏ sách"
-                        >
-                          {inCart ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* =========================================================================
-            KHỐI 4: LƯỚI DANH SÁCH SÁCH CHÍNH (MAIN BOOK CATALOG GRID)
-            - Mobile (< 768px): 2 cột (grid-cols-2 gap-3)
-            - Tablet (768px - 1023px, md:): 3 cột (md:grid-cols-3 md:gap-4.5)
-            - Desktop (>= 1024px, lg:): 4 cột (lg:grid-cols-4 lg:gap-6)
-            ========================================================================= */}
-        <section aria-label="Danh sách tài liệu học tập">
-          
-          {/* Thanh tiêu đề & Bộ lọc tình trạng kho */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2">
-            <div>
-              <h2 className="text-xs sm:text-sm md:text-base font-extrabold text-slate-800 uppercase tracking-tight flex items-center gap-1.5">
-                <BookOpen className="w-4 h-4 text-[#00666b]" />
-                <span>
-                  {searchQuery ? `Kết quả tìm kiếm cho "${searchQuery}"` : 'Tất cả tài liệu thư viện'}
-                </span>
-                <span className="text-teal-700 font-bold">({filteredBooks.length})</span>
-              </h2>
-              <p className="text-[10px] sm:text-xs text-slate-500">
-                Chọn tài liệu vào giỏ mượn để hẹn giờ lấy tại quầy
-              </p>
-            </div>
-
-            {/* Checkbox lọc nhanh sách sẵn sàng */}
-            <label className="inline-flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors w-fit">
-              <input
-                type="checkbox"
-                checked={onlyAvailable}
-                onChange={(e) => setOnlyAvailable(e.target.checked)}
-                className="w-3.5 h-3.5 rounded text-[#00666b] focus:ring-[#00666b] border-slate-300"
-              />
-              <span>Chỉ hiện sách còn sẵn</span>
-            </label>
+            <button
+              type="button"
+              onClick={() => triggerCategoryOpen('ALL')}
+              className="text-xs font-bold text-[#00666B] flex items-center gap-1 shrink-0 cursor-pointer"
+            >
+              <span>Tất cả ({newBooks.length})</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
 
-          {/* Lưới hiển thị danh sách sách */}
-          {filteredBooks.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-              {filteredBooks.map((book) => {
-                const inCart = cartItems.some((c) => c.id === book.id);
-                return (
-                  <BookCard
-                    key={book.id}
-                    book={book}
-                    onAddToCart={() => handleAdd(book)}
-                    onViewDetail={() => handleDetail(book)}
-                    isInCart={inCart}
-                  />
-                );
-              })}
-            </div>
-          ) : (
-            /* Trạng thái không tìm thấy (Icon chuẩn Lucide) */
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
-                <Search className="w-6 h-6 stroke-[1.8]" />
+          {/* Spotlight sách tiêu điểm */}
+          {featuredBook && (
+            <div className="bg-gradient-to-br from-[#00363a] via-[#00474b] to-[#002b2e] rounded-2xl p-4 sm:p-5 text-white space-y-3 shadow-md">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-white/15 text-teal-200 px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <span>Ấn bản tiêu điểm</span>
+                </span>
+                <span className="text-xs font-bold text-amber-300 bg-black/30 px-2 py-0.5 rounded-md">
+                  ★ {featuredBook.rating || '4.9'}
+                </span>
               </div>
-              <h3 className="text-sm font-bold text-slate-800">Không tìm thấy tài liệu phù hợp</h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Vui lòng thử tìm với từ khóa khác hoặc xóa bộ lọc để xem toàn bộ danh mục sách thư viện.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('ALL');
-                  setOnlyAvailable(false);
-                }}
-                className="px-4 py-2 bg-[#00666b] text-white text-xs font-bold rounded-xl hover:bg-[#005458] transition-colors cursor-pointer"
-              >
-                Xem tất cả sách
-              </button>
+
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                <div
+                  onClick={() => handleDetail(featuredBook)}
+                  style={{ backgroundColor: featuredBook.coverTheme?.bg || '#0f4c81' }}
+                  className="w-24 h-32 sm:w-28 sm:h-36 rounded-r-md rounded-l-xs text-white p-2.5 flex flex-col justify-between shadow-xl relative shrink-0 cursor-pointer"
+                >
+                  <div className="absolute inset-y-0 left-0 w-2 bg-black/25 rounded-l-xs border-r border-white/10" />
+                  <p className="text-[8px] text-center text-white/90 truncate pl-1.5">
+                    {featuredBook.coverTheme?.author || featuredBook.author}
+                  </p>
+                  <h4 className="text-[9px] font-black uppercase text-center leading-snug whitespace-pre-line my-auto pl-1">
+                    {featuredBook.coverTheme?.title || featuredBook.title}
+                  </h4>
+                  <span className="text-[7px] text-center text-white/80 uppercase font-bold border-t border-white/20 pt-1 pl-1">
+                    {featuredBook.coverTheme?.series || 'TỦ SÁCH ĐẠI HỌC'}
+                  </span>
+                </div>
+
+                <div className="flex-1 min-w-0 text-center sm:text-left space-y-1.5">
+                  <span className="text-[10px] font-bold text-teal-300 uppercase tracking-wide block">
+                    {featuredBook.category}
+                  </span>
+                  <h3
+                    onClick={() => handleDetail(featuredBook)}
+                    className="text-sm sm:text-base font-bold font-heading text-white cursor-pointer hover:text-teal-200"
+                  >
+                    {featuredBook.title}
+                  </h3>
+                  <p className="text-[11px] text-slate-300">
+                    Tác giả: <strong className="text-white">{featuredBook.author}</strong> · Năm {featuredBook.publishYear}
+                  </p>
+                  <p className="text-[11px] text-teal-100/80 line-clamp-2">
+                    {featuredBook.description}
+                  </p>
+                  <div className="pt-2 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAdd(featuredBook)}
+                      className="flex-1 bg-amber-400 hover:bg-amber-300 text-slate-900 text-xs font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>
+                        {cartItems.some((i) => i.id === featuredBook.id)
+                          ? 'Đã trong giỏ'
+                          : 'Thêm vào giỏ mượn'}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDetail(featuredBook)}
+                      className="px-3 py-2 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold rounded-xl border border-white/15 cursor-pointer shrink-0"
+                    >
+                      Chi tiết
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
+
+          {/* 3 cuốn sách mới đi kèm */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+            {otherNewBooks.map((book) => (
+              <BookCard
+                key={book.id}
+                book={book}
+                onAddToCart={handleAdd}
+                onViewDetail={(item) => handleDetail(item || book)}
+                isInCart={cartItems.some((c) => c.id === book.id)}
+              />
+            ))}
+          </div>
         </section>
 
-        {/* =========================================================================
-            KHỐI 5: HƯỚNG DẪN 3 BƯỚC MƯỢN TRẢ PICK & GO NHANH CHÓNG (ICONS CHUẨN DESKTOP)
-            ========================================================================= */}
-        <section aria-label="Quy trình mượn sách" className="bg-gradient-to-r from-teal-50 via-emerald-50/50 to-teal-50 p-4 sm:p-6 rounded-2xl border border-teal-200/80">
-          <div className="text-center max-w-md mx-auto mb-4">
-            <span className="text-[10px] font-black uppercase tracking-widest text-teal-800">Quy trình đơn giản</span>
-            <h3 className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">3 Bước nhận sách siêu tốc tại quầy</h3>
+        {/* ĐỀ XUẤT CHO BẠN */}
+        <section
+          aria-label="Đề xuất cho bạn"
+          className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs space-y-4"
+        >
+          <div className="space-y-3 pb-3 border-b border-slate-100">
+            <div className="flex items-start gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                <TrendingUp className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-sm sm:text-base font-black text-slate-900 font-heading">
+                  Đề Xuất Cho Bạn
+                </h2>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Những đầu sách được sinh viên UTH mượn nhiều nhất
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 md:flex-wrap">
+              {RECOMMEND_TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setRecommendCategory(tab.key)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+                    recommendCategory === tab.key
+                      ? 'bg-[#00666B] text-white shadow-xs'
+                      : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+            {recommendedBooks.map((book) => (
+              <BookCard
+                key={book.id}
+                book={book}
+                onAddToCart={handleAdd}
+                onViewDetail={(item) => handleDetail(item || book)}
+                isInCart={cartItems.some((c) => c.id === book.id)}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* DẢI QUY TRÌNH PICK & GO 3 BƯỚC */}
+        <section
+          aria-label="Quy trình mượn sách Pick & Go"
+          className="bg-gradient-to-r from-[#00383b] via-[#004f54] to-[#00383b] rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-white shadow-md border border-teal-800 space-y-4"
+        >
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-teal-300 block">
+              Đặc quyền sinh viên UTH
+            </span>
+            <h3 className="text-base sm:text-lg font-black font-heading text-white mt-0.5">
+              Mượn giáo trình tiện lợi với Pick &amp; Go
+            </h3>
+            <p className="text-[11px] text-teal-100/80 mt-1 leading-relaxed">
+              Thủ thư gom sẵn sách lên khay giữ chỗ trước khi bạn đến quầy. Tiết kiệm tối đa thời gian trong giờ cao điểm học kỳ.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-white p-3.5 rounded-xl border border-teal-100 shadow-xs flex items-start gap-3">
-              <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center shrink-0">
-                <ShoppingBag className="w-4 h-4" />
+            <div className="bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10 space-y-1">
+              <div className="w-7 h-7 rounded-lg bg-teal-500/25 text-teal-200 flex items-center justify-center text-xs font-bold font-mono">
+                01
               </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-800">1. Thêm vào giỏ &amp; Đặt hẹn</h4>
-                <p className="text-[11px] text-slate-500 mt-0.5">Chọn tối đa 5 cuốn và chọn ngày hẹn đến lấy.</p>
-              </div>
+              <strong className="block text-xs sm:text-sm font-bold text-white">Thêm vào giỏ mượn</strong>
+              <p className="text-[11px] text-teal-200/80 leading-normal">
+                Chọn tối đa 5 đầu sách trực tuyến mọi lúc.
+              </p>
             </div>
 
-            <div className="bg-white p-3.5 rounded-xl border border-teal-100 shadow-xs flex items-start gap-3">
-              <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center shrink-0">
-                <Clock className="w-4 h-4" />
+            <div className="bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10 space-y-1">
+              <div className="w-7 h-7 rounded-lg bg-teal-500/25 text-teal-200 flex items-center justify-center text-xs font-bold font-mono">
+                02
               </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-800">2. Thủ thư soạn sẵn sách</h4>
-                <p className="text-[11px] text-slate-500 mt-0.5">Nhận email thông báo khi sách đã sẵn sàng tại quầy.</p>
-              </div>
+              <strong className="block text-xs sm:text-sm font-bold text-white">Chọn lịch hẹn nhận</strong>
+              <p className="text-[11px] text-teal-200/80 leading-normal">
+                Thủ thư gom sẵn ra khay tiếp nhận riêng.
+              </p>
             </div>
 
-            <div className="bg-white p-3.5 rounded-xl border border-teal-100 shadow-xs flex items-start gap-3">
-              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                <Zap className="w-4 h-4" />
+            <div className="bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10 space-y-1">
+              <div className="w-7 h-7 rounded-lg bg-teal-500/25 text-teal-200 flex items-center justify-center text-xs font-bold font-mono">
+                03
               </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-800">3. Quét QR nhận sách &lt; 30s</h4>
-                <p className="text-[11px] text-slate-500 mt-0.5">Mở điện thoại xuất trình mã QR và mang sách về.</p>
-              </div>
+              <strong className="block text-xs sm:text-sm font-bold text-white">Quét QR &amp; Nhận ngay</strong>
+              <p className="text-[11px] text-teal-200/80 leading-normal">
+                Xác thực tức thì tại quầy tiếp nhận 3 cơ sở.
+              </p>
             </div>
           </div>
         </section>
-
       </main>
 
-      {/* Toast thông báo nhanh (Floating Toast) */}
       {toastMessage && (
         <aside
           role="status"
-          className="fixed bottom-20 md:bottom-8 left-4 right-4 z-50 max-w-sm mx-auto bg-slate-900/95 text-white p-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-2.5 text-xs font-bold backdrop-blur-md animate-in fade-in slide-in-from-bottom-2"
+          className="fixed bottom-6 left-4 right-4 z-50 max-w-sm mx-auto bg-slate-900/95 text-white p-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-2.5 text-xs font-bold"
         >
           <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
             <Check className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -469,8 +632,6 @@ export default function HomePage({
           </button>
         </aside>
       )}
-
     </div>
   );
 }
-
