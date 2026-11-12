@@ -11,7 +11,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * Thực thể Book - Đại diện cho bảng 'books' trong CSDL MySQL
+ * Thực thể Book - Đại diện cho bảng 'books' trong CSDL SQL Server (SSMS)
  * Quản lý trực tiếp tổng số lượng (totalQuantity), số lượng khả dụng (availableQuantity)
  * và vị trí kệ sách (shelfLocation) trong kho.
  */
@@ -36,17 +36,17 @@ public class Book {
 
     @NotBlank(message = "Tên sách không được để trống")
     @Size(max = 255, message = "Tên sách tối đa 255 ký tự")
-    @Column(name = "title", nullable = false, length = 255)
+    @Column(name = "title", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String title;
 
     @NotBlank(message = "Tác giả không được để trống")
     @Size(max = 150, message = "Tên tác giả tối đa 150 ký tự")
-    @Column(name = "author", nullable = false, length = 150)
+    @Column(name = "author", nullable = false, columnDefinition = "NVARCHAR(150)")
     private String author;
 
     @NotBlank(message = "Chuyên ngành/thể loại không được để trống")
     @Size(max = 100, message = "Chuyên ngành tối đa 100 ký tự")
-    @Column(name = "category", nullable = false, length = 100)
+    @Column(name = "category", nullable = false, columnDefinition = "NVARCHAR(100)")
     private String category;
 
     @Size(max = 50, message = "Mã tài liệu tối đa 50 ký tự")
@@ -58,13 +58,13 @@ public class Book {
     private ShelfLocation shelfLocation;
 
     @Size(max = 150, message = "Nhà xuất bản tối đa 150 ký tự")
-    @Column(name = "publisher", length = 150)
+    @Column(name = "publisher", columnDefinition = "NVARCHAR(150)")
     private String publisher;
 
     @Column(name = "publish_year")
     private Integer publishYear;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
     @Column(name = "cover_image", length = 500)

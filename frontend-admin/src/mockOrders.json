@@ -1,0 +1,186 @@
+[
+  {
+    "id": 1001,
+    "orderCode": "ORD-2026-1001",
+    "studentId": "2251120145",
+    "studentName": "Nguyễn Văn An",
+    "studentEmail": "an.nv@ut.edu.vn",
+    "studentPhone": "0912345671",
+    "createdAt": "2026-03-01T08:30:00Z",
+    "pickupDate": "2026-03-02",
+    "pickupSlot": "09:00 - 10:30",
+    "dueDate": "2026-03-16",
+    "returnDate": null,
+    "status": "READY_FOR_PICKUP",
+    "statusLabel": "Sẵn sàng lấy sách",
+    "qrCode": "BORROW|1001|2251120145|1772353800000",
+    "fineAmount": 0,
+    "notes": "Đã soạn đủ sách để tại Ngăn A3 - Quầy 1",
+    "items": [
+      {
+        "bookId": "B-0101",
+        "title": "Kỹ thuật lập trình Java nâng cao",
+        "code": "UTH-CNTT-0101",
+        "author": "Trần Minh Quân",
+        "shelfLocation": "Kệ A-02-03",
+        "quantity": 1
+      },
+      {
+        "bookId": "B-0102",
+        "title": "Thiết kế hệ thống vi dịch vụ với Spring Boot",
+        "code": "UTH-CNTT-0102",
+        "author": "Lê Hồng Phúc",
+        "shelfLocation": "Kệ A-04-01",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": 1002,
+    "orderCode": "ORD-2026-1002",
+    "studentId": "2251120032",
+    "studentName": "Trần Thị Mai",
+    "studentEmail": "mai.tt@ut.edu.vn",
+    "studentPhone": "0987654321",
+    "createdAt": "2026-03-01T09:15:00Z",
+    "pickupDate": "2026-03-02",
+    "pickupSlot": "13:30 - 15:00",
+    "dueDate": "2026-03-16",
+    "returnDate": null,
+    "status": "PENDING",
+    "statusLabel": "Chờ soạn sách",
+    "qrCode": "BORROW|1002|2251120032|1772356500000",
+    "fineAmount": 0,
+    "notes": "Đơn mới gửi từ ứng dụng sinh viên",
+    "items": [
+      {
+        "bookId": "B-0205",
+        "title": "Nhập môn Cơ sở dữ liệu và MySQL",
+        "code": "UTH-CSDL-0205",
+        "author": "Phạm Văn Tuấn",
+        "shelfLocation": "Kệ B-01-02",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": 1003,
+    "orderCode": "ORD-2026-1003",
+    "studentId": "2151140088",
+    "studentName": "Lê Hoàng Nam",
+    "studentEmail": "nam.lh@ut.edu.vn",
+    "studentPhone": "0905123456",
+    "createdAt": "2026-02-20T10:00:00Z",
+    "pickupDate": "2026-02-21",
+    "pickupSlot": "10:30 - 11:30",
+    "dueDate": "2026-03-07",
+    "returnDate": null,
+    "status": "BORROWED",
+    "statusLabel": "Đang mượn",
+    "qrCode": "BORROW|1003|2151140088|1771581600000",
+    "fineAmount": 0,
+    "notes": "Đã bàn giao sách tại quầy 2",
+    "items": [
+      {
+        "bookId": "B-0301",
+        "title": "Quản trị chuỗi cung ứng và logistics cảng biển",
+        "code": "UTH-LOG-0301",
+        "author": "Đỗ Mạnh Hùng",
+        "shelfLocation": "Kệ C-02-05",
+        "quantity": 1
+      },
+      {
+        "bookId": "B-0302",
+        "title": "Luật Hàng hải quốc tế",
+        "code": "UTH-LUAT-0302",
+        "author": "Nguyễn Thu Hương",
+        "shelfLocation": "Kệ C-03-02",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": 1004,
+    "orderCode": "ORD-2026-1004",
+    "studentId": "2051150012",
+    "studentName": "Phạm Quốc Bảo",
+    "studentEmail": "bao.pq@ut.edu.vn",
+    "studentPhone": "0934567890",
+    "createdAt": "2026-02-10T14:20:00Z",
+    "pickupDate": "2026-02-11",
+    "pickupSlot": "15:00 - 16:30",
+    "dueDate": "2026-02-25",
+    "returnDate": null,
+    "status": "OVERDUE",
+    "statusLabel": "Quá hạn",
+    "qrCode": "BORROW|1004|2051150012|1770733200000",
+    "fineAmount": 30000,
+    "notes": "Đã gửi email nhắc trả lần 2",
+    "items": [
+      {
+        "bookId": "B-0401",
+        "title": "Thiết kế cầu đường hiện đại",
+        "code": "UTH-CAUDUONG-0401",
+        "author": "Hoàng Văn Đức",
+        "shelfLocation": "Kệ D-01-04",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": 1005,
+    "orderCode": "ORD-2026-1005",
+    "studentId": "2351110055",
+    "studentName": "Đỗ Thu Trang",
+    "studentEmail": "trang.dt@ut.edu.vn",
+    "studentPhone": "0978112233",
+    "createdAt": "2026-02-15T08:00:00Z",
+    "pickupDate": "2026-02-16",
+    "pickupSlot": "08:30 - 09:30",
+    "dueDate": "2026-03-02",
+    "returnDate": "2026-03-01T16:00:00Z",
+    "status": "RETURNED",
+    "statusLabel": "Đã trả xong",
+    "qrCode": "RETURN|1005|2351110055|1772380800000",
+    "fineAmount": 0,
+    "notes": "Sách nguyên vẹn, trả trước hạn 1 ngày",
+    "items": [
+      {
+        "bookId": "B-0501",
+        "title": "Giải tích toán học dành cho kỹ sư",
+        "code": "UTH-TOAN-0501",
+        "author": "Vũ Đình Cự",
+        "shelfLocation": "Kệ E-01-01",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": 1006,
+    "orderCode": "ORD-2026-1006",
+    "studentId": "2251120220",
+    "studentName": "Bùi Minh Trí",
+    "studentEmail": "tri.bm@ut.edu.vn",
+    "studentPhone": "0961239874",
+    "createdAt": "2026-02-28T16:45:00Z",
+    "pickupDate": "2026-03-01",
+    "pickupSlot": "09:00 - 10:30",
+    "dueDate": "2026-03-15",
+    "returnDate": null,
+    "status": "CANCELLED",
+    "statusLabel": "Đã hủy",
+    "qrCode": null,
+    "fineAmount": 0,
+    "notes": "Sinh viên hủy đơn do trùng lịch thi",
+    "items": [
+      {
+        "bookId": "B-0105",
+        "title": "Kiến trúc máy tính và Hợp ngữ",
+        "code": "UTH-CNTT-0105",
+        "author": "Nguyễn Thanh Hải",
+        "shelfLocation": "Kệ A-01-02",
+        "quantity": 1
+      }
+    ]
+  }
+]

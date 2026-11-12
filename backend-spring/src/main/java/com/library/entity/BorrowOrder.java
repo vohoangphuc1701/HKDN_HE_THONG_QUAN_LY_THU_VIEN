@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Thực thể BorrowOrder - Đại diện cho bảng 'borrow_orders' trong CSDL MySQL
+ * Thực thể BorrowOrder - Đại diện cho bảng 'borrow_orders' trong CSDL SQL Server (SSMS)
  * Quản lý vòng đời đơn mượn: NEW -> PROCESSING -> READY_FOR_PICKUP -> BORROWED -> RETURNED / CANCELLED
  */
 @Entity
@@ -55,7 +55,7 @@ public class BorrowOrder {
     @Builder.Default
     private BorrowOrderStatus status = BorrowOrderStatus.NEW;
 
-    @Column(name = "note", length = 500)
+    @Column(name = "note", columnDefinition = "NVARCHAR(500)")
     private String note;
 
     @OneToMany(mappedBy = "borrowOrder", cascade = CascadeType.ALL, orphanRemoval = true)

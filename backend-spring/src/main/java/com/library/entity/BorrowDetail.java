@@ -11,9 +11,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Thực thể BorrowDetail - Đại diện cho bảng 'borrow_details' trong CSDL MySQL
+ * Thực thể BorrowDetail - Đại diện cho bảng 'borrow_details' trong CSDL SQL Server (SSMS)
  * Chi tiết từng cuốn sách trong đơn mượn (hạn trả, gia hạn, trạng thái)
- * Định dạng Lombok: @Getter, @Setter, @NoArgsConstructor, @AllArgsConstructor, @Builder
  */
 @Entity
 @Table(name = "borrow_details", indexes = {

@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Thực thể ReturnTicket - Đại diện cho bảng 'return_tickets' trong CSDL MySQL
+ * Thực thể ReturnTicket - Đại diện cho bảng 'return_tickets' trong CSDL SQL Server (SSMS)
  * Quản lý phiếu hẹn trả sách sớm có mã QR:
  * Sinh viên chủ động tạo lịch hẹn -> nhận mã QR -> thủ thư quét tại quầy
  */
@@ -56,7 +56,7 @@ public class ReturnTicket {
     @Builder.Default
     private ReturnTicketStatus status = ReturnTicketStatus.PENDING_RETURN;
 
-    @Column(name = "librarian_note", length = 500)
+    @Column(name = "librarian_note", columnDefinition = "NVARCHAR(500)")
     private String librarianNote;
 
     @OneToMany(mappedBy = "returnTicket", cascade = CascadeType.ALL, orphanRemoval = true)

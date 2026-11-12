@@ -11,7 +11,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * Thực thể User - Đại diện cho bảng 'users' trong CSDL MySQL
+ * Thực thể User - Đại diện cho bảng 'users' trong CSDL SQL Server (SSMS)
  * Phân quyền 2 vai trò: STUDENT (Sinh viên), LIBRARIAN (Thủ thư kiêm Quản trị viên)
  */
 @Entity
@@ -40,7 +40,7 @@ public class User {
     private String password;
 
     @NotBlank(message = "Họ và tên không được để trống")
-    @Column(name = "full_name", nullable = false, length = 100)
+    @Column(name = "full_name", nullable = false, columnDefinition = "NVARCHAR(100)")
     private String fullName;
 
     @NotBlank(message = "Email không được để trống")

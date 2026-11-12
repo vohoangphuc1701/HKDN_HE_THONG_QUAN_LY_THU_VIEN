@@ -11,12 +11,12 @@ spring:
   config:
     import: "optional:classpath:application-mail.yml"
 
-  # Cấu hình Cơ sở dữ liệu MySQL 8.0+
+  # Cấu hình Cơ sở dữ liệu Microsoft SQL Server (SSMS)
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:library_db}?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&characterEncoding=UTF-8
-    username: ${DB_USER:root}
-    password: ${DB_PASSWORD:root}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:sqlserver://${DB_HOST:localhost}:${DB_PORT:1433};databaseName=${DB_NAME:library_db};encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     hikari:
       maximum-pool-size: 15
       minimum-idle: 5
@@ -24,7 +24,7 @@ spring:
       connection-timeout: 20000
       max-lifetime: 1200000
 
-  # Cấu hình Spring Data JPA / Hibernate
+  # Cấu hình Spring Data JPA / Hibernate cho SQL Server
   jpa:
     hibernate:
       ddl-auto: update
@@ -33,7 +33,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.SQLServerDialect
         jdbc:
           batch_size: 25
 
@@ -58,5 +58,3 @@ logging:
     root: INFO
     com.library: DEBUG
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
