@@ -1,4 +1,4 @@
-# 📚 HỆ THỐNG QUẢN LÝ MƯỢN TRẢ SÁCH TRỰC TUYẾN 
+# 📚 HỆ THỐNG QUẢN LÝ MƯỢN TRẢ SÁCH TRỰC TUYẾN
 
 **Xây dựng hệ thống quản lý mượn trả sách trực tuyến cho Thư viện Đại học Giao thông Vận tải TP.HCM (UTH)**
 
@@ -8,13 +8,13 @@ Hệ thống hoạt động tương tự mô hình mua sắm online: Sinh viên 
 
 ## 🎯 Mục tiêu & KPI
 
-| Mục tiêu | Chỉ số đo lường (KPI) |
-| :--- | :--- |
-| Giảm thời gian nhận sách tại quầy | Thời gian giao sách trung bình **< 30 giây/đơn** |
-| Giảm tải cho thủ thư | Thời gian xử lý 1 đơn (soạn + bàn giao) **< 3 phút** |
-| Tăng tỷ lệ sinh viên đến lấy đúng hẹn | Tỷ lệ no-show **< 5%** |
-| Giảm thất lạc sách | Tỷ lệ sách "không tìm thấy trên kệ" **< 2%** |
-| Minh bạch phạt | **100%** khoản phạt có công thức và lịch sử tính rõ ràng |
+| Mục tiêu                                      | Chỉ số đo lường (KPI)                                                |
+| :---------------------------------------------- | :------------------------------------------------------------------------ |
+| Giảm thời gian nhận sách tại quầy         | Thời gian giao sách trung bình**< 30 giây/đơn**               |
+| Giảm tải cho thủ thư                        | Thời gian xử lý 1 đơn (soạn + bàn giao)**< 3 phút**         |
+| Tăng tỷ lệ sinh viên đến lấy đúng hẹn | Tỷ lệ no-show**< 5%**                                             |
+| Giảm thất lạc sách                          | Tỷ lệ sách "không tìm thấy trên kệ"**< 2%**                 |
+| Minh bạch phạt                                | **100%** khoản phạt có công thức và lịch sử tính rõ ràng |
 
 ---
 
@@ -28,10 +28,10 @@ Hệ thống hoạt động tương tự mô hình mua sắm online: Sinh viên 
 
 ## 🛠 Công nghệ sử dụng
 
-*   **Frontend (Giao diện):** ReactJS (Vite), TailwindCSS, React Router, Axios, HTML5-QRCode, Recharts.
-*   **Backend (Máy chủ):** Java 17, Spring Boot 3, Spring Security (JWT), ZXing (Mã QR), JavaMail, Spring Scheduler.
-*   **Database (Cơ sở dữ liệu):** MySQL 8.0+, Spring Data JPA.
-*   **Công cụ khác:** Git/GitHub, Postman, Docker.
+* **Frontend (Giao diện):** ReactJS (Vite), TailwindCSS, React Router, Axios, HTML5-QRCode, Recharts.
+* **Backend (Máy chủ):** Java 17, Spring Boot 3, Spring Security (JWT), ZXing (Mã QR), JavaMail, Spring Scheduler.
+* **Database (Cơ sở dữ liệu):** SQL Server, Spring Data JPA.
+* **Công cụ khác:** Git/GitHub, Postman, Docker.
 
 ## 📂 Cấu trúc thư mục
 
@@ -40,9 +40,10 @@ library-management-system/
 ├── backend-spring/      # Source code Java Spring Boot (API, Database, Logic)
 ├── frontend-student/    # Source code React dành cho Sinh viên
 ├── frontend-admin/      # Source code React dành cho Thủ thư/Admin
-├── database/            # Chứa script khởi tạo CSDL MySQL (.sql)
+├── database/            # Chứa script khởi tạo CSDL SQL Server (.sql)
 ├── docs/                # Sơ đồ Use Case, ERD, tài liệu API, báo cáo
 ├── tests/               # Các file kiểm thử
 ├── .gitignore           # Bỏ qua các file rác (node_modules, target,...)
 ├── LICENSE              # Giấy phép MIT
 └── README.md            # Tài liệu hướng dẫn này
+```

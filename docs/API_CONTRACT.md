@@ -1,14 +1,16 @@
 # TÀI LIỆU API CONTRACT & MOCK DATA (DÙNG CHUNG CHO DỰ ÁN)
-> **Phiên bản:** 1.0.0 (Chốt API Contract Buổi 3)  
-> **Người lập:** Thành viên 4 (Backend Spring Boot & MySQL)  
+
+> **Phiên bản:** 1.0.0 
 > **Áp dụng cho:** TV2 (Mobile Web), TV3 (PC Web), TV5 (QR/Email Quầy), TV6 (Admin Dashboard)
 
 ---
 
 ## 1. Cấu trúc Chuẩn hóa Phản hồi (Standard Response Envelope)
+
 Mọi API trong hệ thống đều trả về theo định dạng thống nhất của `ApiResponse<T>`:
 
 ### 1.1. Phản hồi Thành công (Success - HTTP 200 / 201)
+
 ```json
 {
   "success": true,
@@ -20,6 +22,7 @@ Mọi API trong hệ thống đều trả về theo định dạng thống nhấ
 ```
 
 ### 1.2. Phản hồi Lỗi (Error - HTTP 400 / 401 / 403 / 404 / 500)
+
 ```json
 {
   "success": false,
@@ -38,7 +41,9 @@ Mọi API trong hệ thống đều trả về theo định dạng thống nhấ
 ## 2. Danh mục Endpoint Chi tiết & Mock Data
 
 ### 🔐 2.1. Phân hệ Xác thực (Auth)
+
 #### `POST /api/auth/login`
+
 * **Mô tả:** Đăng nhập lấy Bearer JWT Token.
 * **Request:**
   ```json
@@ -65,7 +70,9 @@ Mọi API trong hệ thống đều trả về theo định dạng thống nhấ
 ---
 
 ### 📚 2.2. Phân hệ Danh mục Sách (Books)
+
 #### `GET /api/books`
+
 * **Query Params:** `search`, `category`, `onlyAvailable` (true/false), `page`, `size`.
 * **Response (Data):**
   ```json
@@ -96,7 +103,9 @@ Mọi API trong hệ thống đều trả về theo định dạng thống nhấ
 ---
 
 ### 📦 2.3. Quy trình Mượn Sách (Borrows Flow)
+
 #### `POST /api/borrows/create`
+
 * **Mô tả:** Sinh viên đặt mượn sách trực tuyến (trừ tồn kho khả dụng ngay lập tức).
 * **Headers:** `Authorization: Bearer <token>`
 * **Request:**
@@ -123,6 +132,7 @@ Mọi API trong hệ thống đều trả về theo định dạng thống nhấ
   ```
 
 #### `GET /api/borrows/my-loans`
+
 * **Mô tả:** Danh sách các cuốn sách sinh viên đang cầm (để gia hạn hoặc chọn hẹn trả sớm).
 * **Response (Data):**
   ```json
@@ -142,6 +152,7 @@ Mọi API trong hệ thống đều trả về theo định dạng thống nhấ
   ```
 
 #### `POST /api/borrows/{borrowDetailId}/renew`
+
 * **Mô tả:** Gia hạn trực tuyến 1 lần (+7 ngày, tối đa 2 lần).
 * **Response (Data):**
   ```json
@@ -156,7 +167,9 @@ Mọi API trong hệ thống đều trả về theo định dạng thống nhấ
 ---
 
 ### 🔄 2.4. Quy trình Hẹn Trả Sách Sớm (ReturnTicket Flow)
+
 #### `POST /api/returns/create-ticket`
+
 * **Mô tả:** Sinh viên chọn sách muốn trả sớm, chọn ngày hẹn trả $\le$ `dueDate` $\rightarrow$ sinh mã QR phiếu trả.
 * **Request:**
   ```json
@@ -186,10 +199,13 @@ Mọi API trong hệ thống đều trả về theo định dạng thống nhấ
 ---
 
 ### 🏢 2.5. Nghiệp vụ Quầy & Quét QR (Desk Operations)
+
 #### `POST /api/operations/handover?orderCode=OD-20261105-001`
+
 * **Mô tả:** Thủ thư quét QR đơn mượn $\rightarrow$ Đơn chuyển sang `BORROWED`, gán `actualPickupDate = NOW()`, hạn trả chuẩn `dueDate = NOW() + 14 ngày`.
 
 #### `POST /api/returns/{ticketId}/complete`
+
 * **Mô tả:** Thủ thư đối soát tình trạng sách vật lý, tính tiền phạt trễ hạn + hư hại, cộng hoàn lại kho khả dụng.
 * **Request:**
   ```json
@@ -217,4 +233,3 @@ Mọi API trong hệ thống đều trả về theo định dạng thống nhấ
     "fineStatus": "PAID"
   }
   ```
-
