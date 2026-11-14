@@ -23,6 +23,7 @@ import {
   Download,
   Share2
 } from 'lucide-react';
+import borrowApi from '../services/borrowApi';
 
 /**
  * CheckoutSchedulePage - Màn hình Xác nhận Đơn mượn & Đặt lịch hẹn Pick & Go (TV3 - Desktop)
@@ -57,6 +58,7 @@ export default function CheckoutSchedulePage({
   const [studentNote, setStudentNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Danh mục 3 Cơ sở đào tạo UTH
   const campuses = [
@@ -138,17 +140,36 @@ export default function CheckoutSchedulePage({
   };
 
   // Xử lý xác nhận đặt mượn
-  const handleConfirmOrder = (e) => {
+  const handleConfirmOrder = async (e) => {
     e.preventDefault();
     if (cartItems.length === 0) return;
 
     setIsSubmitting(true);
+    setErrorMessage('');
 
-    setTimeout(() => {
-      const orderCode = `DH-UTH-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    try {
+      // 1. Kiểm tra quy định BR01 (Chặn nếu có nợ phạt hoặc vượt hạn mức 5 cuốn)
+      const eligibility = await borrowApi.checkStudentBorrowEligibility({
+        addingCount: cartItems.length,
+      });
+
+      if (!eligibility.eligible && eligibility.reason) {
+        setErrorMessage(eligibility.reason);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 2. Gửi yêu cầu đặt mượn lên Spring Boot (/api/borrows/create)
+      const result = await borrowApi.createBorrowOrder({
+        bookIds: cartItems.map((b) => b.id),
+        pickupDate,
+        note: `Cơ sở ${selectedCampusObj.code} - ${selectedTimeSlotObj.time}${studentNote ? ' - ' + studentNote : ''}`,
+      });
+
+      const orderCode = result.orderCode || `OD-UTH-2026-${Math.floor(1000 + Math.random() * 9000)}`;
       const newOrder = {
         code: orderCode,
-        orderId: Math.floor(100 + Math.random() * 900),
+        orderId: result.orderId || Math.floor(100 + Math.random() * 900),
         pickupDate: `${pickupDate} (${selectedTimeSlotObj.time})`,
         pickupCampus: selectedCampusObj.name,
         pickupAddress: selectedCampusObj.address,
@@ -156,10 +177,11 @@ export default function CheckoutSchedulePage({
         dueDate: '14 ngày kể từ khi ký nhận tại quầy (BR02)',
         books: [...cartItems],
         totalBooks: cartItems.length,
-        status: 'READY_FOR_PICKUP',
+        status: result.status || 'NEW',
         studentNote: studentNote.trim(),
         createdAt: new Date().toLocaleDateString('vi-VN'),
-        expireTime48h: '48 giờ sau khi đơn được soạn sẵn',
+        expireTime48h: '48 giờ sau khi đơn được soạn sẵn (BR05)',
+        qrCodeBase64: result.qrCodeBase64,
       };
 
       setIsSubmitting(false);
@@ -168,7 +190,10 @@ export default function CheckoutSchedulePage({
       if (onCheckoutSuccess) {
         onCheckoutSuccess(newOrder);
       }
-    }, 600);
+    } catch (error) {
+      setIsSubmitting(false);
+      setErrorMessage(error?.message || 'Không thể tạo đơn đặt mượn sách. Vui lòng kiểm tra lại!');
+    }
   };
 
   /* ==================== TRƯỜNG HỢP 1: ĐÃ XÁC NHẬN THÀNH CÔNG VÀ XUẤT MÃ QR ==================== */
@@ -736,6 +761,19 @@ export default function CheckoutSchedulePage({
                 Đơn hàng sẽ được tự động hủy và sách chuyển lại về kho chung nếu bạn không đến quét QR nhận sách trong vòng <strong>48 giờ</strong> kể từ thời điểm hẹn.
               </p>
             </div>
+
+            {/* Thông báo lỗi nghiệp vụ BR01 nếu có */}
+            {errorMessage && (
+              <div className="p-3.5 bg-rose-50 rounded-2xl border border-rose-200 text-xs text-rose-800 space-y-1 animate-in fade-in duration-200">
+                <div className="flex items-center gap-2 font-bold text-rose-900">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>Không thể tạo đơn mượn</span>
+                </div>
+                <p className="text-[11px] text-rose-700 leading-relaxed font-medium">
+                  {errorMessage}
+                </p>
+              </div>
+            )}
 
             {/* 5. Nút Xác nhận tạo đơn */}
             <div className="space-y-2 pt-2">

@@ -17,6 +17,7 @@ import {
   Check,
   MapPin
 } from 'lucide-react';
+import returnApi from '../../services/returnApi';
 
 /**
  * LoansTableViewPC - Bảng quản lý hồ sơ tài liệu đang mượn & Chi tiết tài liệu mượn (Desktop Web - TV3)
@@ -180,7 +181,13 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
   }, [loans, statusFilter, searchQuery]);
 
   // Xử lý gia hạn trực tuyến (+7 ngày, tối đa 1 lần theo BR03)
-  const handleRenew = (loanId) => {
+  const handleRenew = async (loanId) => {
+    try {
+      await returnApi.renewBook(loanId);
+    } catch (err) {
+      console.warn('[handleRenew] Backend renew fallback:', err);
+    }
+
     setLoans((prev) =>
       prev.map((item) => {
         if (item.id === loanId) {
@@ -291,11 +298,24 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
   };
 
   // Xác nhận tạo lịch hẹn trả và sinh mã QR phiếu trả
-  const handleConfirmScheduleReturn = (e) => {
+  const handleConfirmScheduleReturn = async (e) => {
     e.preventDefault();
     const returningBooks = loans.filter((l) => selectedBookIds.includes(l.id));
-    const randomTicketNumber = Math.floor(100 + Math.random() * 900);
-    const returnTicketCode = `PT-UTH-2026-${randomTicketNumber}`;
+    let returnTicketCode = `PT-UTH-2026-${Math.floor(100 + Math.random() * 900)}`;
+    let qrCodeBase64 = null;
+
+    try {
+      const res = await returnApi.createReturnTicket({
+        borrowDetailIds: selectedBookIds,
+        scheduledReturnDate: appointmentDate,
+      });
+      if (res?.ticketCode) {
+        returnTicketCode = res.ticketCode;
+        qrCodeBase64 = res.qrCodeBase64;
+      }
+    } catch (err) {
+      console.warn('[handleConfirmScheduleReturn] API fallback:', err);
+    }
 
     setIsScheduleModalOpen(false);
 
@@ -311,6 +331,7 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
         books: returningBooks,
         status: 'PENDING_VERIFICATION',
         note: appointmentNote || 'Quét mã tại quầy tiếp nhận để hoàn tất trả sách trong 30 giây.',
+        qrCodeBase64,
       });
     }
 

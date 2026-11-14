@@ -19,6 +19,7 @@ import {
 import BookCard from '../components/common/BookCard';
 import FilterSidebarPC from '../components/responsive/FilterSidebarPC';
 import defaultMockBooks from '../mockPCBooks.json';
+import bookApi from '../services/bookApi';
 
 /**
  * BookListPage - Trang danh mục & tra cứu giáo trình học thuật chuẩn Desktop (TV3)
@@ -75,6 +76,52 @@ export default function BookListPage({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12); // 8, 12, 16, 24 cuốn / trang
 
+  // Trạng thái dữ liệu thời gian thực từ Spring Boot REST API (/api/books)
+  const [liveBooks, setLiveBooks] = useState(null);
+  const [liveTotalElements, setLiveTotalElements] = useState(null);
+  const [isLoadingApi, setIsLoadingApi] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setIsLoadingApi(true);
+
+    bookApi
+      .getBooks({
+        search: searchQuery,
+        category: selectedCategory,
+        onlyAvailable,
+        page: currentPage - 1,
+        size: pageSize,
+        sortBy:
+          sortBy === 'newest'
+            ? 'publishYear'
+            : sortBy === 'available'
+              ? 'availableQuantity'
+              : sortBy === 'borrowCount'
+                ? 'borrowCount'
+                : sortBy === 'title'
+                  ? 'title'
+                  : 'id',
+        sortDir: sortBy === 'title' ? 'asc' : 'desc',
+      })
+      .then((res) => {
+        if (active && res && Array.isArray(res.content)) {
+          setLiveBooks(res.content);
+          setLiveTotalElements(res.totalElements);
+        }
+      })
+      .catch((err) => {
+        console.warn('[BookListPage] API connection notice, using local books:', err.message);
+      })
+      .finally(() => {
+        if (active) setIsLoadingApi(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [searchQuery, selectedCategory, onlyAvailable, currentPage, pageSize, sortBy]);
+
   // Danh mục thống kê từ kho sách
   const categories = useMemo(() => {
     const rawCategories = Array.from(new Set(books.map((b) => b.category).filter(Boolean)));
@@ -122,15 +169,18 @@ export default function BookListPage({
   }, [searchQuery, selectedCategory, selectedType, onlyAvailable, selectedCampus, sortBy, pageSize]);
 
   // Tính toán chỉ số phân trang
-  const totalResults = filteredBooks.length;
+  const totalResults = liveTotalElements !== null ? liveTotalElements : filteredBooks.length;
   const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
   const startIndex = (safeCurrentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, totalResults);
   const currentBooks = useMemo(() => {
+    if (liveBooks && liveBooks.length > 0) {
+      return liveBooks;
+    }
     return filteredBooks.slice(startIndex, endIndex);
-  }, [filteredBooks, startIndex, endIndex]);
+  }, [liveBooks, filteredBooks, startIndex, endIndex]);
 
   const hasActiveFilters =
     searchQuery.trim() !== '' ||
