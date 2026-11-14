@@ -11,6 +11,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
 import LoanHistoryPage from './pages/LoanHistoryPage';
+import BookListPage from './pages/BookListPage';
+import CheckoutSchedulePage from './pages/CheckoutSchedulePage';
 import LoansCardListMobile from './components/responsive/LoansCardListMobile';
 import FilterModalMobile from './components/responsive/FilterModalMobile';
 import SearchBar from './components/common/SearchBar';
@@ -861,7 +863,9 @@ function DesktopApp() {
       ? 'catalog'
       : location.pathname === '/loans'
         ? 'loans'
-        : 'home';
+        : location.pathname === '/checkout'
+          ? 'checkout'
+          : 'home';
   const [heroCampus, setHeroCampus] = useState(1); // 1: Cơ sở 1, 2: Cơ sở 2, 3: Cơ sở 3
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -914,6 +918,8 @@ function DesktopApp() {
       navigate('/books');
     } else if (tab === 'loans' && location.pathname !== '/loans') {
       navigate('/loans');
+    } else if (tab === 'checkout' && location.pathname !== '/checkout') {
+      navigate('/checkout');
     }
   };
 
@@ -1936,316 +1942,40 @@ function DesktopApp() {
         </div>
       )}
 
-      {/* 3. MÀN HÌNH KHO SÁCH (CÓ BỘ LỌC SIDEBAR FILTER CHUYÊN NGHIỆP - TV3 DESKTOP) */}
+      {/* 3. MÀN HÌNH KHO SÁCH (ĐÃ TÁCH THÀNH COMPONENT RIÊNG BOOKLISTPAGE - SESSION 7) */}
       {activeTab === 'catalog' && (
-        <div className="space-y-6 select-none">
-          {/* Header Kho sách với Nền UTH Deep Academic Teal sang trọng và chỉ số năng lực */}
-          <div className="bg-gradient-to-br from-[#002e32] via-[#00474b] to-[#002528] rounded-3xl p-6 sm:p-8 border border-teal-700/60 shadow-xl relative overflow-hidden text-white space-y-5">
-            {/* Họa tiết quầng sáng học thuật & ma trận điểm */}
-            <div className="absolute -top-16 -right-16 w-80 h-80 bg-teal-400/15 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-16 -left-16 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
-            <div
-              className="absolute inset-0 opacity-[0.035] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"
-              aria-hidden="true"
-            />
+        <BookListPage
+          books={mockBooks}
+          cartItems={cartItems}
+          onAddToCart={handleAddToCart}
+          onViewDetail={handleViewBookDetail}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          onlyAvailable={onlyAvailable}
+          setOnlyAvailable={setOnlyAvailable}
+          selectedType={selectedType}
+          setSelectedType={setSelectedType}
+          onNavigateHome={() => setActiveTab('home')}
+        />
+      )}
 
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-xs font-semibold text-teal-200/80">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('home')}
-                    className="hover:text-white transition-colors cursor-pointer"
-                  >
-                    Trang chủ
-                  </button>
-                  <span className="text-teal-400/60">/</span>
-                  <span className="text-teal-100 font-bold">Kho giáo trình & Tài liệu học thuật</span>
-                  {selectedCategory !== 'ALL' && (
-                    <>
-                      <span className="text-teal-400/60">/</span>
-                      <span className="text-amber-300 font-bold">{selectedCategory}</span>
-                    </>
-                  )}
-                </div>
-
-                <h1 className="text-2xl sm:text-3xl font-black text-white font-heading tracking-tight drop-shadow-xs">
-                  Kho Sách & Giáo Trình Chính Quy UTH
-                </h1>
-
-                <p className="text-xs sm:text-sm text-teal-100/90 max-w-2xl leading-relaxed font-medium">
-                  Tra cứu nguồn tài liệu phục vụ giảng dạy và nghiên cứu, liên thông dữ liệu sách giữa 3 cơ sở đào tạo Thư viện Đại học Giao thông Vận tải TP.HCM.
-                </p>
-              </div>
-
-              {/* Chỉ số năng lực thư viện UTH */}
-              <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap relative z-10">
-                <div className="px-4 py-2.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-sm text-center">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-teal-200/80">Tài liệu</span>
-                  <span className="text-sm font-black text-white font-mono">50.000+ cuốn</span>
-                </div>
-                <div className="px-4 py-2.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-sm text-center">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-teal-200/80">Mạng lưới</span>
-                  <span className="text-sm font-black text-teal-100 font-mono">3 Cơ sở UTH</span>
-                </div>
-                <div className="px-4 py-2.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-sm text-center">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-300">Hạn mức BR01</span>
-                  <span className="text-sm font-black text-amber-300 font-mono">5 cuốn / SV</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Dải gợi ý từ khóa tìm nhanh */}
-            <div className="pt-4 border-t border-white/15 flex items-center gap-2 flex-wrap relative z-10">
-              <span className="text-xs font-bold text-teal-200 flex items-center gap-1.5 shrink-0">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>Tìm nhanh:</span>
-              </span>
-              {[
-                'Lập trình Python',
-                'Kinh tế vi mô',
-                'Logistics & Vận tải',
-                'Trí tuệ nhân tạo',
-                'Tiếng Anh chuyên ngành',
-              ].map((kw) => (
-                <button
-                  key={kw}
-                  type="button"
-                  onClick={() => setSearchQuery(kw)}
-                  className={`text-xs px-3.5 py-1.5 rounded-xl border transition-all cursor-pointer font-medium backdrop-blur-xs ${
-                    searchQuery === kw
-                      ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-sm font-black'
-                      : 'bg-white/10 hover:bg-white/20 text-teal-100 border-white/15'
-                  }`}
-                >
-                  {kw}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* BỐ CỤC 2 CỘT: CỘT BỘ LỌC + CỘT GRID SÁCH */}
-          <div className="flex items-start gap-8">
-            {/* Cột trái: Bộ lọc Desktop chuyên nghiệp */}
-            <FilterSidebarPC
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onSelectCategory={(cat) => setSelectedCategory(cat)}
-              onlyAvailable={onlyAvailable}
-              onToggleOnlyAvailable={(val) => setOnlyAvailable(val)}
-              selectedType={selectedType}
-              onSelectType={(type) => setSelectedType(type)}
-              onResetFilters={handleResetFilters}
-              hasActiveFilters={hasActiveFilters}
-              totalResults={filteredBooks.length}
-            />
-
-            {/* Cột phải: Thanh công cụ Catalog & Grid danh mục sách */}
-            <div className="flex-1 space-y-5 min-w-0">
-              {/* Thanh các thẻ lọc đang áp dụng */}
-              {hasActiveFilters && (
-                <div className="flex flex-wrap items-center gap-2 p-3 bg-teal-50/60 rounded-2xl border border-teal-100 text-xs">
-                  <span className="font-bold text-[#00666B] text-[11px] uppercase tracking-wider">
-                    Đang lọc:
-                  </span>
-
-                  {searchQuery && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-lg border border-teal-200 text-slate-800 font-medium shadow-2xs">
-                      <span>Từ khóa: <strong>"{searchQuery}"</strong></span>
-                      <button
-                        type="button"
-                        onClick={() => setSearchQuery('')}
-                        className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
-                        title="Xóa tìm kiếm"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  )}
-
-                  {selectedCategory !== 'ALL' && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-lg border border-teal-200 text-slate-800 font-medium shadow-2xs">
-                      <span>Ngành: <strong>{selectedCategory}</strong></span>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedCategory('ALL')}
-                        className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
-                        title="Xóa chuyên ngành"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  )}
-
-                  {onlyAvailable && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-lg border border-teal-200 text-emerald-800 font-medium shadow-2xs">
-                      <span>Chỉ sách còn sẵn</span>
-                      <button
-                        type="button"
-                        onClick={() => setOnlyAvailable(false)}
-                        className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
-                        title="Bỏ lọc còn sẵn"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  )}
-
-                  {selectedType !== 'ALL' && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-lg border border-teal-200 text-slate-800 font-medium shadow-2xs">
-                      <span>Loại: <strong>{selectedType === 'PRINT' ? 'Sách in tại quầy' : 'E-Book / Số'}</strong></span>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedType('ALL')}
-                        className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
-                        title="Xóa lọc loại hình"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="ml-auto text-[11px] font-bold text-rose-600 hover:text-rose-700 underline cursor-pointer"
-                  >
-                    Xóa tất cả bộ lọc
-                  </button>
-                </div>
-              )}
-
-              {/* Thanh điều khiển catalog */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#e0eff0] text-[#00666B] flex items-center justify-center font-black text-xs font-mono">
-                    {filteredBooks.length}
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-900 block leading-tight">
-                      Kết quả danh mục
-                    </span>
-                    <span className="text-[11px] text-slate-500">
-                      Hiển thị <strong>{filteredBooks.length}</strong> giáo trình đào tạo
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  {/* Sắp xếp */}
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className="text-slate-500 font-medium hidden sm:inline">Sắp xếp:</span>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      className="bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00666B] cursor-pointer"
-                    >
-                      <option value="relevant">Phù hợp nhất</option>
-                      <option value="newest">Mới nhất (Năm xuất bản)</option>
-                      <option value="available">Còn sẵn nhiều nhất</option>
-                      <option value="borrowCount">Lượt mượn nhiều nhất</option>
-                      <option value="title">Tên sách (A - Z)</option>
-                    </select>
-                  </div>
-
-                  {/* Chuyển chế độ xem */}
-                  <div className="flex items-center border border-slate-200 rounded-xl p-0.5 bg-slate-50 shadow-2xs">
-                    <button
-                      type="button"
-                      onClick={() => setViewMode('grid')}
-                      className={`px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold ${
-                        viewMode === 'grid'
-                          ? 'bg-white text-[#00666B] shadow-2xs'
-                          : 'text-slate-400 hover:text-slate-700'
-                      }`}
-                      title="Xem dạng lưới 3D"
-                    >
-                      <LayoutGrid className="w-3.5 h-3.5" />
-                      <span className="hidden md:inline">Lưới 3D</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setViewMode('compact')}
-                      className={`px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold ${
-                        viewMode === 'compact'
-                          ? 'bg-white text-[#00666B] shadow-2xs'
-                          : 'text-slate-400 hover:text-slate-700'
-                      }`}
-                      title="Xem dạng danh sách gọn"
-                    >
-                      <List className="w-3.5 h-3.5" />
-                      <span className="hidden md:inline">Danh sách</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Grid sách hoặc Danh sách gọn */}
-              {filteredBooks.length > 0 ? (
-                <div
-                  className={
-                    viewMode === 'grid'
-                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6'
-                      : 'space-y-3.5'
-                  }
-                >
-                  {filteredBooks.map((book) => {
-                    const isInCart = cartItems.some((item) => item.id === book.id);
-                    return (
-                      <BookCard
-                        key={book.id}
-                        book={book}
-                        onAddToCart={handleAddToCart}
-                        onViewDetail={(item) => handleViewBookDetail(item || book)}
-                        isInCart={isInCart}
-                        viewMode={viewMode}
-                      />
-                    );
-                  })}
-                </div>
-              ) : (
-                /* Empty state khi không tìm thấy kết quả */
-                <div className="bg-white rounded-3xl border border-slate-200/90 p-12 text-center space-y-4 shadow-2xs">
-                  <div className="w-16 h-16 rounded-2xl bg-teal-50 text-[#00666B] flex items-center justify-center mx-auto shadow-xs">
-                    <Search className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-slate-800">Không tìm thấy tài liệu phù hợp</h3>
-                    <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed mt-1">
-                      Không có giáo trình nào khớp với từ khóa "{searchQuery}" hoặc các tiêu chí lọc đang chọn. Bạn có thể xóa bộ lọc hoặc tìm kiếm bằng từ khóa khác.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#00666B] hover:bg-[#005458] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Xóa toàn bộ bộ lọc</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Tóm tắt chân trang kho sách */}
-              {filteredBooks.length > 0 && (
-                <div className="p-4 bg-white rounded-2xl border border-slate-200/90 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 shadow-2xs">
-                  <span>
-                    Đang hiển thị toàn bộ <strong>{filteredBooks.length}</strong> giáo trình trên hệ thống Thư viện UTH.
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span className="font-semibold text-slate-700">Dữ liệu thời gian thực</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+      {/* 4. MÀN HÌNH XÁC NHẬN ĐƠN MƯỢN & ĐẶT LỊCH HẸN (SESSION 9 - TV3 DESKTOP) */}
+      {activeTab === 'checkout' && (
+        <CheckoutSchedulePage
+          cartItems={cartItems}
+          onRemoveItem={handleRemoveCartItem}
+          onClearCart={() => setCartItems([])}
+          onCheckoutSuccess={handleCheckoutSuccess}
+          onBackToCatalog={() => setActiveTab('catalog')}
+          onOpenQrModal={(order) => setQrModalOrder(order)}
+        />
       )}
         </>
       )}
 
-      {/* 4. CÁC MODAL & DRAWER TƯƠNG TÁC (Đã bỏ BookDetailModal dạng popup theo yêu cầu) */}
+      {/* 5. CÁC MODAL & DRAWER TƯƠNG TÁC (Đã bỏ BookDetailModal dạng popup theo yêu cầu) */}
       {/* Drawer Giỏ mượn sách & Lên lịch hẹn */}
       <CartDrawer
         isOpen={isCartOpen}
@@ -2253,6 +1983,10 @@ function DesktopApp() {
         cartItems={cartItems}
         onRemoveItem={handleRemoveCartItem}
         onCheckoutSuccess={handleCheckoutSuccess}
+        onOpenFullCheckout={() => {
+          setIsCartOpen(false);
+          setActiveTab('checkout');
+        }}
       />
 
       {/* Modal Mã QR Đơn mượn / Trả sách */}
@@ -2362,6 +2096,7 @@ function App() {
                   <Route path="/books" element={<DesktopApp />} />
                   <Route path="/books/:id" element={<DesktopApp />} />
                   <Route path="/loans" element={<DesktopApp />} />
+                  <Route path="/checkout" element={<DesktopApp />} />
                   <Route path="/home" element={<Navigate to="/" replace />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
