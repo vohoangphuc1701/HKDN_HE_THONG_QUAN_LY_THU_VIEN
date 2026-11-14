@@ -205,6 +205,28 @@ const adminApi = {
   },
 
   /*
+   * Cập nhật số lượng nhập kho cho một đầu sách (cộng thêm số bản sách nhập mới).
+   */
+  async stockInBook(id, { quantity, note = '' }) {
+    try {
+      return await axiosClient.post(`/admin/inventory/${id}/stock-in`, { quantity, note })
+    } catch (error) {
+      console.warn(`Mô phỏng nhập kho đầu sách #${id}:`, error.message)
+      const book = localInventory.find((item) => String(item.id) === String(id))
+      if (!book) throw new Error('Không tìm thấy đầu sách')
+      const added = Number(quantity) || 0
+      const newTotal = (Number(book.totalCopies) || 0) + added
+      const newAvailable = (Number(book.availableCopies) || 0) + added
+      return this.updateBook(id, {
+        totalCopies: newTotal,
+        availableCopies: newAvailable,
+        lastStockInNote: note,
+        lastStockInDate: new Date().toLocaleDateString('vi-VN'),
+      })
+    }
+  },
+
+  /*
    * Xóa một đầu sách khỏi danh mục kho.
    */
   async deleteBook(id) {
