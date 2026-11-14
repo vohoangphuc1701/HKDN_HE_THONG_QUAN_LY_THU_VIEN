@@ -157,50 +157,58 @@ export default function LoanHistoryPage({ onBorrowAgain, onShowToast }) {
   };
 
   return (
-    <div className="space-y-4 select-none">
-      {/* Header giới thiệu */}
-      <div className="rounded-2xl bg-gradient-to-r from-[#00383b] via-[#005458] to-[#00666b] text-white p-4 shadow-sm border border-teal-700/40">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-teal-200 mb-1">
+    <div className="space-y-6 select-none font-sans">
+      {/* Header giới thiệu phong cách học thuật UTH */}
+      <div className="relative rounded-3xl overflow-hidden shadow-xl border border-teal-800/40 bg-gradient-to-r from-[#00383b] via-[#004e53] to-[#00282b] text-white p-6 sm:p-8">
+        <div className="absolute -top-20 -right-20 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 left-1/4 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"
+          aria-hidden="true"
+        />
+        <div className="relative z-1 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-teal-200 text-xs font-bold w-fit backdrop-blur-md shadow-xs">
               <History className="w-3.5 h-3.5" />
-              <span>Nhật ký giao dịch thư viện UTH</span>
+              <span>Nhật Ký Mượn Trả &amp; Đối Soát Tiền Phạt · Thư Viện UTH</span>
             </div>
-            <h2 className="text-sm sm:text-base font-bold">Lịch sử mượn trả &amp; Đối soát phạt</h2>
-            <p className="text-[11px] text-teal-100/90 mt-0.5">
-              Minh bạch công thức phạt trễ hạn 5.000đ/ngày/cuốn theo quy định BR04.
+            <h1 className="text-2xl sm:text-3xl font-black font-heading tracking-tight text-white leading-tight">
+              Lịch Sử Mượn Trả &amp; Biên Lai Phạt
+            </h1>
+            <p className="text-xs sm:text-sm text-teal-100/90 leading-relaxed font-normal">
+              Tra cứu toàn bộ lịch sử các lượt mượn đã hoàn tất, phiếu hủy đơn và minh bạch công thức phạt 5.000đ/ngày/cuốn theo quy định BR04.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Thống kê tổng quan 2x2 trên Mobile, 4 cột trên Tablet */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
-        <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] text-slate-500 font-medium block">Tổng lượt giao dịch</span>
-          <strong className="text-lg font-black text-slate-900 tabular-nums mt-1 block">
-            {summary.total}
+      {/* Thống kê tổng quan 4 cột trên Desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+          <span className="text-xs text-slate-500 font-medium block">Tổng lượt giao dịch</span>
+          <strong className="text-xl font-black text-slate-900 tabular-nums mt-1 block">
+            {summary.total} <span className="text-xs font-normal text-slate-400">lượt</span>
           </strong>
         </div>
 
-        <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] text-slate-500 font-medium block">Trả đúng hạn</span>
-          <strong className="text-lg font-black text-emerald-600 tabular-nums mt-1 block">
-            {summary.onTime}
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+          <span className="text-xs text-slate-500 font-medium block">Trả đúng hạn</span>
+          <strong className="text-xl font-black text-emerald-600 tabular-nums mt-1 block">
+            {summary.onTime} <span className="text-xs font-normal text-slate-400">lượt</span>
           </strong>
         </div>
 
-        <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] text-slate-500 font-medium block">Lượt trả trễ</span>
-          <strong className="text-lg font-black text-amber-600 tabular-nums mt-1 block">
-            {summary.late}
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+          <span className="text-xs text-slate-500 font-medium block">Lượt trả trễ</span>
+          <strong className="text-xl font-black text-amber-600 tabular-nums mt-1 block">
+            {summary.late} <span className="text-xs font-normal text-slate-400">lượt</span>
           </strong>
         </div>
 
-        <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] text-slate-500 font-medium block">Tổng phạt đã nộp</span>
-          <strong className="text-base sm:text-lg font-black text-[#00666b] tabular-nums mt-1 block truncate">
-            {summary.totalFine.toLocaleString('vi-VN')}đ
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+          <span className="text-xs text-slate-500 font-medium block">Tổng phạt đã nộp</span>
+          <strong className="text-xl font-black text-[#00666b] tabular-nums mt-1 block truncate">
+            {summary.totalFine.toLocaleString('vi-VN')} VNĐ
           </strong>
         </div>
       </div>
@@ -270,7 +278,7 @@ export default function LoanHistoryPage({ onBorrowAgain, onShowToast }) {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredHistory.map((item) => {
             const badge = HISTORY_BADGE_MAP[item.status] || HISTORY_BADGE_MAP.ON_TIME;
             const BadgeIcon = badge.icon;

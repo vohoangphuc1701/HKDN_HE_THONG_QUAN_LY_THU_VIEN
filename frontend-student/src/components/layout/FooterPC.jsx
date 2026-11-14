@@ -12,7 +12,8 @@ import {
   BookMarked,
   ShoppingBag,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  History
 } from 'lucide-react';
 
 export default function FooterPC({ setActiveTab, onOpenCart }) {
@@ -144,6 +145,16 @@ export default function FooterPC({ setActiveTab, onOpenCart }) {
                 >
                   <BookMarked className="w-3 h-3 text-teal-400 shrink-0" />
                   <span>Hồ sơ mượn & Gia hạn trực tuyến</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => handleNav('history')}
+                  className="hover:text-teal-300 transition-colors flex items-center gap-1.5 cursor-pointer text-left"
+                >
+                  <History className="w-3 h-3 text-teal-400 shrink-0" />
+                  <span>Lịch sử mượn trả & Đối soát phạt</span>
                 </button>
               </li>
               <li>

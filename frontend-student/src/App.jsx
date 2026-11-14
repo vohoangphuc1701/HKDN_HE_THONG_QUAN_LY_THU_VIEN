@@ -863,9 +863,11 @@ function DesktopApp() {
       ? 'catalog'
       : location.pathname === '/loans'
         ? 'loans'
-        : location.pathname === '/checkout'
-          ? 'checkout'
-          : 'home';
+        : location.pathname === '/history'
+          ? 'history'
+          : location.pathname === '/checkout'
+            ? 'checkout'
+            : 'home';
   const [heroCampus, setHeroCampus] = useState(1); // 1: Cơ sở 1, 2: Cơ sở 2, 3: Cơ sở 3
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -918,6 +920,8 @@ function DesktopApp() {
       navigate('/books');
     } else if (tab === 'loans' && location.pathname !== '/loans') {
       navigate('/loans');
+    } else if (tab === 'history' && location.pathname !== '/history') {
+      navigate('/history');
     } else if (tab === 'checkout' && location.pathname !== '/checkout') {
       navigate('/checkout');
     }
@@ -1128,6 +1132,19 @@ function DesktopApp() {
 
               <LoansTableViewPC
                 onOpenQrModal={(order) => setQrModalOrder(order)}
+                onShowToast={showToast}
+              />
+            </div>
+          )}
+
+          {/* 2. MÀN HÌNH LỊCH SỬ MƯỢN TRẢ & ĐỐI SOÁT PHÍ PHẠT (BR04 - DESKTOP TV3) */}
+          {activeTab === 'history' && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              <LoanHistoryPage
+                onBorrowAgain={(book) => {
+                  handleAddToCart(book);
+                  showToast(`Đã thêm tài liệu "${book.title}" vào giỏ mượn!`);
+                }}
                 onShowToast={showToast}
               />
             </div>
@@ -2096,6 +2113,7 @@ function App() {
                   <Route path="/books" element={<DesktopApp />} />
                   <Route path="/books/:id" element={<DesktopApp />} />
                   <Route path="/loans" element={<DesktopApp />} />
+                  <Route path="/history" element={<DesktopApp />} />
                   <Route path="/checkout" element={<DesktopApp />} />
                   <Route path="/home" element={<Navigate to="/" replace />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
