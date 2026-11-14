@@ -78,19 +78,23 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
-                // 1. Các Endpoint công khai (Đăng nhập, Đăng ký, WebSocket STOMP, Xem danh mục sách)
+                // 1. Các Endpoint công khai (Đăng nhập, Đăng ký, WebSocket STOMP, QR, Xem danh mục sách)
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/qr/**").permitAll()
                 .requestMatchers("/ws/**", "/ws-qr/**").permitAll()
                 .requestMatchers("/swagger.json", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
 
-                // 2. Các Endpoint dành riêng cho Thủ thư / Quản trị (LIBRARIAN)
+                // 2. Endpoint tra cứu phạt cá nhân cho cả STUDENT và LIBRARIAN
+                .requestMatchers("/api/operations/fines/my-fines").hasAnyRole("STUDENT", "LIBRARIAN")
+
+                // 3. Các Endpoint dành riêng cho Thủ thư / Quản trị (LIBRARIAN)
                 .requestMatchers(HttpMethod.POST, "/api/books/**").hasRole("LIBRARIAN")
                 .requestMatchers(HttpMethod.PUT, "/api/books/**").hasRole("LIBRARIAN")
                 .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasRole("LIBRARIAN")
                 .requestMatchers("/api/admin/**", "/api/dashboard/**", "/api/operations/**").hasRole("LIBRARIAN")
 
-                // 3. Các Endpoint nghiệp vụ Mượn / Trả / Tiền phạt (cả STUDENT và LIBRARIAN)
+                // 4. Các Endpoint nghiệp vụ Mượn / Trả / Tiền phạt (cả STUDENT và LIBRARIAN)
                 .requestMatchers("/api/borrows/**", "/api/returns/**", "/api/fines/**", "/api/users/**")
                     .hasAnyRole("STUDENT", "LIBRARIAN")
 
