@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Home, Compass, BookMarked, Clock, User } from 'lucide-react';
 
 /**
  * BottomNavMobile - Thanh điều hướng cố định chân trang cho Mobile Web
@@ -54,38 +55,22 @@ export default function BottomNavMobile({
       id: 'home',
       label: 'Trang chủ',
       icon: (active) => (
-        <svg
-          className={`w-6 h-6 transition-all duration-200 ${active ? 'scale-110' : ''}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={active ? '2.4' : '1.8'}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
+        <Home
+          className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-200 ${
+            active ? 'scale-110 stroke-[2.4] text-[#00666b]' : 'stroke-[1.8] text-slate-500'
+          }`}
+        />
       )
     },
     {
       id: 'search',
       label: 'Danh mục',
       icon: (active) => (
-        <svg
-          className={`w-6 h-6 transition-all duration-200 ${active ? 'scale-110' : ''}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={active ? '2.4' : '1.8'}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect width="7" height="7" x="3" y="3" rx="1.5" />
-          <rect width="7" height="7" x="14" y="3" rx="1.5" />
-          <rect width="7" height="7" x="14" y="14" rx="1.5" />
-          <rect width="7" height="7" x="3" y="14" rx="1.5" />
-        </svg>
+        <Compass
+          className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-200 ${
+            active ? 'scale-110 stroke-[2.4] text-[#00666b]' : 'stroke-[1.8] text-slate-500'
+          }`}
+        />
       )
     },
     {
@@ -93,56 +78,33 @@ export default function BottomNavMobile({
       label: 'Phiếu mượn',
       badge: activeLoanCount,
       icon: (active) => (
-        <svg
-          className={`w-6 h-6 transition-all duration-200 ${active ? 'scale-110' : ''}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={active ? '2.4' : '1.8'}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
-          <path d="M6 6h10" />
-          <path d="M6 10h10" />
-        </svg>
+        <BookMarked
+          className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-200 ${
+            active ? 'scale-110 stroke-[2.4] text-[#00666b]' : 'stroke-[1.8] text-slate-500'
+          }`}
+        />
       )
     },
     {
       id: 'history',
       label: 'Lịch sử',
       icon: (active) => (
-        <svg
-          className={`w-6 h-6 transition-all duration-200 ${active ? 'scale-110' : ''}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={active ? '2.4' : '1.8'}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-          <path d="M3 3v5h5" />
-          <path d="M12 7v5l4 2" />
-        </svg>
+        <Clock
+          className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-200 ${
+            active ? 'scale-110 stroke-[2.4] text-[#00666b]' : 'stroke-[1.8] text-slate-500'
+          }`}
+        />
       )
     },
     {
       id: 'profile',
       label: 'Tài khoản',
       icon: (active) => (
-        <svg
-          className={`w-6 h-6 transition-all duration-200 ${active ? 'scale-110' : ''}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={active ? '2.4' : '1.8'}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
+        <User
+          className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-200 ${
+            active ? 'scale-110 stroke-[2.4] text-[#00666b]' : 'stroke-[1.8] text-slate-500'
+          }`}
+        />
       )
     }
   ];
@@ -155,7 +117,7 @@ export default function BottomNavMobile({
         className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] transition-all duration-300"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
-        <div className="grid grid-cols-5 h-16 max-w-md mx-auto px-1">
+        <div className="grid grid-cols-5 h-16 max-w-md md:max-w-2xl mx-auto px-1">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
@@ -217,7 +179,7 @@ export default function BottomNavMobile({
       {/* Khung Drawer trượt từ dưới lên (Bottom Sheet) */}
       <aside
         aria-label="Thông tin tài khoản sinh viên"
-        className={`fixed inset-x-0 bottom-0 z-50 max-w-md mx-auto max-h-[85vh] bg-white rounded-t-3xl shadow-2xl border-t border-slate-100 flex flex-col transform transition-all duration-300 ease-out ${
+        className={`fixed inset-x-0 bottom-0 z-50 max-w-md md:max-w-xl mx-auto max-h-[85vh] bg-white rounded-t-3xl shadow-2xl border-t border-slate-100 flex flex-col transform transition-all duration-300 ease-out ${
           isDrawerOpen
             ? 'translate-y-0 opacity-100 pointer-events-auto'
             : 'translate-y-full opacity-0 pointer-events-none'
