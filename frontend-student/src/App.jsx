@@ -11,6 +11,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
 import BookListPage from './pages/BookListPage';
+import BookDetailPageMobile from './pages/BookDetailPage';
 import LoanHistoryPage from './pages/LoanHistoryPage';
 import LoansCardListMobile from './components/responsive/LoansCardListMobile';
 import mockBooks from './mockPCBooks.json';
@@ -18,7 +19,6 @@ import {
   Search,
   Check,
   X,
-  ArrowLeft,
   Clock,
   Zap,
   ShieldCheck,
@@ -118,31 +118,17 @@ function MobileApp() {
 
   if (mobileDetailBook) {
     return (
-      <div className="min-h-screen bg-[#f4f8f7] flex flex-col justify-between text-slate-800">
-        <header className="sticky top-0 z-30 bg-[#00666b] text-white px-4 py-3 flex items-center justify-between shadow-md">
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => setMobileDetailBook(null)}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-white cursor-pointer"
-              title="Quay lại danh sách"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-sm font-bold truncate">Chi tiết tài liệu UTH</h1>
-          </div>
-        </header>
-        <main className="flex-1 p-3.5 sm:p-6 max-w-md sm:max-w-2xl md:max-w-4xl mx-auto w-full pb-20">
-          <BookDetailPage
-            book={mobileDetailBook}
-            onBack={() => setMobileDetailBook(null)}
-            onAddToCart={handleAddToCart}
-            isInCart={cartItems.some((item) => item.id === mobileDetailBook.id)}
-            onOpenCart={() => setIsCartOpen(true)}
-            allBooks={mockBooks}
-            onSelectBook={setMobileDetailBook}
-          />
-        </main>
+      <div className="min-h-screen bg-[#f4f8f7]">
+        <BookDetailPageMobile
+          book={mobileDetailBook}
+          onBack={() => setMobileDetailBook(null)}
+          onAddToCart={handleAddToCart}
+          isInCart={cartItems.some((item) => item.id === mobileDetailBook.id)}
+          onOpenCart={() => setIsCartOpen(true)}
+          allBooks={mockBooks}
+          onSelectBook={setMobileDetailBook}
+          cartCount={cartItems.length}
+        />
         <CartDrawer
           isOpen={isCartOpen}
           onClose={() => setIsCartOpen(false)}
