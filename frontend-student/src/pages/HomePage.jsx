@@ -472,23 +472,23 @@ export default function HomePage({
                   <p className="text-[11px] text-teal-100/80 line-clamp-2">
                     {featuredBook.description}
                   </p>
-                  <div className="pt-2 flex items-center gap-2">
+                  <div className="pt-2 flex flex-wrap sm:flex-nowrap items-center gap-2">
                     <button
                       type="button"
                       onClick={() => handleAdd(featuredBook)}
-                      className="flex-1 bg-amber-400 hover:bg-amber-300 text-slate-900 text-xs font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="flex-1 min-w-[130px] bg-amber-400 hover:bg-amber-300 text-slate-900 text-xs font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
                     >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>
+                      <Check className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">
                         {cartItems.some((i) => i.id === featuredBook.id)
                           ? 'Đã trong giỏ'
-                          : 'Thêm vào giỏ mượn'}
+                          : 'Thêm vào giỏ'}
                       </span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDetail(featuredBook)}
-                      className="px-3 py-2 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold rounded-xl border border-white/15 cursor-pointer shrink-0"
+                      className="px-3 py-2 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold rounded-xl border border-white/15 cursor-pointer shrink-0 whitespace-nowrap"
                     >
                       Chi tiết
                     </button>
@@ -499,7 +499,7 @@ export default function HomePage({
           )}
 
           {/* 3 cuốn sách mới đi kèm */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             {otherNewBooks.map((book) => (
               <BookCard
                 key={book.id}
@@ -550,7 +550,7 @@ export default function HomePage({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
             {recommendedBooks.map((book) => (
               <BookCard
                 key={book.id}

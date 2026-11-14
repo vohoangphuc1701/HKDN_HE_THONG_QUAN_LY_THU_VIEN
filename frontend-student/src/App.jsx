@@ -1364,7 +1364,7 @@ function DesktopApp() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
               {/* 1. Công nghệ thông tin */}
               <div
                 onClick={() => {
@@ -1582,29 +1582,29 @@ function DesktopApp() {
                     </div>
                   </div>
 
-                  <div className="pt-5 mt-4 border-t border-white/15 flex items-center gap-2.5">
+                  <div className="pt-5 mt-4 border-t border-white/15 flex flex-wrap sm:flex-nowrap items-center gap-2.5">
                     <button
                       type="button"
                       onClick={() => handleAddToCart(featuredBook)}
-                      className="flex-1 bg-amber-400 hover:bg-amber-300 text-slate-900 text-xs font-bold py-2.5 px-3 rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                      className="flex-1 min-w-[130px] bg-amber-400 hover:bg-amber-300 text-slate-900 text-xs font-bold py-2.5 px-3 rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap"
                     >
-                      <Check className="w-4 h-4" />
-                      <span>{cartItems.some(i => i.id === featuredBook.id) ? 'Đã trong giỏ' : 'Thêm vào giỏ mượn'}</span>
+                      <Check className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{cartItems.some(i => i.id === featuredBook.id) ? 'Đã trong giỏ' : 'Thêm vào giỏ'}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleViewBookDetail(featuredBook)}
-                      className="px-3 py-2.5 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold rounded-xl border border-white/15 transition-colors cursor-pointer flex items-center gap-1 shrink-0"
+                      className="px-3 py-2.5 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold rounded-xl border border-white/15 transition-colors cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap"
                     >
                       <span>Chi tiết</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                     </button>
                   </div>
                 </div>
               )}
 
               {/* 3 cuốn sách mới đi kèm */}
-              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 lg:gap-5">
                 {otherNewBooks.map((book) => {
                   const isInCart = cartItems.some((item) => item.id === book.id);
                   return (
@@ -1657,7 +1657,7 @@ function DesktopApp() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
               {recommendedBooks.map((book) => {
                 const isInCart = cartItems.some((item) => item.id === book.id);
                 return (
@@ -1821,7 +1821,7 @@ function DesktopApp() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
               <div
                 onClick={() => setActiveTab('catalog')}
                 className="bg-white/95 border border-slate-200/90 rounded-2xl p-5 shadow-xs hover:border-[#00666B] hover:shadow-lg transition-all flex flex-col justify-between group cursor-pointer space-y-3"
@@ -2185,7 +2185,7 @@ function DesktopApp() {
                 <div
                   className={
                     viewMode === 'grid'
-                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6'
                       : 'space-y-3.5'
                   }
                 >

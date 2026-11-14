@@ -47,9 +47,13 @@ const NavbarPC = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Listen for Ctrl+K shortcut to focus search input
+  // Listen for Ctrl+K shortcut to focus search input and Escape to close dropdowns
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowNotifications(false);
+        setShowProfile(false);
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         searchInputRef.current?.focus();
@@ -86,7 +90,7 @@ const NavbarPC = ({
                 <span className="text-base sm:text-lg font-black text-white tracking-tight font-heading">
                   Thư viện
                 </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-white/20 text-white uppercase tracking-wider">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider">
                   UTH
                 </span>
               </div>
@@ -122,8 +126,9 @@ const NavbarPC = ({
                   : 'text-teal-100 hover:text-white hover:bg-white/10'
               }`}
             >
-              <Compass className="w-3.5 h-3.5" />
-              <span>Kho sách & Giáo trình</span>
+              <Compass className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden xl:inline">Kho sách &amp; Giáo trình</span>
+              <span className="xl:hidden">Kho sách</span>
             </button>
 
             {/* 3. Đang mượn */}
@@ -136,9 +141,10 @@ const NavbarPC = ({
                   : 'text-teal-100 hover:text-white hover:bg-white/10'
               }`}
             >
-              <BookMarked className="w-3.5 h-3.5" />
-              <span>Sách đang mượn</span>
-              <span className="bg-amber-400 text-slate-900 text-[10px] font-black px-1.5 py-0.2 rounded">
+              <BookMarked className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden xl:inline">Sách đang mượn</span>
+              <span className="xl:hidden">Đang mượn</span>
+              <span className="bg-amber-400 text-slate-900 text-[10px] font-black px-1.5 py-0.5 rounded tabular-nums">
                 3
               </span>
             </button>
@@ -150,8 +156,8 @@ const NavbarPC = ({
           onSubmit={handleSearchSubmit}
           className="flex-1 min-w-[140px] max-w-sm lg:max-w-md relative"
         >
-          <div className="flex items-center w-full bg-white/15 hover:bg-white/20 focus-within:bg-white focus-within:text-slate-800 rounded-lg border border-white/20 focus-within:border-white focus-within:shadow-sm px-3 py-1.5 transition-all text-white">
-            <Search className="w-3.5 h-3.5 text-teal-100 focus-within:text-slate-500 shrink-0 mr-2" />
+          <div className="group/search flex items-center w-full bg-white/15 hover:bg-white/20 focus-within:bg-white focus-within:text-slate-800 rounded-lg border border-white/20 focus-within:border-white focus-within:shadow-sm px-3 py-1.5 transition-all text-white">
+            <Search className="w-3.5 h-3.5 text-teal-100 group-focus-within/search:text-slate-500 shrink-0 mr-2 transition-colors" />
             <input
               ref={searchInputRef}
               type="text"
@@ -164,13 +170,13 @@ const NavbarPC = ({
               <button
                 type="button"
                 onClick={() => setSearchQuery && setSearchQuery('')}
-                className="p-0.5 text-teal-200 hover:text-white focus-within:text-slate-400 focus-within:hover:text-slate-600 rounded cursor-pointer"
+                className="p-0.5 text-teal-200 hover:text-white group-focus-within/search:text-slate-400 group-focus-within/search:hover:text-slate-600 rounded cursor-pointer transition-colors"
                 title="Xóa tìm kiếm"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             ) : (
-              <span className="hidden xl:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono font-medium text-teal-200/90 bg-white/10 rounded pointer-events-none shrink-0">
+              <span className="hidden xl:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono font-medium text-teal-200/90 bg-white/10 group-focus-within/search:bg-slate-100 group-focus-within/search:text-slate-500 rounded pointer-events-none shrink-0 transition-colors">
                 Ctrl K
               </span>
             )}
@@ -193,6 +199,8 @@ const NavbarPC = ({
                   ? 'bg-white/25 border-white text-white'
                   : 'border-white/15 text-teal-100 hover:text-white hover:bg-white/10'
               }`}
+              aria-expanded={showNotifications}
+              aria-haspopup="true"
               aria-label="Thông báo thư viện"
               title="Thông báo thư viện"
             >
@@ -208,7 +216,7 @@ const NavbarPC = ({
                     <h4 className="font-heading font-bold text-xs text-slate-900 uppercase tracking-wider">
                       Thông báo thư viện
                     </h4>
-                    <span className="bg-[#e0eff0] text-[#00666B] text-[10px] font-bold px-1.5 py-0.2 rounded">
+                    <span className="bg-[#e0eff0] text-[#00666B] text-[10px] font-bold px-1.5 py-0.5 rounded">
                       2 mới
                     </span>
                   </div>
@@ -304,11 +312,13 @@ const NavbarPC = ({
                 setShowProfile(!showProfile);
                 setShowNotifications(false);
               }}
-              className={`flex items-center gap-2.5 p-1.5 sm:px-3 sm:py-2 rounded-xl transition-all border cursor-pointer ${
+              className={`flex items-center gap-2.5 p-1.5 sm:px-3 sm:py-2 rounded-xl transition-all border cursor-pointer select-none ${
                 showProfile
                   ? 'bg-white/25 border-white text-white shadow-sm'
                   : 'border-white/15 hover:bg-white/10 text-white'
               }`}
+              aria-expanded={showProfile}
+              aria-haspopup="true"
               aria-label="Tài khoản sinh viên UTH"
             >
               <div className="w-7 h-7 bg-white text-[#00666B] rounded-lg flex items-center justify-center font-heading font-extrabold text-xs shrink-0 shadow-xs">
@@ -322,7 +332,7 @@ const NavbarPC = ({
                   2151053001
                 </span>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-teal-200 shrink-0" />
+              <ChevronDown className={`w-3.5 h-3.5 text-teal-200 shrink-0 transition-transform duration-200 ${showProfile ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown Profile - Nâng cấp cỡ chữ lớn, rõ nét và dễ đọc */}
