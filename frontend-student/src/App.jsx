@@ -10,16 +10,15 @@ import LoansTableViewPC from './components/responsive/LoansTableViewPC';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
+import BookListPage from './pages/BookListPage';
+import BookDetailPageMobile from './pages/BookDetailPage';
 import LoanHistoryPage from './pages/LoanHistoryPage';
 import LoansCardListMobile from './components/responsive/LoansCardListMobile';
-import FilterModalMobile from './components/responsive/FilterModalMobile';
-import SearchBar from './components/common/SearchBar';
 import mockBooks from './mockPCBooks.json';
 import {
   Search,
   Check,
   X,
-  ArrowLeft,
   Clock,
   Zap,
   ShieldCheck,
@@ -67,7 +66,6 @@ function MobileApp() {
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [selectedType, setSelectedType] = useState('ALL');
   const [sortBy, setSortBy] = useState('default');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState([
     mockBooks[0],
@@ -81,30 +79,6 @@ function MobileApp() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 2500);
   };
-
-  const categories = [
-    { id: 'ALL', label: 'Tất cả', count: mockBooks.length },
-    {
-      id: 'CÔNG NGHỆ THÔNG TIN',
-      label: 'CNTT',
-      count: mockBooks.filter((b) => b.category === 'CÔNG NGHỆ THÔNG TIN').length,
-    },
-    {
-      id: 'KINH TẾ',
-      label: 'Kinh tế',
-      count: mockBooks.filter((b) => b.category === 'KINH TẾ').length,
-    },
-    {
-      id: 'LOGISTICS & VẬN TẢI',
-      label: 'Logistics',
-      count: mockBooks.filter((b) => b.category === 'LOGISTICS & VẬN TẢI').length,
-    },
-    {
-      id: 'NGOẠI NGỮ',
-      label: 'Ngoại ngữ',
-      count: mockBooks.filter((b) => b.category === 'NGOẠI NGỮ').length,
-    },
-  ];
 
   const handleAddToCart = (book) => {
     if (!book) return;
@@ -142,70 +116,19 @@ function MobileApp() {
     showMobileToast(`Đặt mượn thành công! Mã đơn: ${newOrder.code}`);
   };
 
-  const activeFilterCount =
-    (selectedCategory !== 'ALL' ? 1 : 0) +
-    (onlyAvailable ? 1 : 0) +
-    (selectedType !== 'ALL' ? 1 : 0) +
-    (sortBy !== 'default' ? 1 : 0);
-
-  const hasActiveFilters = activeFilterCount > 0 || searchQuery.trim() !== '';
-
-  const handleResetMobileFilters = () => {
-    setSelectedCategory('ALL');
-    setOnlyAvailable(false);
-    setSelectedType('ALL');
-    setSortBy('default');
-    setSearchQuery('');
-  };
-
-  const filteredBooks = mockBooks
-    .filter((book) => {
-      const matchCat = selectedCategory === 'ALL' || book.category === selectedCategory;
-      const matchType = selectedType === 'ALL' || book.type === selectedType;
-      const matchAvailable = !onlyAvailable || (book.availableQuantity || 0) > 0;
-      const query = searchQuery.trim().toLowerCase();
-      const matchSearch =
-        !query ||
-        book.title.toLowerCase().includes(query) ||
-        book.author.toLowerCase().includes(query) ||
-        (book.code && book.code.toLowerCase().includes(query));
-      return matchCat && matchType && matchAvailable && matchSearch;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'newest') return (b.publishYear || 0) - (a.publishYear || 0);
-      if (sortBy === 'available') return (b.availableQuantity || 0) - (a.availableQuantity || 0);
-      if (sortBy === 'borrowCount') return (b.borrowCount || 0) - (a.borrowCount || 0);
-      if (sortBy === 'title') return a.title.localeCompare(b.title);
-      return a.id - b.id;
-    });
-
   if (mobileDetailBook) {
     return (
-      <div className="min-h-screen bg-[#f4f8f7] flex flex-col justify-between text-slate-800">
-        <header className="sticky top-0 z-30 bg-[#00666b] text-white px-4 py-3 flex items-center justify-between shadow-md">
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => setMobileDetailBook(null)}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-white cursor-pointer"
-              title="Quay lại danh sách"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-sm font-bold truncate">Chi tiết tài liệu UTH</h1>
-          </div>
-        </header>
-        <main className="flex-1 p-3.5 sm:p-6 max-w-md sm:max-w-2xl md:max-w-4xl mx-auto w-full pb-20">
-          <BookDetailPage
-            book={mobileDetailBook}
-            onBack={() => setMobileDetailBook(null)}
-            onAddToCart={handleAddToCart}
-            isInCart={cartItems.some((item) => item.id === mobileDetailBook.id)}
-            onOpenCart={() => setIsCartOpen(true)}
-            allBooks={mockBooks}
-            onSelectBook={setMobileDetailBook}
-          />
-        </main>
+      <div className="min-h-screen bg-[#f4f8f7]">
+        <BookDetailPageMobile
+          book={mobileDetailBook}
+          onBack={() => setMobileDetailBook(null)}
+          onAddToCart={handleAddToCart}
+          isInCart={cartItems.some((item) => item.id === mobileDetailBook.id)}
+          onOpenCart={() => setIsCartOpen(true)}
+          allBooks={mockBooks}
+          onSelectBook={setMobileDetailBook}
+          cartCount={cartItems.length}
+        />
         <CartDrawer
           isOpen={isCartOpen}
           onClose={() => setIsCartOpen(false)}
@@ -321,99 +244,23 @@ function MobileApp() {
       {activeTab !== 'home' && (
         <main className="flex-1 p-3.5 sm:p-6 max-w-md sm:max-w-2xl md:max-w-4xl mx-auto w-full pb-20 space-y-3.5">
           {activeTab === 'search' && (
-            <>
-              <SearchBar
-                value={searchQuery}
-                onChange={setSearchQuery}
-                onClear={() => setSearchQuery('')}
-                placeholder="Tìm tên sách, tác giả, mã tài liệu..."
-                onOpenFilter={() => setIsFilterOpen(true)}
-                activeFilterCount={activeFilterCount}
-              />
-
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
-                {categories.map((cat) => (
-                  <button
-                    type="button"
-                    key={cat.id}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                      selectedCategory === cat.id
-                        ? 'bg-[#00666b] text-white shadow-xs'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    {cat.label} ({cat.count})
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between pt-1 gap-2">
-                <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 min-w-0">
-                  <BookOpen className="w-3.5 h-3.5 text-[#00666B] shrink-0" />
-                  <span className="truncate">Kết quả tra cứu ({filteredBooks.length})</span>
-                </h2>
-                {hasActiveFilters ? (
-                  <button
-                    type="button"
-                    onClick={handleResetMobileFilters}
-                    className="text-[11px] font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1 cursor-pointer hover:bg-rose-100"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    <span>Xóa lọc</span>
-                  </button>
-                ) : (
-                  <span className="text-[10px] text-teal-700 font-semibold bg-teal-50 px-2 py-0.5 rounded-full shrink-0">
-                    Hẹn lấy nhanh
-                  </span>
-                )}
-              </div>
-
-              {filteredBooks.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-2">
-                  <BookOpen className="w-8 h-8 text-slate-300 mx-auto" />
-                  <p className="text-xs font-semibold text-slate-700">
-                    Không tìm thấy tài liệu nào phù hợp với từ khóa hoặc bộ lọc hiện tại.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleResetMobileFilters}
-                    className="text-xs font-bold text-[#00666b] underline cursor-pointer"
-                  >
-                    Đặt lại bộ lọc
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                  {filteredBooks.map((book) => (
-                    <BookCard
-                      key={book.id}
-                      book={book}
-                      onAddToCart={handleAddToCart}
-                      onViewDetail={(item) => setMobileDetailBook(item || book)}
-                      isInCart={cartItems.some((c) => c.id === book.id)}
-                    />
-                  ))}
-                </div>
-              )}
-
-              <FilterModalMobile
-                isOpen={isFilterOpen}
-                onClose={() => setIsFilterOpen(false)}
-                categories={categories}
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-                onlyAvailable={onlyAvailable}
-                onToggleOnlyAvailable={setOnlyAvailable}
-                selectedType={selectedType}
-                onSelectType={setSelectedType}
-                sortBy={sortBy}
-                onChangeSortBy={setSortBy}
-                onResetFilters={handleResetMobileFilters}
-                hasActiveFilters={hasActiveFilters}
-                totalResults={filteredBooks.length}
-              />
-            </>
+            <BookListPage
+              books={mockBooks}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+              onlyAvailable={onlyAvailable}
+              onToggleOnlyAvailable={setOnlyAvailable}
+              selectedType={selectedType}
+              onSelectType={setSelectedType}
+              sortBy={sortBy}
+              onChangeSortBy={setSortBy}
+              onAddToCart={handleAddToCart}
+              onViewDetail={(item) => setMobileDetailBook(item)}
+              cartItems={cartItems}
+              onNavigateTab={setActiveTab}
+            />
           )}
 
         {activeTab === 'loans' && (
