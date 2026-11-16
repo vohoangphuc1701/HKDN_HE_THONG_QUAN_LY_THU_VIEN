@@ -1,22 +1,41 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import StudentLayout from './components/layout/StudentLayout';
 import BookCard from './components/common/BookCard';
-import BookDetailPage from './components/pages/BookDetailPage';
 import CartDrawer from './components/common/CartDrawer';
 import ReturnQrModal from './components/common/ReturnQrModal';
 import FilterSidebarPC from './components/responsive/FilterSidebarPC';
-import LoansTableViewPC from './components/responsive/LoansTableViewPC';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
 import BookListPage from './pages/BookListPage';
-import BookDetailPageMobile from './pages/BookDetailPage';
-import LoanHistoryPage from './pages/LoanHistoryPage';
-import BookListPage from './pages/BookListPage';
-import CheckoutSchedulePage from './pages/CheckoutSchedulePage';
 import LoansCardListMobile from './components/responsive/LoansCardListMobile';
 import mockBooks from './mockPCBooks.json';
+
+// Code-splitting các trang & component lớn theo nhu cầu sử dụng (Session 18 - TV3 Performance Optimization)
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const BookDetailPage = lazy(() => import('./components/pages/BookDetailPage'));
+const BookDetailPageMobile = lazy(() => import('./pages/BookDetailPage'));
+const LoansTableViewPC = lazy(() => import('./components/responsive/LoansTableViewPC'));
+const LoanHistoryPage = lazy(() => import('./pages/LoanHistoryPage'));
+const LoanHistoryTableViewPC = lazy(() => import('./components/responsive/LoanHistoryTableViewPC'));
+const CheckoutSchedulePage = lazy(() => import('./pages/CheckoutSchedulePage'));
+
+/**
+ * Fallback hiển thị trong quá trình tải động mã nguồn trang (Code-splitting Lazy Loading)
+ */
+function PageLoadingFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[350px] p-8 select-none">
+      <div className="w-11 h-11 rounded-2xl bg-[#00666B]/10 border border-[#00666B]/20 flex items-center justify-center text-[#00666B] animate-spin mb-3">
+        <RefreshCw className="w-5 h-5 stroke-[2.2]" />
+      </div>
+      <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+        Đang tải dữ liệu Thư viện UTH...
+      </span>
+      <span className="text-[11px] text-slate-400 mt-1">Vui lòng chờ trong giây lát</span>
+    </div>
+  );
+}
 import {
   Search,
   Check,
@@ -987,7 +1006,7 @@ function DesktopApp() {
           {/* 2. MÀN HÌNH LỊCH SỬ MƯỢN TRẢ & ĐỐI SOÁT PHÍ PHẠT (BR04 - DESKTOP TV3) */}
           {activeTab === 'history' && (
             <div className="space-y-6 animate-in fade-in duration-150">
-              <LoanHistoryPage
+              <LoanHistoryTableViewPC
                 onBorrowAgain={(book) => {
                   handleAddToCart(book);
                   showToast(`Đã thêm tài liệu "${book.title}" vào giỏ mượn!`);
@@ -1938,38 +1957,40 @@ function DesktopApp() {
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Trang Đăng nhập & Đăng ký theo mẫu thiết kế UTH */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+      <Suspense fallback={<PageLoadingFallback />}>
+        <Routes>
+          {/* Trang Đăng nhập & Đăng ký theo mẫu thiết kế UTH */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-        {/* Các màn hình ứng dụng thư viện */}
-        <Route
-          path="/*"
-          element={
-            <>
-              {/* Màn hình nhỏ dưới lg (dưới 1024px) hiển thị Mobile */}
-              <div className="lg:hidden">
-                <MobileApp />
-              </div>
+          {/* Các màn hình ứng dụng thư viện */}
+          <Route
+            path="/*"
+            element={
+              <>
+                {/* Màn hình nhỏ dưới md (dưới 768px) hiển thị Mobile Web (TV2) */}
+                <div className="md:hidden">
+                  <MobileApp />
+                </div>
 
-              {/* Màn hình máy tính từ lg (1024px trở lên) hiển thị Desktop */}
-              <div className="hidden lg:block">
-                <Routes>
-                  <Route path="/" element={<DesktopApp />} />
-                  <Route path="/books" element={<DesktopApp />} />
-                  <Route path="/books/:id" element={<DesktopApp />} />
-                  <Route path="/loans" element={<DesktopApp />} />
-                  <Route path="/history" element={<DesktopApp />} />
-                  <Route path="/checkout" element={<DesktopApp />} />
-                  <Route path="/home" element={<Navigate to="/" replace />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </div>
-            </>
-          }
-        />
-      </Routes>
+                {/* Màn hình máy tính & tablet từ md (768px trở lên) hiển thị Desktop Web (TV3) */}
+                <div className="hidden md:block">
+                  <Routes>
+                    <Route path="/" element={<DesktopApp />} />
+                    <Route path="/books" element={<DesktopApp />} />
+                    <Route path="/books/:id" element={<DesktopApp />} />
+                    <Route path="/loans" element={<DesktopApp />} />
+                    <Route path="/history" element={<DesktopApp />} />
+                    <Route path="/checkout" element={<DesktopApp />} />
+                    <Route path="/home" element={<Navigate to="/" replace />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </div>
+              </>
+            }
+          />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

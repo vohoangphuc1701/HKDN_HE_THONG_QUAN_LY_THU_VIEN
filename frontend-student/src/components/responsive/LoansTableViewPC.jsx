@@ -672,7 +672,7 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
 
         {/* Table Content */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full text-left border-collapse text-xs min-w-[760px]">
             <thead>
               <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px] tracking-wider">
                 <th className="p-3.5 w-10 text-center">

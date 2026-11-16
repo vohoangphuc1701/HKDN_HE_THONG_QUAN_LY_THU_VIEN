@@ -281,6 +281,8 @@ export default function HomePage({
                   key={campus.id}
                   src={campus.image}
                   alt={campus.name}
+                  loading="lazy"
+                  decoding="async"
                   className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ${
                     isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'
                   }`}
