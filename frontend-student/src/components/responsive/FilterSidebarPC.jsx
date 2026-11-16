@@ -46,9 +46,9 @@ export default function FilterSidebarPC({
   ];
 
   return (
-    <aside className="w-72 shrink-0 bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-6 sticky top-24 select-none">
+    <aside className="w-72 shrink-0 bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-4.5 shadow-xs space-y-4 sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain select-none">
       {/* Tiêu đề & Nút đặt lại */}
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
           <div className="w-7 h-7 rounded-lg bg-[#e0eff0] text-[#00666B] flex items-center justify-center">
             <Filter className="w-4 h-4" />
@@ -59,7 +59,7 @@ export default function FilterSidebarPC({
           <button
             type="button"
             onClick={onResetFilters}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
             title="Xóa toàn bộ bộ lọc"
           >
             <RotateCcw className="w-3 h-3" />
@@ -69,20 +69,20 @@ export default function FilterSidebarPC({
       </div>
 
       {/* 1. Trạng thái khả dụng (Toggle Only Available) */}
-      <div className="space-y-2">
-        <label className="text-[11px] font-black text-slate-800 uppercase tracking-wider block">
+      <div className="space-y-1.5">
+        <label className="text-[10.5px] font-black text-slate-800 uppercase tracking-wider block">
           Tình trạng kho sách
         </label>
         <button
           type="button"
           onClick={() => onToggleOnlyAvailable && onToggleOnlyAvailable(!onlyAvailable)}
-          className={`w-full flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer text-left ${
+          className={`w-full flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer text-left ${
             onlyAvailable
               ? 'bg-[#e0eff0] border-[#00666B] text-[#00666B] shadow-2xs ring-2 ring-[#00666B]/20'
               : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100/70'
           }`}
         >
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <div
               className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
                 onlyAvailable
@@ -99,9 +99,9 @@ export default function FilterSidebarPC({
       </div>
 
       {/* 2. Danh mục chuyên ngành */}
-      <div className="space-y-2.5">
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-[11px] font-black text-slate-800 uppercase tracking-wider block">
+          <label className="text-[10.5px] font-black text-slate-800 uppercase tracking-wider block">
             Chuyên ngành đào tạo
           </label>
           <Layers className="w-3.5 h-3.5 text-slate-400" />
@@ -115,7 +115,7 @@ export default function FilterSidebarPC({
                 key={cat.key}
                 type="button"
                 onClick={() => onSelectCategory && onSelectCategory(cat.key)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-[#00666B] text-white font-bold shadow-xs'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -140,11 +140,11 @@ export default function FilterSidebarPC({
       </div>
 
       {/* 3. Phân loại hình thức tài liệu */}
-      <div className="space-y-2.5 pt-3 border-t border-slate-100">
-        <label className="text-[11px] font-black text-slate-800 uppercase tracking-wider block">
+      <div className="space-y-2 pt-2.5 border-t border-slate-100">
+        <label className="text-[10.5px] font-black text-slate-800 uppercase tracking-wider block">
           Hình thức tài liệu
         </label>
-        <div className="grid grid-cols-1 gap-1.5">
+        <div className="grid grid-cols-1 gap-1">
           {documentTypes.map((type) => {
             const isSelected = selectedType === type.key;
             return (
@@ -152,7 +152,7 @@ export default function FilterSidebarPC({
                 key={type.key}
                 type="button"
                 onClick={() => onSelectType && onSelectType(type.key)}
-                className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer ${
+                className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-[#e0eff0] text-[#00666B] font-bold border border-[#00666B]/30'
                     : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-transparent'
@@ -168,9 +168,9 @@ export default function FilterSidebarPC({
 
       {/* 4. Bộ lọc cơ sở phục vụ */}
       {onSelectCampus && (
-        <div className="space-y-2.5 pt-3 border-t border-slate-100">
+        <div className="space-y-2 pt-2.5 border-t border-slate-100">
           <div className="flex items-center justify-between">
-            <label className="text-[11px] font-black text-slate-800 uppercase tracking-wider block">
+            <label className="text-[10.5px] font-black text-slate-800 uppercase tracking-wider block">
               Cơ sở lưu trữ
             </label>
             <MapPin className="w-3.5 h-3.5 text-slate-400" />
@@ -183,7 +183,7 @@ export default function FilterSidebarPC({
                   key={c.key}
                   type="button"
                   onClick={() => onSelectCampus(c.key)}
-                  className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer text-left ${
+                  className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer text-left ${
                     isSelected
                       ? 'bg-teal-50 text-[#00666B] font-bold'
                       : 'text-slate-600 hover:bg-slate-50'
@@ -199,7 +199,7 @@ export default function FilterSidebarPC({
       )}
 
       {/* 5. Ghi chú quy định Pick & Go */}
-      <div className="p-3 bg-teal-50/60 rounded-2xl border border-teal-100/80 text-[11px] text-teal-900 space-y-1">
+      <div className="p-2.5 bg-teal-50/60 rounded-xl border border-teal-100/80 text-[10.5px] text-teal-900 space-y-1">
         <div className="flex items-center gap-1.5 font-bold text-[#00666B]">
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>Chính sách mượn UTH</span>
@@ -208,12 +208,12 @@ export default function FilterSidebarPC({
           • Tối đa 5 cuốn / sinh viên (BR01).
         </p>
         <p className="leading-relaxed text-teal-800">
-          • Thời hạn mượn 14 ngày (gia hạn online 1 lần +7 ngày).
+          • Thời hạn mượn 14 ngày (gia hạn +7 ngày).
         </p>
       </div>
 
       {/* Tóm tắt kết quả */}
-      <div className="pt-2 text-center">
+      <div className="pt-1 text-center">
         <p className="text-[11px] text-slate-500">
           Đang hiển thị <strong className="text-[#00666B] font-bold">{totalResults}</strong> giáo trình
         </p>
