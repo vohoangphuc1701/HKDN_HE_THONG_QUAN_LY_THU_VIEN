@@ -468,7 +468,7 @@ export default function CheckoutSchedulePage({
 
             {/* Bảng tóm tắt tài liệu */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="w-full text-left border-collapse text-xs min-w-[640px]">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-200/70 text-slate-600 uppercase text-[10px] font-extrabold tracking-wider">
                     <th className="py-3.5 px-4 pl-6">STT</th>

@@ -46,7 +46,7 @@ export default function FilterSidebarPC({
   ];
 
   return (
-    <aside className="w-72 shrink-0 bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-4.5 shadow-xs space-y-4 sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain select-none">
+    <aside className="w-64 lg:w-72 shrink-0 bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-4.5 shadow-xs space-y-4 sticky top-20 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain select-none">
       {/* Tiêu đề & Nút đặt lại */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
