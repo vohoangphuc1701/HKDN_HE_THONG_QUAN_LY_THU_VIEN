@@ -58,31 +58,38 @@ export default function ReturnQrModal({ isOpen = false, onClose, order = null })
 
           {/* Vùng Mã QR Độ tương phản cao */}
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/90 inline-block mx-auto shadow-inner">
-            <div className="w-48 h-48 bg-white p-3 rounded-xl border-2 border-slate-900 flex flex-col items-center justify-center relative shadow-sm">
-              {/* SVG QR Code minh họa chuẩn mực với logo UTH ở trung tâm */}
-              <svg className="w-full h-full text-slate-900" viewBox="0 0 100 100" fill="currentColor">
-                {/* 3 góc định vị chuẩn QR */}
-                <rect x="5" y="5" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="6" rx="3" />
-                <rect x="12" y="12" width="14" height="14" />
-                <rect x="67" y="5" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="6" rx="3" />
-                <rect x="74" y="12" width="14" height="14" />
-                <rect x="5" y="67" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="6" rx="3" />
-                <rect x="12" y="74" width="14" height="14" />
+            <div className="w-48 h-48 bg-white p-3 rounded-xl border-2 border-slate-900 flex flex-col items-center justify-center relative shadow-sm overflow-hidden">
+              {order.qrCodeBase64 ? (
+                <img
+                  src={order.qrCodeBase64.startsWith('data:') ? order.qrCodeBase64 : `data:image/png;base64,${order.qrCodeBase64}`}
+                  alt={`Mã QR ${orderCode}`}
+                  className="w-full h-full object-contain p-1"
+                />
+              ) : (
+                <svg className="w-full h-full text-slate-900" viewBox="0 0 100 100" fill="currentColor">
+                  {/* 3 góc định vị chuẩn QR */}
+                  <rect x="5" y="5" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="6" rx="3" />
+                  <rect x="12" y="12" width="14" height="14" />
+                  <rect x="67" y="5" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="6" rx="3" />
+                  <rect x="74" y="12" width="14" height="14" />
+                  <rect x="5" y="67" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="6" rx="3" />
+                  <rect x="12" y="74" width="14" height="14" />
 
-                {/* Dữ liệu pixel ma trận QR */}
-                <rect x="38" y="10" width="8" height="8" />
-                <rect x="50" y="8" width="6" height="6" />
-                <rect x="10" y="38" width="8" height="8" />
-                <rect x="22" y="45" width="6" height="6" />
-                <rect x="42" y="42" width="16" height="16" fill="#00666B" />
-                <rect x="65" y="38" width="8" height="8" />
-                <rect x="80" y="48" width="6" height="6" />
-                <rect x="38" y="65" width="8" height="8" />
-                <rect x="52" y="70" width="8" height="8" />
-                <rect x="70" y="65" width="10" height="8" />
-                <rect x="85" y="80" width="8" height="8" />
-                <rect x="48" y="85" width="6" height="6" />
-              </svg>
+                  {/* Dữ liệu pixel ma trận QR */}
+                  <rect x="38" y="10" width="8" height="8" />
+                  <rect x="50" y="8" width="6" height="6" />
+                  <rect x="10" y="38" width="8" height="8" />
+                  <rect x="22" y="45" width="6" height="6" />
+                  <rect x="42" y="42" width="16" height="16" fill="#00666B" />
+                  <rect x="65" y="38" width="8" height="8" />
+                  <rect x="80" y="48" width="6" height="6" />
+                  <rect x="38" y="65" width="8" height="8" />
+                  <rect x="52" y="70" width="8" height="8" />
+                  <rect x="70" y="65" width="10" height="8" />
+                  <rect x="85" y="80" width="8" height="8" />
+                  <rect x="48" y="85" width="6" height="6" />
+                </svg>
+              )}
               <span className="absolute bottom-1 bg-white/95 px-2 text-[9px] font-mono font-bold tracking-wider text-slate-800 border border-slate-200 rounded">
                 {orderCode}
               </span>

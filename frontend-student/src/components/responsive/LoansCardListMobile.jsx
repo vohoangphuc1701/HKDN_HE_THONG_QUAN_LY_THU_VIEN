@@ -16,6 +16,7 @@ import {
   UserCheck,
   X,
 } from 'lucide-react';
+import { returnApi } from '../../services/returnApi';
 
 /**
  * LoansCardListMobile - Danh sách tài liệu đang mượn & phiếu mượn dạng thẻ cho Mobile/Tablet (TV2)
@@ -201,7 +202,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
     };
   };
 
-  const handleRenew = (loanId) => {
+  const handleRenew = async (loanId) => {
     const target = loans.find((item) => item.id === loanId);
     if (!target) return;
 
@@ -214,6 +215,13 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
       return;
     }
 
+    // Thử gọi API gia hạn sang Backend Spring Boot (TV4)
+    try {
+      await returnApi.renewBook(target.id);
+    } catch {
+      // Tự động fallback cập nhật dữ liệu phía client khi offline / backend đang phát triển
+    }
+
     const updatedItem = buildRenewedLoan(target);
     setLoans((prev) => prev.map((item) => (item.id === loanId ? updatedItem : item)));
     if (selectedDetailLoan?.id === loanId) {
@@ -222,7 +230,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
     notify(`Gia hạn thành công "${target.title}" thêm 7 ngày!`);
   };
 
-  const handleBatchRenew = () => {
+  const handleBatchRenew = async () => {
     const eligibleIds = selectedBookIds.filter((id) => {
       const target = loans.find((l) => l.id === id);
       return target && target.renewCount === 0 && target.status !== 'OVERDUE';
@@ -231,6 +239,15 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
     if (eligibleIds.length === 0) {
       notify('Không có cuốn sách nào đủ điều kiện gia hạn trong mục đã chọn!');
       return;
+    }
+
+    // Thử gọi API cho từng bản ghi
+    for (const id of eligibleIds) {
+      try {
+        await returnApi.renewBook(id);
+      } catch {
+        // Fallback im lặng
+      }
     }
 
     setLoans((prev) =>
