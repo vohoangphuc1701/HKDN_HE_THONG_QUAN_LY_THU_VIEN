@@ -146,7 +146,7 @@ const STATUS_BADGE_MAP = {
   },
 };
 
-export default function LoansCardListMobile({ onOpenQrModal, onShowToast }) {
+export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpenScheduleReturn }) {
   const [loans, setLoans] = useState(INITIAL_LOANS);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -263,6 +263,11 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast }) {
   const handleOpenScheduleModal = () => {
     if (selectedBookIds.length === 0) {
       notify('Vui lòng chọn ít nhất 1 cuốn sách để đặt lịch hẹn trả!');
+      return;
+    }
+    if (onOpenScheduleReturn) {
+      const returningBooks = loans.filter((l) => selectedBookIds.includes(l.id));
+      onOpenScheduleReturn(returningBooks);
       return;
     }
     setIsScheduleModalOpen(true);

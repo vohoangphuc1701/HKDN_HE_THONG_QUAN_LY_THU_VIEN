@@ -11,7 +11,6 @@ import {
   Zap,
   ShieldCheck,
   Info,
-  X,
   QrCode,
 } from 'lucide-react';
 
