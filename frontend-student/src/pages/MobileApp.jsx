@@ -25,6 +25,7 @@ import LoansCardListMobile from '../components/responsive/LoansCardListMobile';
 import LoanHistoryPage from './LoanHistoryPage';
 import CartDrawer from '../components/common/CartDrawer';
 import ReturnQrModal from '../components/common/ReturnQrModal';
+import CheckoutSchedulePage from './CheckoutSchedulePage';
 import mockBooks from '../mockPCBooks.json';
 export default function MobileApp() {
   const [activeTab, setActiveTab] = useState('home');
@@ -43,6 +44,7 @@ export default function MobileApp() {
   const [toastMessage, setToastMessage] = useState('');
   const [mobileDetailBook, setMobileDetailBook] = useState(null);
   const [mobileQrOrder, setMobileQrOrder] = useState(null);
+  const [scheduleData, setScheduleData] = useState(null); // { mode: 'pickup' | 'return', items: [] }
 
   const showMobileToast = (msg) => {
     setToastMessage(msg);
@@ -104,6 +106,10 @@ export default function MobileApp() {
           cartItems={cartItems}
           onRemoveItem={handleRemoveCartItem}
           onCheckoutSuccess={handleMobileCheckoutSuccess}
+          onOpenSchedulePage={(items) => {
+            setIsCartOpen(false);
+            setScheduleData({ mode: 'pickup', items });
+          }}
         />
         <ReturnQrModal
           isOpen={Boolean(mobileQrOrder)}
@@ -111,6 +117,26 @@ export default function MobileApp() {
           order={mobileQrOrder}
         />
       </div>
+    );
+  }
+
+  if (scheduleData) {
+    return (
+      <CheckoutSchedulePage
+        cartItems={scheduleData.items}
+        mode={scheduleData.mode}
+        onBack={() => setScheduleData(null)}
+        onConfirm={(order) => {
+          if (scheduleData.mode === 'pickup') {
+            setCartItems([]);
+          }
+          setScheduleData(null);
+          setMobileQrOrder(order);
+          setActiveTab('loans');
+          showMobileToast(`Đặt lịch thành công! Mã: ${order.code}`);
+        }}
+        onShowToast={showMobileToast}
+      />
     );
   }
 
@@ -236,6 +262,7 @@ export default function MobileApp() {
           <LoansCardListMobile
             onOpenQrModal={(order) => setMobileQrOrder(order)}
             onShowToast={showMobileToast}
+            onOpenScheduleReturn={(books) => setScheduleData({ mode: 'return', items: books })}
           />
         )}
 
@@ -605,6 +632,10 @@ export default function MobileApp() {
         cartItems={cartItems}
         onRemoveItem={handleRemoveCartItem}
         onCheckoutSuccess={handleMobileCheckoutSuccess}
+        onOpenSchedulePage={(items) => {
+          setIsCartOpen(false);
+          setScheduleData({ mode: 'pickup', items });
+        }}
       />
 
       {/* Modal Mã QR Đơn Mượn / Phiếu Hẹn Trả trên Mobile */}
