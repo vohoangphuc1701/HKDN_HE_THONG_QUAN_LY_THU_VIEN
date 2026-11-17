@@ -73,14 +73,14 @@ const NavbarPC = ({
 
   return (
     <header className="sticky top-0 z-40 bg-[#00666B] text-white border-b border-[#005256] shadow-sm select-none">
-      <div className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-[1560px] mx-auto px-3 sm:px-4 md:px-5 lg:px-8 xl:px-10 h-16 flex items-center justify-between gap-2 sm:gap-3 md:gap-3 lg:gap-4">
 
         {/* CỤM TRÁI: Logo UTH & Main Navigation */}
-        <div className="flex items-center gap-4 lg:gap-6 shrink-0 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-5 shrink-0 min-w-0">
           {/* Logo Thư viện UTH */}
           <div
             onClick={() => setActiveTab && setActiveTab('home')}
-            className="flex items-center gap-2.5 cursor-pointer group shrink-0"
+            className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group shrink-0"
             title="Trường Đại học Giao thông Vận tải TP.HCM - Thư viện UTH"
           >
             <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-[#00666B] shadow-xs group-hover:scale-105 transition-transform shrink-0">
@@ -95,33 +95,35 @@ const NavbarPC = ({
                   UTH
                 </span>
               </div>
-              <span className="text-[10px] font-medium text-teal-200 tracking-tight hidden sm:inline mt-0.5">
+              <span className="text-[10px] font-medium text-teal-200 tracking-tight hidden xl:inline mt-0.5">
                 Cổng sinh viên trực tuyến
               </span>
             </div>
           </div>
 
           {/* Navigation Links phẳng, sắc nét */}
-          <nav className="hidden md:flex items-center space-x-1 shrink-0" aria-label="Điều hướng chính">
+          <nav className="hidden md:flex items-center space-x-1 lg:space-x-1.5 shrink-0" aria-label="Điều hướng chính">
             {/* 1. Trang chủ */}
             <button
               type="button"
               onClick={() => setActiveTab && setActiveTab('home')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              title="Trang chủ"
+              className={`px-2.5 py-1.5 lg:px-3 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                 activeTab === 'home'
                   ? 'bg-white/20 text-white shadow-xs'
                   : 'text-teal-100 hover:text-white hover:bg-white/10'
               }`}
             >
-              <Home className="w-3.5 h-3.5" />
-              <span>Trang chủ</span>
+              <Home className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden lg:inline">Trang chủ</span>
             </button>
 
             {/* 2. Kho sách */}
             <button
               type="button"
               onClick={() => setActiveTab && setActiveTab('catalog')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              title="Kho sách & Giáo trình"
+              className={`px-2.5 py-1.5 lg:px-3 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                 activeTab === 'catalog'
                   ? 'bg-white/20 text-white shadow-xs'
                   : 'text-teal-100 hover:text-white hover:bg-white/10'
@@ -129,14 +131,15 @@ const NavbarPC = ({
             >
               <Compass className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden xl:inline">Kho sách &amp; Giáo trình</span>
-              <span className="xl:hidden">Kho sách</span>
+              <span className="hidden lg:inline xl:hidden">Kho sách</span>
             </button>
 
             {/* 3. Đang mượn */}
             <button
               type="button"
               onClick={() => setActiveTab && setActiveTab('loans')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              title="Sách đang mượn (3 cuốn)"
+              className={`px-2.5 py-1.5 lg:px-3 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                 activeTab === 'loans'
                   ? 'bg-white/20 text-white shadow-xs'
                   : 'text-teal-100 hover:text-white hover:bg-white/10'
@@ -144,7 +147,7 @@ const NavbarPC = ({
             >
               <BookMarked className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden xl:inline">Sách đang mượn</span>
-              <span className="xl:hidden">Đang mượn</span>
+              <span className="hidden lg:inline xl:hidden">Đang mượn</span>
               <span className="bg-amber-400 text-slate-900 text-[10px] font-black px-1.5 py-0.5 rounded tabular-nums">
                 3
               </span>
@@ -154,7 +157,8 @@ const NavbarPC = ({
             <button
               type="button"
               onClick={() => setActiveTab && setActiveTab('history')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              title="Lịch sử mượn trả"
+              className={`px-2.5 py-1.5 lg:px-3 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                 activeTab === 'history'
                   ? 'bg-white/20 text-white shadow-xs'
                   : 'text-teal-100 hover:text-white hover:bg-white/10'
@@ -162,7 +166,7 @@ const NavbarPC = ({
             >
               <History className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden xl:inline">Lịch sử mượn trả</span>
-              <span className="xl:hidden">Lịch sử</span>
+              <span className="hidden lg:inline xl:hidden">Lịch sử</span>
             </button>
           </nav>
         </div>
@@ -170,17 +174,17 @@ const NavbarPC = ({
         {/* CỤM GIỮA: Thanh tìm kiếm nhanh */}
         <form
           onSubmit={handleSearchSubmit}
-          className="flex-1 min-w-[140px] max-w-sm lg:max-w-md relative"
+          className="flex-1 min-w-[110px] max-w-xs md:max-w-sm lg:max-w-md relative"
         >
-          <div className="group/search flex items-center w-full bg-white/15 hover:bg-white/20 focus-within:bg-white focus-within:text-slate-800 rounded-lg border border-white/20 focus-within:border-white focus-within:shadow-sm px-3 py-1.5 transition-all text-white">
-            <Search className="w-3.5 h-3.5 text-teal-100 group-focus-within/search:text-slate-500 shrink-0 mr-2 transition-colors" />
+          <div className="group/search flex items-center w-full bg-white/15 hover:bg-white/20 focus-within:bg-white focus-within:text-slate-800 rounded-lg border border-white/20 focus-within:border-white focus-within:shadow-sm px-2.5 sm:px-3 py-1.5 transition-all text-white">
+            <Search className="w-3.5 h-3.5 text-teal-100 group-focus-within/search:text-slate-500 shrink-0 mr-1.5 sm:mr-2 transition-colors" />
             <input
               ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
-              placeholder="Tìm tên sách, giáo trình, môn học..."
-              className="w-full bg-transparent text-xs placeholder:text-teal-100/70 focus:placeholder:text-slate-400 focus:text-slate-800 focus:outline-none"
+              placeholder="Tìm sách, tài liệu..."
+              className="w-full bg-transparent text-xs placeholder:text-teal-100/70 focus:placeholder:text-slate-400 focus:text-slate-800 focus:outline-none truncate"
             />
             {searchQuery ? (
               <button
@@ -200,7 +204,7 @@ const NavbarPC = ({
         </form>
 
         {/* CỤM PHẢI: Thông báo, Giỏ mượn & Hồ sơ Sinh viên */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 shrink-0">
 
           {/* 1. Nút Thông báo (Bell) */}
           <div className="relative" ref={notifRef}>
@@ -289,7 +293,7 @@ const NavbarPC = ({
           <button
             type="button"
             onClick={onOpenCart}
-            className={`h-9 px-3.5 rounded-xl flex items-center gap-2.5 transition-all cursor-pointer font-heading select-none ${
+            className={`h-9 px-2.5 sm:px-3 lg:px-3.5 rounded-xl flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 transition-all cursor-pointer font-heading select-none ${
               cartCount > 0
                 ? 'bg-gradient-to-r from-amber-400 to-amber-300 text-slate-950 font-black shadow-md hover:shadow-lg hover:from-amber-300 hover:to-amber-200 ring-2 ring-amber-400/40 active:scale-95'
                 : 'border border-white/20 bg-white/10 hover:bg-white/20 text-white'
@@ -303,11 +307,11 @@ const NavbarPC = ({
                 <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-amber-400 animate-pulse" />
               )}
             </div>
-            <span className={`text-xs ${cartCount > 0 ? 'font-black tracking-tight' : 'font-bold hidden lg:inline'}`}>
+            <span className={`text-xs hidden xl:inline ${cartCount > 0 ? 'font-black tracking-tight' : 'font-bold'}`}>
               Giỏ mượn
             </span>
             <span
-              className={`text-[11px] font-black h-5 min-w-[22px] px-1.5 flex items-center justify-center rounded-lg shadow-2xs font-mono ${
+              className={`text-[11px] font-black h-5 min-w-[20px] sm:min-w-[22px] px-1.5 flex items-center justify-center rounded-lg shadow-2xs font-mono ${
                 cartCount > 0
                   ? 'bg-slate-950 text-amber-300'
                   : 'bg-white/20 text-white'
@@ -318,7 +322,7 @@ const NavbarPC = ({
           </button>
 
           {/* Đường phân cách */}
-          <div className="w-px h-6 bg-white/20 hidden sm:block"></div>
+          <div className="w-px h-6 bg-white/20 hidden md:block"></div>
 
           {/* 3. Hồ sơ Sinh viên */}
           <div className="relative" ref={profileRef}>
@@ -328,7 +332,7 @@ const NavbarPC = ({
                 setShowProfile(!showProfile);
                 setShowNotifications(false);
               }}
-              className={`flex items-center gap-2.5 p-1.5 sm:px-3 sm:py-2 rounded-xl transition-all border cursor-pointer select-none ${
+              className={`flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 p-1.5 sm:px-2.5 lg:px-3 sm:py-2 rounded-xl transition-all border cursor-pointer select-none ${
                 showProfile
                   ? 'bg-white/25 border-white text-white shadow-sm'
                   : 'border-white/15 hover:bg-white/10 text-white'

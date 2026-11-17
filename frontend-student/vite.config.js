@@ -8,6 +8,11 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+  },
   build: {
     chunkSizeWarningLimit: 600,
     rollupOptions: {
