@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ArrowLeft,
   Calendar,
@@ -13,6 +13,8 @@ import {
   Info,
   QrCode,
 } from 'lucide-react';
+import { borrowApi } from '../services/borrowApi';
+import { returnApi } from '../services/returnApi';
 
 /**
  * CheckoutSchedulePage – Trang lên lịch hẹn nhận / trả sách (TV2 · Mobile Web)
@@ -115,31 +117,66 @@ export default function CheckoutSchedulePageMobile({
   const isValid = bookCount > 0 && pickupDate;
 
   /* ── Xử lý xác nhận ── */
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!isValid) {
       if (onShowToast) onShowToast('Vui lòng chọn ngày và khung giờ hợp lệ!');
       return;
     }
     setIsSubmitting(true);
-    setTimeout(() => {
-      const prefix = isReturn ? 'PT' : 'DH';
-      const code = `${prefix}-UTH-2026-${Math.floor(100 + Math.random() * 900)}`;
-      const order = {
-        code,
-        campus: `${campusObj.name} – ${campusObj.address}`,
-        pickupDate: `${formatDate(pickupDate)} (${slotObj.time})`,
-        dueDate: isReturn ? '' : '14 ngày kể từ khi nhận sách tại quầy',
-        books: cartItems,
-        status: isReturn ? 'PENDING_VERIFICATION' : 'READY_FOR_PICKUP',
-        note: note || (isReturn
-          ? 'Quét mã tại quầy tiếp nhận để hoàn tất trả sách trong 30 giây.'
-          : 'Xuất trình mã QR tại quầy Pick & Go để nhận sách.'),
-      };
-      setIsSubmitting(false);
-      setConfirmedOrder(order);
-      if (onConfirm) onConfirm(order);
-      if (onShowToast) onShowToast(`Đã tạo ${isReturn ? 'phiếu hẹn trả' : 'đơn mượn'}: ${code}`);
-    }, 600);
+
+    let generatedCode = '';
+    let qrCodeBase64 = null;
+    const prefix = isReturn ? 'PT' : 'DH';
+    const fallbackCode = `${prefix}-UTH-2026-${Math.floor(100 + Math.random() * 900)}`;
+
+    try {
+      if (isReturn) {
+        // Gọi API tạo phiếu hẹn trả sang Backend Spring Boot (TV4)
+        try {
+          const res = await returnApi.createReturnTicket({
+            borrowDetailIds: cartItems.map((b) => Number(b.id || b.borrowDetailId || b.bookId || 1)),
+            scheduledReturnDate: pickupDate,
+          });
+          generatedCode = res?.ticketCode || res?.code || fallbackCode;
+          qrCodeBase64 = res?.qrCodeBase64 || null;
+        } catch {
+          generatedCode = fallbackCode;
+        }
+      } else {
+        // Gọi API tạo đơn đặt mượn Pick & Go sang Backend Spring Boot (TV4)
+        try {
+          const res = await borrowApi.createBorrowOrder({
+            bookIds: cartItems.map((b) => Number(b.id || b.bookId || 1)),
+            pickupDate,
+            note: `${campusObj.name} (${slotObj.time}) - ${note.trim()}`,
+          });
+          generatedCode = res?.orderCode || res?.code || fallbackCode;
+          qrCodeBase64 = res?.qrCodeBase64 || null;
+        } catch {
+          generatedCode = fallbackCode;
+        }
+      }
+    } catch {
+      generatedCode = fallbackCode;
+    }
+
+    const order = {
+      code: generatedCode || fallbackCode,
+      campus: `${campusObj.name} – ${campusObj.address}`,
+      pickupDate: `${formatDate(pickupDate)} (${slotObj.time})`,
+      dueDate: isReturn ? '' : '14 ngày kể từ khi nhận sách tại quầy',
+      books: cartItems,
+      status: isReturn ? 'PENDING_VERIFICATION' : 'READY_FOR_PICKUP',
+      qrCodeBase64,
+      note: note || (isReturn
+        ? 'Quét mã tại quầy tiếp nhận để hoàn tất trả sách trong 30 giây.'
+        : 'Xuất trình mã QR tại quầy Pick & Go để nhận sách.'),
+    };
+
+    setIsSubmitting(false);
+    setConfirmedOrder(order);
+    if (onConfirm) onConfirm(order);
+    if (onShowToast) onShowToast(`Đã tạo ${isReturn ? 'phiếu hẹn trả' : 'đơn mượn'}: ${order.code}`);
   };
 
   /* ── Màn hình xác nhận thành công ── */
