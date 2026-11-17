@@ -17,6 +17,7 @@ import {
   Check,
   MapPin
 } from 'lucide-react';
+import returnApi from '../../services/returnApi';
 
 /**
  * LoansTableViewPC - Bảng quản lý hồ sơ tài liệu đang mượn & Chi tiết tài liệu mượn (Desktop Web - TV3)
@@ -150,6 +151,14 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
   const [appointmentCampus, setAppointmentCampus] = useState('Cơ sở 1 - Võ Oanh (Bình Thạnh)');
   const [appointmentNote, setAppointmentNote] = useState('');
 
+  // Hạn trả tối đa được phép hẹn theo quy tắc BR06 (<= hạn trả lớn nhất của sách đã chọn)
+  const maxAllowedDueDate = useMemo(() => {
+    const selected = loans.filter((l) => selectedBookIds.includes(l.id));
+    const timestamps = selected.map((l) => l.dueTimestamp).filter(Boolean);
+    if (timestamps.length === 0) return null;
+    return new Date(Math.max(...timestamps));
+  }, [loans, selectedBookIds]);
+
   // Tính toán số liệu thống kê nhanh
   const stats = useMemo(() => {
     const totalBorrowed = loans.length;
@@ -180,7 +189,13 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
   }, [loans, statusFilter, searchQuery]);
 
   // Xử lý gia hạn trực tuyến (+7 ngày, tối đa 1 lần theo BR03)
-  const handleRenew = (loanId) => {
+  const handleRenew = async (loanId) => {
+    try {
+      await returnApi.renewBook(loanId);
+    } catch (err) {
+      console.warn('[handleRenew] Backend renew fallback:', err);
+    }
+
     setLoans((prev) =>
       prev.map((item) => {
         if (item.id === loanId) {
@@ -287,15 +302,45 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
       if (onShowToast) onShowToast('Vui lòng chọn ít nhất 1 cuốn sách để đặt lịch hẹn trả!');
       return;
     }
+    const selected = loans.filter((l) => selectedBookIds.includes(l.id));
+    const timestamps = selected.map((l) => l.dueTimestamp).filter(Boolean);
+    if (timestamps.length > 0) {
+      const maxTs = Math.max(...timestamps);
+      const targetDate = new Date(Math.min(Date.now() + 86400000, maxTs)).toISOString().split('T')[0];
+      setAppointmentDate(targetDate);
+    }
     setIsScheduleModalOpen(true);
   };
 
   // Xác nhận tạo lịch hẹn trả và sinh mã QR phiếu trả
-  const handleConfirmScheduleReturn = (e) => {
+  const handleConfirmScheduleReturn = async (e) => {
     e.preventDefault();
     const returningBooks = loans.filter((l) => selectedBookIds.includes(l.id));
-    const randomTicketNumber = Math.floor(100 + Math.random() * 900);
-    const returnTicketCode = `PT-UTH-2026-${randomTicketNumber}`;
+    const timestamps = returningBooks.map((l) => l.dueTimestamp).filter(Boolean);
+    if (timestamps.length > 0) {
+      const maxTs = Math.max(...timestamps);
+      if (new Date(appointmentDate).getTime() > maxTs) {
+        if (onShowToast) {
+          onShowToast('Ngày hẹn trả không được muộn hơn hạn trả lớn nhất của sách đã chọn (Quy tắc BR06)!');
+        }
+        return;
+      }
+    }
+    let returnTicketCode = `PT-UTH-2026-${Math.floor(100 + Math.random() * 900)}`;
+    let qrCodeBase64 = null;
+
+    try {
+      const res = await returnApi.createReturnTicket({
+        borrowDetailIds: selectedBookIds,
+        scheduledReturnDate: appointmentDate,
+      });
+      if (res?.ticketCode) {
+        returnTicketCode = res.ticketCode;
+        qrCodeBase64 = res.qrCodeBase64;
+      }
+    } catch (err) {
+      console.warn('[handleConfirmScheduleReturn] API fallback:', err);
+    }
 
     setIsScheduleModalOpen(false);
 
@@ -311,6 +356,7 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
         books: returningBooks,
         status: 'PENDING_VERIFICATION',
         note: appointmentNote || 'Quét mã tại quầy tiếp nhận để hoàn tất trả sách trong 30 giây.',
+        qrCodeBase64,
       });
     }
 
@@ -651,7 +697,7 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
 
         {/* Table Content */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full text-left border-collapse text-xs min-w-[760px]">
             <thead>
               <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px] tracking-wider">
                 <th className="p-3.5 w-10 text-center">
@@ -1259,10 +1305,17 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
                   <input
                     type="date"
                     value={appointmentDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    max={maxAllowedDueDate ? maxAllowedDueDate.toISOString().split('T')[0] : undefined}
                     onChange={(e) => setAppointmentDate(e.target.value)}
                     className="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#00666B]/30 focus:border-[#00666B] outline-none"
                     required
                   />
+                  {maxAllowedDueDate && (
+                    <span className="text-[10px] text-amber-700 block mt-1 font-medium">
+                      • BR06: Tối đa đến {maxAllowedDueDate.toLocaleDateString('vi-VN')}
+                    </span>
+                  )}
                 </div>
 
                 <div>
