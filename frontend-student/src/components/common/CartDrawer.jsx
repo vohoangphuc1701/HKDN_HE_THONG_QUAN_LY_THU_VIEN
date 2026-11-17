@@ -9,11 +9,8 @@ import {
   AlertCircle,
   BookOpen,
   ArrowRight,
-  ShieldCheck,
   Zap,
-  Sparkles,
   ShoppingBag,
-  Info,
   Check,
 } from 'lucide-react';
 

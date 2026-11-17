@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, QrCode, CheckCircle2, Clock, MapPin, BookOpen, AlertCircle, Download, Printer } from 'lucide-react';
+import { X, QrCode, CheckCircle2, Clock, MapPin, BookOpen } from 'lucide-react';
 
 /**
  * ReturnQrModal - Modal hiển thị mã QR Đơn mượn sách hoặc Phiếu hẹn trả sách
