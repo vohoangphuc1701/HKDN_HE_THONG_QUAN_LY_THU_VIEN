@@ -23,13 +23,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Controller cung cấp API cho Cổng Quản Trị Thủ Thư / Admin (frontend-admin - TV6)
- * - Thống kê tổng quan Dashboard, biểu đồ phân bổ kho sách và Top sách mượn nhiều nhất
- * - Quản lý Kho sách (/api/admin/inventory) tương thích trực tiếp với adminApi.js
+ * Controller cung cấp API cho Cổng Quản Trị Thủ Thư / Admin (frontend-admin -
+ * TV6)
+ * - Thống kê tổng quan Dashboard, biểu đồ phân bổ kho sách và Top sách mượn
+ * nhiều nhất
+ * - Quản lý Kho sách (/api/admin/inventory) tương thích trực tiếp với
+ * adminApi.js
  * - Quản lý Tài khoản Sinh viên & Khóa/Mở khóa thẻ thư viện (/api/admin/users)
  */
 @RestController
-@RequestMapping({"/api/admin", "/api/dashboard"})
+@RequestMapping({ "/api/admin", "/api/dashboard" })
 @PreAuthorize("hasRole('LIBRARIAN')")
 @RequiredArgsConstructor
 public class AdminDashboardController {
@@ -44,9 +47,10 @@ public class AdminDashboardController {
     // ==================== 1. DASHBOARD OVERVIEW & ANALYTICS ====================
 
     /**
-     * Lấy toàn bộ chỉ số KPI tổng quan, thống kê đơn mượn, tiền phạt và dữ liệu biểu đồ cho Dashboard
+     * Lấy toàn bộ chỉ số KPI tổng quan, thống kê đơn mượn, tiền phạt và dữ liệu
+     * biểu đồ cho Dashboard
      */
-    @GetMapping({"", "/overview", "/stats"})
+    @GetMapping({ "", "/overview", "/stats" })
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboardOverview() {
         Map<String, Object> stats = new LinkedHashMap<>();
 
@@ -110,32 +114,30 @@ public class AdminDashboardController {
                 .stream()
                 .collect(Collectors.groupingBy(
                         b -> b.getCategory() != null ? b.getCategory() : "Khác",
-                        Collectors.summarizingInt(b -> b.getTotalQuantity() != null ? b.getTotalQuantity() : 0)
-                ))
+                        Collectors.summarizingInt(b -> b.getTotalQuantity() != null ? b.getTotalQuantity() : 0)))
                 .entrySet()
                 .stream()
                 .map(e -> Map.<String, Object>of(
                         "category", e.getKey(),
                         "titleCount", e.getValue().getCount(),
-                        "totalCopies", e.getValue().getSum()
-                ))
+                        "totalCopies", e.getValue().getSum()))
                 .toList();
         stats.put("categoryDistribution", categoryStats);
 
         return ResponseEntity.ok(ApiResponse.success("Lấy dữ liệu tổng quan Dashboard thành công", stats));
     }
 
-    // ==================== 2. QUẢN LÝ KHO SÁCH (/api/admin/inventory) ====================
+    // ==================== 2. QUẢN LÝ KHO SÁCH (/api/admin/inventory)
+    // ====================
 
     /**
-     * Danh sách kho sách dành cho trang InventoryManagementPage.jsx (TV6)
+     * Danh sách kho sách dành cho trang InventoryManagementPage.jsx
      */
     @GetMapping("/inventory")
     public ResponseEntity<List<Map<String, Object>>> getInventory(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String status
-    ) {
+            @RequestParam(required = false) String status) {
         String effectiveCategory = (category != null && !category.equalsIgnoreCase("ALL")) ? category.trim() : null;
         Boolean onlyAvailable = "AVAILABLE".equalsIgnoreCase(status) ? true : null;
 
@@ -144,8 +146,7 @@ public class AdminDashboardController {
                 effectiveCategory,
                 null,
                 onlyAvailable,
-                PageRequest.of(0, 500, Sort.by("id").descending())
-        ).getContent();
+                PageRequest.of(0, 500, Sort.by("id").descending())).getContent();
 
         if ("OUT_OF_STOCK".equalsIgnoreCase(status)) {
             books = books.stream()
@@ -181,9 +182,9 @@ public class AdminDashboardController {
         }
 
         int total = request.getTotalCopies() != null ? request.getTotalCopies()
-                  : (request.getTotalQuantity() != null ? request.getTotalQuantity() : 1);
+                : (request.getTotalQuantity() != null ? request.getTotalQuantity() : 1);
         int available = request.getAvailableCopies() != null ? request.getAvailableCopies()
-                      : (request.getAvailableQuantity() != null ? request.getAvailableQuantity() : total);
+                : (request.getAvailableQuantity() != null ? request.getAvailableQuantity() : total);
 
         if (available > total) {
             throw new BadRequestException("Số lượng khả dụng không được lớn hơn tổng số lượng trong kho");
@@ -195,8 +196,11 @@ public class AdminDashboardController {
 
         Book book = Book.builder()
                 .title(request.getTitle().trim())
-                .author(request.getAuthor() != null && !request.getAuthor().isBlank() ? request.getAuthor().trim() : "Chưa rõ")
-                .category(request.getCategory() != null && !request.getCategory().isBlank() ? request.getCategory().trim() : "Công nghệ thông tin")
+                .author(request.getAuthor() != null && !request.getAuthor().isBlank() ? request.getAuthor().trim()
+                        : "Chưa rõ")
+                .category(
+                        request.getCategory() != null && !request.getCategory().isBlank() ? request.getCategory().trim()
+                                : "Công nghệ thông tin")
                 .documentCode(docCode)
                 .shelfLocation(parseShelfLocation(request.getShelfLocation()))
                 .publisher(request.getPublisher())
@@ -218,8 +222,7 @@ public class AdminDashboardController {
     @Transactional
     public ResponseEntity<Map<String, Object>> updateInventoryBook(
             @PathVariable Long id,
-            @RequestBody InventoryBookRequest request
-    ) {
+            @RequestBody InventoryBookRequest request) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sách", "id", id));
 
@@ -233,16 +236,19 @@ public class AdminDashboardController {
             book.setCategory(request.getCategory().trim());
         }
         if (request.getCode() != null || request.getDocumentCode() != null) {
-            book.setDocumentCode(request.getCode() != null ? request.getCode().trim() : request.getDocumentCode().trim());
+            book.setDocumentCode(
+                    request.getCode() != null ? request.getCode().trim() : request.getDocumentCode().trim());
         }
         if (request.getShelfLocation() != null) {
             book.setShelfLocation(parseShelfLocation(request.getShelfLocation()));
         }
         if (request.getTotalCopies() != null || request.getTotalQuantity() != null) {
-            book.setTotalQuantity(request.getTotalCopies() != null ? request.getTotalCopies() : request.getTotalQuantity());
+            book.setTotalQuantity(
+                    request.getTotalCopies() != null ? request.getTotalCopies() : request.getTotalQuantity());
         }
         if (request.getAvailableCopies() != null || request.getAvailableQuantity() != null) {
-            book.setAvailableQuantity(request.getAvailableCopies() != null ? request.getAvailableCopies() : request.getAvailableQuantity());
+            book.setAvailableQuantity(request.getAvailableCopies() != null ? request.getAvailableCopies()
+                    : request.getAvailableQuantity());
         }
         if (book.getAvailableQuantity() > book.getTotalQuantity()) {
             throw new BadRequestException("Số lượng khả dụng không được vượt quá tổng số lượng trong kho");
@@ -264,7 +270,8 @@ public class AdminDashboardController {
         return ResponseEntity.ok(ApiResponse.success("Đã xóa đầu sách thành công", null));
     }
 
-    // ==================== 3. QUẢN LÝ TÀI KHOẢN SINH VIÊN (/api/admin/users) ====================
+    // ==================== 3. QUẢN LÝ TÀI KHOẢN SINH VIÊN (/api/admin/users)
+    // ====================
 
     /**
      * Tra cứu danh sách tài khoản người dùng (Sinh viên & Thủ thư)
@@ -275,8 +282,7 @@ public class AdminDashboardController {
             @RequestParam(required = false) Role role,
             @RequestParam(required = false) UserStatus status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "15") int size
-    ) {
+            @RequestParam(defaultValue = "15") int size) {
         Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by("createdAt").descending());
         Page<User> users = userRepository.searchUsers(keyword, role, status, pageable);
         return ResponseEntity.ok(ApiResponse.success("Danh sách tài khoản người dùng", users));
@@ -289,8 +295,7 @@ public class AdminDashboardController {
     @Transactional
     public ResponseEntity<ApiResponse<User>> updateUserStatus(
             @PathVariable Long id,
-            @RequestParam UserStatus status
-    ) {
+            @RequestParam UserStatus status) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", id));
         user.setStatus(status);
@@ -354,4 +359,3 @@ public class AdminDashboardController {
         private Integer availableQuantity;
     }
 }
-
