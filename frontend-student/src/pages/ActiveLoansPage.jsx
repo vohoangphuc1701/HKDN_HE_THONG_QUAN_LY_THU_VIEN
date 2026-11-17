@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoansTableViewPC from '../components/responsive/LoansTableViewPC';
+import LoansCardListMobile from '../components/responsive/LoansCardListMobile';
 import ReturnQrModal from '../components/common/ReturnQrModal';
 import { Compass, CheckCircle2, X } from 'lucide-react';
 
 /**
- * ActiveLoansPage - Trang quản lý tài liệu đang mượn & Phiếu mượn cho Sinh viên UTH (Desktop Web - TV3)
+ * ActiveLoansPage – Trang quản lý tài liệu đang mượn & Phiếu mượn cho Sinh viên UTH.
+ * Responsive:
+ *   • Mobile / Tablet (< 1024px)  → LoansCardListMobile (TV2)
+ *   • Desktop        (≥ 1024px)   → LoansTableViewPC    (TV3)
+ * Không chỉnh sửa: TV3 Desktop, Admin TV6, Backend TV4-TV5.
  */
 export default function ActiveLoansPage({ onNavigateCatalog, onShowToast }) {
   const navigate = useNavigate();
@@ -41,7 +46,7 @@ export default function ActiveLoansPage({ onNavigateCatalog, onShowToast }) {
           <div className="relative overflow-hidden rounded-2xl bg-slate-900/95 text-white p-3.5 pl-4 pr-4 shadow-2xl shadow-slate-950/40 border border-slate-700/80 backdrop-blur-md ring-1 ring-white/10 flex items-center gap-3">
             <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-400" />
             <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-4.5 h-4.5 stroke-[2.2]" />
+              <CheckCircle2 className="w-4 h-4 stroke-[2.2]" />
             </div>
             <div className="min-w-0 flex-1">
               <span className="text-[10px] font-black uppercase tracking-widest text-teal-300 block">Thư viện UTH</span>
@@ -59,9 +64,9 @@ export default function ActiveLoansPage({ onNavigateCatalog, onShowToast }) {
         </aside>
       )}
 
-      {/* HERO BANNER - NỀN UTH ACADEMIC TEAL ĐẶC TRƯNG CHO HỒ SƠ MƯỢN SÁCH & GIA HẠN */}
+      {/* HERO BANNER – NỀN UTH ACADEMIC TEAL ĐẶC TRƯNG */}
       <div className="relative rounded-3xl overflow-hidden shadow-xl border border-teal-800/40 bg-gradient-to-r from-[#00383b] via-[#004e53] to-[#00282b] text-white p-6 sm:p-8 lg:p-10">
-        {/* Họa tiết ánh sáng & hình học học thuật tinh tế */}
+        {/* Họa tiết ánh sáng */}
         <div className="absolute -top-20 -right-20 w-72 h-72 bg-teal-400/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 left-1/4 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
         <div
@@ -113,13 +118,25 @@ export default function ActiveLoansPage({ onNavigateCatalog, onShowToast }) {
         </div>
       </div>
 
-      {/* Nội dung bảng quản lý mượn & Hồ sơ tài liệu Desktop */}
-      <LoansTableViewPC
-        onOpenQrModal={(order) => setQrModalOrder(order)}
-        onShowToast={handleShowToast}
-      />
+      {/* ─── RESPONSIVE: Mobile/Tablet → Card List | Desktop → Table ─── */}
 
-      {/* Modal hiển thị mã QR tiếp nhận tại quầy (Pick & Go) */}
+      {/* Mobile & Tablet (< 1024px) → LoansCardListMobile (TV2) */}
+      <div className="block lg:hidden">
+        <LoansCardListMobile
+          onOpenQrModal={(order) => setQrModalOrder(order)}
+          onShowToast={handleShowToast}
+        />
+      </div>
+
+      {/* Desktop (≥ 1024px) → LoansTableViewPC (TV3) */}
+      <div className="hidden lg:block">
+        <LoansTableViewPC
+          onOpenQrModal={(order) => setQrModalOrder(order)}
+          onShowToast={handleShowToast}
+        />
+      </div>
+
+      {/* Modal QR tiếp nhận tại quầy (Pick & Go) – dùng chung cả 2 view */}
       <ReturnQrModal
         isOpen={Boolean(qrModalOrder)}
         onClose={() => setQrModalOrder(null)}

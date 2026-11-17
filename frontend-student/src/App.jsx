@@ -14,6 +14,7 @@ import BookListPage from './pages/BookListPage';
 import BookDetailPageMobile from './pages/BookDetailPage';
 import LoanHistoryPage from './pages/LoanHistoryPage';
 import LoansCardListMobile from './components/responsive/LoansCardListMobile';
+import CheckoutSchedulePage from './pages/CheckoutSchedulePage';
 import mockBooks from './mockPCBooks.json';
 import {
   Search,
@@ -74,6 +75,8 @@ function MobileApp() {
   const [toastMessage, setToastMessage] = useState('');
   const [mobileDetailBook, setMobileDetailBook] = useState(null);
   const [mobileQrOrder, setMobileQrOrder] = useState(null);
+  // null | 'pickup' | 'return'  → hiển thị CheckoutSchedulePage thay vì CartDrawer checkout
+  const [checkoutScheduleMode, setCheckoutScheduleMode] = useState(null);
 
   const showMobileToast = (msg) => {
     setToastMessage(msg);
@@ -115,6 +118,29 @@ function MobileApp() {
     setMobileQrOrder(newOrder);
     showMobileToast(`Đặt mượn thành công! Mã đơn: ${newOrder.code}`);
   };
+
+  // Mở CheckoutSchedulePage chế độ nhận sách (thay thế checkout trực tiếp từ CartDrawer)
+  const handleOpenCheckoutSchedule = () => {
+    setIsCartOpen(false);
+    setCheckoutScheduleMode('pickup');
+  };
+
+  if (checkoutScheduleMode) {
+    return (
+      <CheckoutSchedulePage
+        cartItems={cartItems}
+        mode={checkoutScheduleMode}
+        onBack={() => setCheckoutScheduleMode(null)}
+        onConfirm={(order) => {
+          setCartItems([]);
+          setMobileQrOrder(order);
+          setCheckoutScheduleMode(null);
+          setActiveTab('loans');
+        }}
+        onShowToast={showMobileToast}
+      />
+    );
+  }
 
   if (mobileDetailBook) {
     return (
