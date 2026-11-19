@@ -93,6 +93,12 @@ export default function MobileApp() {
         <BookDetailPageMobile
           book={mobileDetailBook}
           onBack={() => setMobileDetailBook(null)}
+          onGoHome={() => {
+            setMobileDetailBook(null);
+            setIsCartOpen(false);
+            setActiveTab('home');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
           onAddToCart={handleAddToCart}
           isInCart={cartItems.some((item) => item.id === mobileDetailBook.id)}
           onOpenCart={() => setIsCartOpen(true)}
@@ -143,7 +149,20 @@ export default function MobileApp() {
   return (
     <div className="min-h-screen bg-[#f4f8f7] flex flex-col justify-between text-slate-800">
       <header className="sticky top-0 z-30 bg-[#00666b] text-white px-4 sm:px-6 md:px-8 py-3 flex items-center justify-between shadow-md">
-        <div className="flex items-center gap-2.5">
+        {/* Vùng logo góc trái: bấm để quay về Trang chủ từ bất kỳ tab nào */}
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('home');
+            setIsMenuSheetOpen(false);
+            setIsDrawerOpen(false);
+            setIsCartOpen(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="flex items-center gap-2.5 text-left cursor-pointer rounded-xl -m-1 p-1 hover:bg-white/10 active:scale-95 transition-all"
+          aria-label="Về trang chủ"
+          title="Về trang chủ"
+        >
           <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-lg shadow-inner">
             <BookOpen className="w-4 h-4 text-white" />
           </div>
@@ -151,9 +170,9 @@ export default function MobileApp() {
             <h1 className="text-sm font-bold leading-tight flex items-center gap-1.5">
               Thư viện <span className="text-[10px] text-teal-200 px-1 py-0.2 bg-white/15 rounded">UTH</span>
             </h1>
-            <p className="text-[10px] text-teal-100/80">Cổng Sinh Viên (Mobile & Tablet)</p>
+            <p className="text-[10px] text-teal-100/80">Cổng Sinh Viên (Mobile &amp; Tablet)</p>
           </div>
-        </div>
+        </button>
 
         <div className="flex items-center gap-2">
           {/* VỊ TRÍ 3 TỪ PHẢI: Nút Menu ☰ – Mở thanh điều hướng */}

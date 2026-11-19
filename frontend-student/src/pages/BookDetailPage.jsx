@@ -36,6 +36,7 @@ import BookCard from '../components/common/BookCard';
 export default function BookDetailPage({
   book,
   onBack,
+  onGoHome,
   onAddToCart,
   isInCart = false,
   onOpenCart,
@@ -287,7 +288,15 @@ export default function BookDetailPage({
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <span className="text-xs font-bold text-white truncate">Chi tiết tài liệu UTH</span>
+          <button
+            type="button"
+            onClick={onGoHome || onBack}
+            className="text-xs font-bold text-white truncate cursor-pointer rounded-lg px-1.5 py-1 hover:bg-white/10 active:scale-95 transition-all"
+            title="Về trang chủ"
+            aria-label="Về trang chủ"
+          >
+            Chi tiết tài liệu UTH
+          </button>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
@@ -731,7 +740,7 @@ export default function BookDetailPage({
               <span>Tài liệu cùng chuyên ngành</span>
             </h3>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 [&_button+button]:hidden">
               {relatedBooks.map((relBook) => (
                 <BookCard
                   key={relBook.id}

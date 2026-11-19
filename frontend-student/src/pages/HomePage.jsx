@@ -501,7 +501,8 @@ export default function HomePage({
           )}
 
           {/* 3 cuốn sách mới đi kèm */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          {/* Mobile: 2 thẻ/hàng; ẩn nút "Xem chi tiết" (bấm bìa/tên sách để xem chi tiết) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 [&_button+button]:hidden">
             {otherNewBooks.map((book) => (
               <BookCard
                 key={book.id}
@@ -552,7 +553,8 @@ export default function HomePage({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+          {/* Mobile: 2 thẻ/hàng; ẩn nút "Xem chi tiết" (bấm bìa/tên sách để xem chi tiết) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 [&_button+button]:hidden">
             {recommendedBooks.map((book) => (
               <BookCard
                 key={book.id}
