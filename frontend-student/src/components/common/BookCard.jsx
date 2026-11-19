@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Eye, Check, MapPin, BookOpen, Star, Calendar, Layers, CheckCircle2 } from 'lucide-react';
+import { Plus, Eye, Check, MapPin, Star } from 'lucide-react';
 
 /**
  * Component BookCard - Thiết kế chuẩn Impeccable cho Desktop (TV3):
@@ -15,7 +15,7 @@ const BookCard = ({
     onViewDetail,
     isInCart = false,
     viewMode = 'grid',
-    badge
+    _badge
 }) => {
     if (!book) return null;
 
@@ -47,7 +47,7 @@ const BookCard = ({
                     {/* Bìa sách 3D thu nhỏ */}
                     <div
                         style={{ backgroundColor: book.coverTheme?.bg || '#00666B' }}
-                        className="w-16 h-22 rounded-r-md rounded-l-xs text-white p-1.5 flex flex-col justify-between shadow-md relative shrink-0 group-hover:scale-105 transition-transform overflow-hidden"
+                        className="w-16 h-[5.5rem] rounded-r-md rounded-l-xs text-white p-1.5 flex flex-col justify-between shadow-md relative shrink-0 group-hover:scale-105 transition-transform overflow-hidden"
                     >
                         <div className="absolute inset-y-0 left-0 w-1.5 bg-black/25 rounded-l-xs border-r border-white/20" />
                         <span className="text-[7px] font-bold text-center block pl-1 tracking-tight">UTH</span>
@@ -174,7 +174,7 @@ const BookCard = ({
                 {/* Khối sách vật lý 3D nổi bật */}
                 <div
                     style={{ backgroundColor: book.coverTheme?.bg || '#00666B' }}
-                    className="w-28 h-38 sm:w-32 sm:h-44 md:w-36 md:h-48 rounded-r-lg rounded-l-xs text-white p-2.5 sm:p-3 md:p-3.5 flex flex-col justify-between shadow-[0_16px_32px_-4px_rgba(0,0,0,0.42)] relative transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-1 z-1"
+                    className="w-28 h-[9.5rem] sm:w-32 sm:h-44 md:w-36 md:h-48 rounded-r-lg rounded-l-xs text-white p-2.5 sm:p-3 md:p-3.5 flex flex-col justify-between shadow-[0_16px_32px_-4px_rgba(0,0,0,0.42)] relative transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-1 z-1"
                 >
                     {/* Ánh sáng phản chiếu mặt bìa bóng */}
                     <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20 rounded-r-lg pointer-events-none" />
@@ -283,7 +283,7 @@ const BookCard = ({
                     <button
                         type="button"
                         onClick={handleDetail}
-                        className="w-full h-8.5 sm:h-9 px-3 bg-slate-50 hover:bg-teal-50 hover:text-[#00666B] hover:border-teal-300 border border-slate-200 text-xs font-bold text-slate-700 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs whitespace-nowrap select-none"
+                        className="w-full h-[2.125rem] sm:h-9 px-3 bg-slate-50 hover:bg-teal-50 hover:text-[#00666B] hover:border-teal-300 border border-slate-200 text-xs font-bold text-slate-700 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs whitespace-nowrap select-none"
                         title="Xem thông tin chi tiết cuốn sách"
                     >
                         <Eye className="w-3.5 h-3.5 shrink-0 text-slate-500 group-hover:text-[#00666B]" />
