@@ -458,7 +458,7 @@ export default function BookListPage({
           </button>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 [&_button+button]:hidden">
           {filteredBooks.map((book) => (
             <BookCard
               key={book.id}
