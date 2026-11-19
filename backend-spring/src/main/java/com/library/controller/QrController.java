@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /*
- * Cung cấp các điểm cuối API để sinh mã QR Base64 cho đơn mượn và phiếu trả sách.
+ * Cung cấp các API sinh mã QR dạng chuỗi Base64 cho đơn mượn và phiếu hẹn trả sách.
  */
 @RestController
 @RequestMapping("/api/qr")
@@ -33,7 +33,7 @@ public class QrController {
     }
 
     /*
-     * API mã hóa orderId và danh sách sách thành chuỗi QR Base64 cho đơn mượn qua GET.
+     * API sinh chuỗi Base64 mã QR cho đơn mượn sách qua phương thức GET.
      */
     @GetMapping("/borrow/base64")
     public ResponseEntity<Map<String, Object>> getBorrowQrBase64(
@@ -60,7 +60,7 @@ public class QrController {
     }
 
     /*
-     * API mã hóa orderId và danh sách sách thành chuỗi QR Base64 qua POST.
+     * API sinh chuỗi Base64 mã QR cho đơn mượn sách qua phương thức POST nhận JSON payload.
      */
     @PostMapping("/borrow/base64")
     public ResponseEntity<Map<String, Object>> createBorrowQrBase64(@RequestBody Map<String, Object> payload) {
@@ -90,60 +90,76 @@ public class QrController {
     }
 
     /*
-     * API mã hóa returnTicketId và danh sách sách thành chuỗi QR Base64 cho phiếu trả qua GET.
+     * API sinh chuỗi Base64 mã QR cho phiếu hẹn trả sách qua phương thức GET.
      */
-    @GetMapping("/return/base64")
-    public ResponseEntity<Map<String, Object>> getReturnQrBase64(
-            @RequestParam(required = false) String returnTicketId,
-            @RequestParam(required = false) Long orderId,
-            @RequestParam(required = false) String studentId,
+    @GetMapping("/return-ticket/base64")
+    public ResponseEntity<Map<String, Object>> getReturnTicketQrBase64(
+            @RequestParam String returnTicketId,
+            @RequestParam(required = false) String appointmentDate,
             @RequestParam(required = false) String books) {
 
         List<String> bookList = parseBooks(books);
-        String ticketId = returnTicketId != null && !returnTicketId.isBlank()
-                ? returnTicketId
-                : (orderId != null ? "ORDER-" + orderId : "RETURN-DEFAULT");
-
-        String base64 = qrService.generateReturnQrBase64(ticketId, bookList);
-        String dataUri = "data:image/png;base64," + base64;
-
-        return ResponseEntity.ok(Map.of(
-                "base64", base64,
-                "dataUri", dataUri,
-                "returnTicketId", ticketId,
-                "books", bookList,
-                "type", "RETURN"
-        ));
-    }
-
-    /*
-     * API mã hóa returnTicketId và danh sách sách thành chuỗi QR Base64 qua POST.
-     */
-    @PostMapping("/return/base64")
-    public ResponseEntity<Map<String, Object>> createReturnQrBase64(@RequestBody Map<String, Object> payload) {
-        String returnTicketId = payload.get("returnTicketId") != null ? payload.get("returnTicketId").toString() : null;
-        if (returnTicketId == null && payload.get("orderId") != null) {
-            returnTicketId = "ORDER-" + payload.get("orderId");
-        }
-        if (returnTicketId == null || returnTicketId.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "returnTicketId không được để trống"));
-        }
-
-        List<String> books = extractBooksList(payload.get("books"));
-        String base64 = qrService.generateReturnQrBase64(returnTicketId, books);
+        String base64 = qrService.generateReturnTicketQrBase64(returnTicketId, appointmentDate, bookList);
         String dataUri = "data:image/png;base64," + base64;
 
         return ResponseEntity.ok(Map.of(
                 "base64", base64,
                 "dataUri", dataUri,
                 "returnTicketId", returnTicketId,
-                "books", books,
-                "type", "RETURN"
+                "appointmentDate", appointmentDate != null ? appointmentDate : "",
+                "books", bookList,
+                "type", "RETURN_TICKET"
         ));
     }
 
     /*
-     * API tải trực tiếp ảnh mã QR dạng PNG cho đơn mượn sách.
+     * API sinh chuỗi Base64 mã QR cho phiếu hẹn trả sách qua phương thức POST nhận JSON payload.
+     */
+    @PostMapping("/return-ticket/base64")
+    public ResponseEntity<Map<String, Object>> createReturnTicketQrBase64(@RequestBody Map<String, Object> payload) {
+        String returnTicketId = payload.get("returnTicketId") != null ? payload.get("returnTicketId").toString() : null;
+        if (returnTicketId == null && payload.get("orderId") != null) {
+            returnTicketId = "TICKET-" + payload.get("orderId");
+        }
+        if (returnTicketId == null || returnTicketId.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "returnTicketId không được để trống"));
+        }
+
+        String appointmentDate = payload.get("appointmentDate") != null ? payload.get("appointmentDate").toString() : "";
+        List<String> books = extractBooksList(payload.get("books"));
+
+        String base64 = qrService.generateReturnTicketQrBase64(returnTicketId, appointmentDate, books);
+        String dataUri = "data:image/png;base64," + base64;
+
+        return ResponseEntity.ok(Map.of(
+                "base64", base64,
+                "dataUri", dataUri,
+                "returnTicketId", returnTicketId,
+                "appointmentDate", appointmentDate,
+                "books", books,
+                "type", "RETURN_TICKET"
+        ));
+    }
+
+    /*
+     * API sinh chuỗi Base64 mã QR cho đơn hoặc phiếu trả sách (tương thích đường dẫn cũ).
+     */
+    @GetMapping("/return/base64")
+    public ResponseEntity<Map<String, Object>> getReturnQrBase64(
+            @RequestParam(required = false) String returnTicketId,
+            @RequestParam(required = false) Long orderId,
+            @RequestParam(required = false) String appointmentDate,
+            @RequestParam(required = false) String books) {
+
+        String ticketId = returnTicketId != null && !returnTicketId.isBlank()
+                ? returnTicketId
+                : (orderId != null ? "PHT-" + orderId : "RETURN-DEFAULT");
+
+        return getReturnTicketQrBase64(ticketId, appointmentDate, books);
+    }
+
+    /*
+     * API tải file ảnh PNG mã QR cho đơn mượn sách.
      */
     @GetMapping("/borrow/image")
     public ResponseEntity<byte[]> getBorrowQrImage(
@@ -162,22 +178,40 @@ public class QrController {
     }
 
     /*
-     * API tải trực tiếp ảnh mã QR dạng PNG cho phiếu trả sách.
+     * API tải file ảnh PNG mã QR cho phiếu hẹn trả sách.
      */
-    @GetMapping("/return/image")
-    public ResponseEntity<byte[]> getReturnQrImage(
+    @GetMapping("/return-ticket/image")
+    public ResponseEntity<byte[]> getReturnTicketQrImage(
             @RequestParam String returnTicketId,
+            @RequestParam(required = false) String appointmentDate,
             @RequestParam(required = false) String books) {
 
         List<String> bookList = parseBooks(books);
-        byte[] image = qrService.generateReturnQrImage(returnTicketId, bookList);
+        byte[] image = qrService.generateReturnTicketQrImage(returnTicketId, appointmentDate, bookList);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.IMAGE_PNG);
         headers.setContentLength(image.length);
-        headers.setContentDispositionFormData("inline", "qr-return-" + returnTicketId + ".png");
+        headers.setContentDispositionFormData("inline", "qr-return-ticket-" + returnTicketId + ".png");
 
         return new ResponseEntity<>(image, headers, HttpStatus.OK);
+    }
+
+    /*
+     * API tải file ảnh PNG mã QR trả sách (đường dẫn tương thích cũ).
+     */
+    @GetMapping("/return/image")
+    public ResponseEntity<byte[]> getReturnQrImage(
+            @RequestParam(required = false) String returnTicketId,
+            @RequestParam(required = false) Long orderId,
+            @RequestParam(required = false) String appointmentDate,
+            @RequestParam(required = false) String books) {
+
+        String ticketId = returnTicketId != null && !returnTicketId.isBlank()
+                ? returnTicketId
+                : (orderId != null ? "PHT-" + orderId : "RETURN-DEFAULT");
+
+        return getReturnTicketQrImage(ticketId, appointmentDate, books);
     }
 
     /*
