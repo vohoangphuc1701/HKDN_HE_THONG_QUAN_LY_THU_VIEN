@@ -975,7 +975,13 @@ export default function DesktopApp() {
                   key={campus.id}
                   className="bg-white rounded-3xl border border-teal-200/90 overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group flex flex-col"
                 >
-                  <div className="relative h-64 sm:h-72 w-full overflow-hidden">
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${campus.lat},${campus.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative h-64 sm:h-72 w-full overflow-hidden block cursor-pointer"
+                    title={`Xem ${campus.name} trên Google Maps`}
+                  >
                     <img
                       src={campus.image}
                       alt={campus.name}
@@ -985,6 +991,12 @@ export default function DesktopApp() {
                     <div className="absolute top-4 left-4 bg-[#00666B] text-white text-xs font-bold px-3 py-1 rounded-xl shadow-md border border-white/20">
                       {campus.name}
                     </div>
+                    {/* Icon chỉ đường Google Maps */}
+                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-[#00666B] text-[10px] font-bold px-2.5 py-1.5 rounded-xl shadow-md border border-teal-200 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>Xem bản đồ</span>
+                      <ArrowUpRight className="w-3 h-3" />
+                    </div>
                     <div className="absolute bottom-4 left-4 right-4 text-white">
                       <h3 className="text-lg font-bold leading-snug drop-shadow-xs">{campus.name}</h3>
                       <p className="text-xs text-teal-100 flex items-center gap-1.5 mt-0.5 font-medium">
@@ -992,7 +1004,7 @@ export default function DesktopApp() {
                         <span className="truncate">{campus.address}</span>
                       </p>
                     </div>
-                  </div>
+                  </a>
                   <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4 bg-gradient-to-b from-white to-slate-50/70">
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div className="p-3 bg-teal-50/70 rounded-2xl border border-teal-100/90 space-y-1">
@@ -1031,6 +1043,8 @@ export default function DesktopApp() {
                 </div>
               ))}
             </div>
+
+
           </section>
 
           {/* MỤC 3: HỆ SINH THÁI DỊCH VỤ HỌC THUẬT UTH */}
