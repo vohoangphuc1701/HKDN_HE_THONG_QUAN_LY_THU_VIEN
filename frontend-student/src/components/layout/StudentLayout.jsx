@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import NavbarPC from './NavbarPC';
 import FooterPC from './FooterPC';
+import ChatBotWidget from '../common/ChatBotWidget';
 
 const StudentLayout = ({
   children,
@@ -11,6 +13,7 @@ const StudentLayout = ({
   searchQuery,
   setSearchQuery,
 }) => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-[#f0f5f3] flex flex-col font-sans selection:bg-[#e0eff0] selection:text-[#00666B] overflow-x-clip relative">
       {/* Background ambient lighting layers to eliminate sterile white emptiness */}
@@ -34,6 +37,18 @@ const StudentLayout = ({
 
       {/* Footer Hoàn chỉnh Thư viện UTH */}
       <FooterPC setActiveTab={setActiveTab} onOpenCart={onOpenCart} />
+
+      {/* Trợ lý ảo Chatbot AI (Giai đoạn 2 - Gemini AI) */}
+      <ChatBotWidget
+        onNavigateToBook={(bookId) => {
+          navigate(`/books/${bookId}`);
+          if (setActiveTab) setActiveTab('catalog');
+        }}
+        onNavigateToTab={(tab) => {
+          if (setActiveTab) setActiveTab(tab);
+          navigate(`/${tab === 'home' ? '' : tab}`);
+        }}
+      />
     </div>
   );
 };
