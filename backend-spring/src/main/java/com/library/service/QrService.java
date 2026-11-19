@@ -29,7 +29,8 @@ public class QrService {
      * Mã hóa orderId, mã sinh viên và danh sách sách thành chuỗi QR Base64 cho đơn mượn.
      */
     public String generateBorrowQrBase64(Long orderId, String studentId, List<String> books) {
-        log.info("Mã hóa QR đơn mượn: orderId={}, studentId={}, số lượng sách={}", orderId, studentId, books != null ? books.size() : 0);
+        log.info("Mã hóa QR đơn mượn: orderId={}, studentId={}, số lượng sách={}", orderId, studentId,
+                books != null ? books.size() : 0);
         String content = QrCodeUtil.buildBorrowContent(orderId, studentId, books, System.currentTimeMillis());
         return QrCodeUtil.generateQrBase64(content);
     }
@@ -44,19 +45,12 @@ public class QrService {
     }
 
     /*
-     * Mã hóa returnTicketId, ngày hẹn trả và danh sách sách thành chuỗi QR Base64 cho phiếu hẹn trả.
-     */
-    public String generateReturnTicketQrBase64(String returnTicketId, String appointmentDate, List<String> books) {
-        log.info("Mã hóa QR phiếu hẹn trả: ticketId={}, ngày hẹn={}, số sách={}", returnTicketId, appointmentDate, books != null ? books.size() : 0);
-        String content = QrCodeUtil.buildReturnTicketContent(returnTicketId, appointmentDate, books, System.currentTimeMillis());
-        return QrCodeUtil.generateQrBase64(content);
-    }
-
-    /*
-     * Mã hóa returnTicketId và danh sách sách thành chuỗi QR Base64 cho phiếu trả sách.
+     * Mã hóa returnTicketId và danh sách sách thành chuỗi QR Base64 cho phiếu trả
+     * sách.
      */
     public String generateReturnQrBase64(String returnTicketId, List<String> books) {
-        log.info("Mã hóa QR phiếu trả: returnTicketId={}, số lượng sách={}", returnTicketId, books != null ? books.size() : 0);
+        log.info("Mã hóa QR phiếu trả: returnTicketId={}, số lượng sách={}", returnTicketId,
+                books != null ? books.size() : 0);
         String content = QrCodeUtil.buildReturnContent(returnTicketId, books, System.currentTimeMillis());
         return QrCodeUtil.generateQrBase64(content);
     }

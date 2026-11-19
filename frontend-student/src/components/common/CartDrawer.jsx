@@ -9,11 +9,8 @@ import {
   AlertCircle,
   BookOpen,
   ArrowRight,
-  ShieldCheck,
   Zap,
-  Sparkles,
   ShoppingBag,
-  Info,
   Check,
 } from 'lucide-react';
 
@@ -28,6 +25,8 @@ export default function CartDrawer({
   cartItems = [],
   onRemoveItem,
   onCheckoutSuccess,
+  onOpenSchedulePage,
+  onOpenFullCheckout,
 }) {
   const [selectedCampus, setSelectedCampus] = useState('CS1');
   const [pickupDate, setPickupDate] = useState(() => {
@@ -491,6 +490,21 @@ export default function CartDrawer({
             </div>
 
             {/* Nút bấm Bolder hành động quyết định */}
+            {onOpenSchedulePage && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onClose) onClose();
+                  onOpenSchedulePage(cartItems);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl border border-teal-600/30 bg-teal-50/70 hover:bg-teal-100/70 text-[#00666B] font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <Calendar className="w-3.5 h-3.5 text-[#00666B]" />
+                <span>Mở trang chọn lịch hẹn Pick &amp; Go chi tiết</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+
             <button
               type="button"
               disabled={isSubmitting}
@@ -514,6 +528,22 @@ export default function CartDrawer({
                 </>
               )}
             </button>
+
+            {/* Tùy chọn chuyển sang trang toàn màn hình CheckoutSchedulePage (Desktop) */}
+            {onOpenFullCheckout && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenFullCheckout();
+                }}
+                className="w-full py-2.5 px-3 bg-teal-50 hover:bg-teal-100/80 text-[#00666B] text-xs font-bold rounded-xl border border-teal-200 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Mở trang đối soát &amp; lên lịch chi tiết (Desktop)</span>
+              </button>
+            )}
+
             <p className="text-[10px] text-center text-slate-500">
               Miễn phí mượn dành riêng cho sinh viên chính quy UTH · Quét QR tại quầy tiếp nhận
             </p>
