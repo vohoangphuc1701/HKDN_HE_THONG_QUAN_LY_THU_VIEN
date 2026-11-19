@@ -263,17 +263,37 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
     );
   };
 
+  // Mở QR nhận sách tại banner Pick & Go (toàn bộ các tài liệu thực tế trong đơn)
   const handleOpenPickupQr = () => {
     if (!onOpenQrModal) return;
+    const sampleOrderCode = loans[0]?.orderCode || 'PM-UTH-2026-089';
+    const sameOrderLoans = loans.filter((l) => l.orderCode === sampleOrderCode);
+    const orderBooks = sameOrderLoans.length > 0
+      ? sameOrderLoans.map((l) => ({ title: l.title, code: l.code }))
+      : loans.slice(0, 2).map((l) => ({ title: l.title, code: l.code }));
+
     onOpenQrModal({
-      code: 'DH-UTH-2026-089',
-      campus: 'Cơ sở 1 - Võ Oanh (Bình Thạnh)',
+      mode: 'pickup',
+      orderCode: sampleOrderCode,
+      code: sampleOrderCode,
+      campus: sameOrderLoans[0]?.campus || 'Cơ sở 1 (Số 2 Võ Oanh, P.25, Bình Thạnh)',
       pickupDate: 'Hôm nay (Giờ làm việc 07:30 - 20:30)',
-      books: [
-        { title: 'Nhập môn Trí tuệ nhân tạo & Học máy', code: 'CNTT-AI-005' },
-        { title: 'Khai phá dữ liệu lớn với Spark', code: 'CNTT-BD-006' },
-      ],
+      books: orderBooks,
       status: 'READY_FOR_PICKUP',
+    });
+  };
+
+  // Mở QR nhận sách cho từng cuốn cụ thể (1 chạm từ thẻ hoặc trong modal Chi tiết)
+  const handleOpenSinglePickupQr = (loan) => {
+    if (!onOpenQrModal) return;
+    onOpenQrModal({
+      mode: 'pickup',
+      orderCode: loan.orderCode,
+      code: loan.orderCode,
+      campus: loan.campus,
+      pickupDate: `Mượn: ${loan.borrowDate} · Hạn trả: ${loan.dueDate}`,
+      books: [{ title: loan.title, code: loan.code }],
+      qrCodeBase64: loan.qrCodeBase64 || null,
     });
   };
 
@@ -301,6 +321,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
 
     if (onOpenQrModal) {
       onOpenQrModal({
+        mode: 'return',
         code: returnTicketCode,
         campus: appointmentCampus,
         pickupDate: `Hẹn trả: ${appointmentDate} (${appointmentTimeSlot})`,
@@ -515,19 +536,25 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
                   isSelected ? 'border-[#00666b] ring-2 ring-[#00666b]/15' : badge.accentBorder
                 }`}
               >
-                {/* Header thẻ: Checkbox + Mã đơn + Badge trạng thái */}
+                {/* Header thẻ: Checkbox + Nút Mã đơn 1 chạm mở QR + Badge trạng thái */}
                 <div className="flex items-start justify-between gap-2">
-                  <label className="flex items-center gap-2 cursor-pointer min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => toggleSelectBook(loan.id)}
-                      className="w-4 h-4 rounded border-slate-300 text-[#00666b] focus:ring-[#00666b] shrink-0"
+                      className="w-4 h-4 rounded border-slate-300 text-[#00666b] focus:ring-[#00666b] shrink-0 cursor-pointer"
                     />
-                    <span className="text-[11px] font-mono font-bold text-[#00666b] truncate">
-                      {loan.orderCode}
-                    </span>
-                  </label>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenSinglePickupQr(loan)}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-[11px] font-mono font-bold text-[#00666b] border border-teal-200 transition-colors cursor-pointer group"
+                      title="Chạm để mở mã QR nhận sách nhanh"
+                    >
+                      <QrCode className="w-3 h-3 text-[#00666b] shrink-0 group-hover:scale-110 transition-transform" />
+                      <span className="truncate">{loan.orderCode}</span>
+                    </button>
+                  </div>
                   <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold shrink-0 ${badge.badgeClass}`}>
                     {badge.label}
                   </span>
@@ -589,33 +616,42 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
                   </div>
                 </div>
 
-                {/* Nút thao tác (đủ vùng chạm >= 40px) */}
-                <div className="grid grid-cols-2 gap-2 pt-0.5">
+                {/* 3 Nút thao tác tối ưu cảm ứng Mobile (chuẩn vùng chạm >= 40px) */}
+                <div className="grid grid-cols-3 gap-1.5 pt-0.5">
                   <button
                     type="button"
                     onClick={() => setSelectedDetailLoan(loan)}
-                    className="min-h-[40px] px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="min-h-[40px] px-2 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
                   >
-                    <Eye className="w-3.5 h-3.5" />
+                    <Eye className="w-3.5 h-3.5 shrink-0" />
                     <span>Chi tiết</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenSinglePickupQr(loan)}
+                    className="min-h-[40px] px-2 py-2 rounded-xl border border-[#00666b] bg-teal-50 hover:bg-teal-100 text-[#00666b] text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                    title="Mở mã QR nhận sách nhanh"
+                  >
+                    <QrCode className="w-3.5 h-3.5 shrink-0" />
+                    <span>Mã QR</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleRenew(loan.id)}
                     disabled={!canRenew}
-                    className={`min-h-[40px] px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors ${
+                    className={`min-h-[40px] px-2 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-colors ${
                       canRenew
                         ? 'bg-[#00666b] hover:bg-[#005458] text-white cursor-pointer'
                         : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                     }`}
                   >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>
+                    <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">
                       {loan.status === 'OVERDUE'
-                        ? 'Khóa gia hạn'
+                        ? 'Khóa'
                         : loan.renewCount >= 1
-                        ? 'Đã gia hạn'
-                        : 'Gia hạn +7d'}
+                        ? 'Đã hạn'
+                        : 'Gia hạn'}
                     </span>
                   </button>
                 </div>
@@ -715,13 +751,25 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
               )}
             </div>
 
-            <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center gap-2.5">
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center gap-2 flex-wrap sm:flex-nowrap">
               <button
                 type="button"
                 onClick={() => setSelectedDetailLoan(null)}
                 className="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-bold cursor-pointer"
               >
                 Đóng
+              </button>
+              {/* Nút QR nhận sách của từng cuốn cụ thể */}
+              <button
+                type="button"
+                onClick={() => {
+                  handleOpenSinglePickupQr(selectedDetailLoan);
+                  setSelectedDetailLoan(null);
+                }}
+                className="flex-1 py-2.5 rounded-xl border border-[#00666b] text-[#00666b] bg-teal-50 hover:bg-teal-100 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <QrCode className="w-3.5 h-3.5 shrink-0" />
+                <span>QR nhận sách</span>
               </button>
               <button
                 type="button"
