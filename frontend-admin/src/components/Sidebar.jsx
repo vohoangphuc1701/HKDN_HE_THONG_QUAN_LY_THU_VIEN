@@ -19,12 +19,10 @@ const navItems = [
   { to: '/audit-logs', label: 'Nhật ký', icon: FileClock },
 ]
 
-/**
- * Thanh điều hướng bên trái dành cho thủ thư / admin.
- * Hiển thị logo, menu chức năng và thông tin người dùng.
- *
- * @author TV6
- */
+/*
+  Thanh dieu huong ben trai danh cho thu thu va quan tri vien.
+  Hien thi logo, menu chuc nang va thong tin nguoi dung.
+*/
 export default function Sidebar({ isOpen, onClose }) {
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>

@@ -32,11 +32,11 @@ export default function App() {
           <Route path="audit-logs" element={<AuditLogPage />} />
           <Route
             path="scan-station"
-            element={<ScannerPlaceholder title="Trạm quét tại quầy" description="Khu vực này sẽ được tích hợp module quét QR của TV5." />}
+            element={<ScannerPlaceholder title="Trạm quét tại quầy" description="Khu vực trạm quét QR phục vụ nhận và hoàn trả sách tại quầy thư viện." />}
           />
           <Route
             path="scanner-remote"
-            element={<ScannerPlaceholder title="Máy quét từ xa" description="Route đã sẵn sàng để TV5 gắn giao diện quét trên điện thoại." />}
+            element={<ScannerPlaceholder title="Máy quét từ xa" description="Giao diện máy quét mã QR di động kết nối đồng bộ hệ thống." />}
           />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
