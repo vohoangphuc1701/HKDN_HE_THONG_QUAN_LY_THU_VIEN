@@ -1272,7 +1272,7 @@ export default function DesktopApp() {
         <aside
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-3 duration-200 select-none max-w-sm"
+          className="fixed top-20 right-6 z-50 animate-in fade-in slide-in-from-top-3 duration-200 select-none max-w-sm"
         >
           <div className="relative overflow-hidden rounded-2xl bg-slate-900/95 text-white p-3.5 pl-4 pr-4 shadow-2xl shadow-slate-950/40 border border-slate-700/80 backdrop-blur-md ring-1 ring-white/10 flex items-center gap-3">
             {/* Thanh vạch phát sáng đỉnh */}
