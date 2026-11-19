@@ -43,25 +43,22 @@ export default function CartDrawer({
     {
       id: 'CS1',
       code: 'CS1',
-      name: 'Cơ sở 1 (Trụ sở chính)',
+      name: 'Cơ sở 1',
       address: 'Số 2 Võ Oanh, P.25, Bình Thạnh',
-      badge: 'Quầy trung tâm',
       hours: '07:30 – 20:30',
     },
     {
       id: 'CS2',
       code: 'CS2',
-      name: 'Cơ sở 2 (Kỹ thuật)',
+      name: 'Cơ sở 2',
       address: 'Số 10 Đường 12, P. An Khánh, TP. Thủ Đức',
-      badge: 'Khuôn viên xanh',
       hours: '07:30 – 17:00',
     },
     {
       id: 'CS3',
       code: 'CS3',
-      name: 'Cơ sở 3 (CNTT & Kinh tế)',
+      name: 'Cơ sở 3',
       address: 'Số 70 Tô Ký, P. Trung Mỹ Tây, Quận 12',
-      badge: 'Phòng đọc số',
       hours: '07:30 – 17:00',
     },
   ];
@@ -352,14 +349,9 @@ export default function CartDrawer({
                           {campus.code}
                         </div>
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-xs font-bold text-slate-900 truncate">
-                              {campus.name}
-                            </h4>
-                            <span className="text-[9px] font-bold px-2 py-0.2 bg-teal-50 text-teal-800 rounded border border-teal-200/60 shrink-0">
-                              {campus.badge}
-                            </span>
-                          </div>
+                          <h4 className="text-xs font-bold text-slate-900 truncate">
+                            {campus.name}
+                          </h4>
                           <p className="text-[11px] text-slate-500 truncate mt-0.5">
                             {campus.address}
                           </p>

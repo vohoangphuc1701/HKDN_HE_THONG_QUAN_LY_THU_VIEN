@@ -87,6 +87,11 @@ export default function DesktopApp() {
     return () => clearInterval(timer);
   }, []);
 
+  // Tự động cuộn lên đầu trang khi chuyển trang hoặc đổi tab (tránh bị nhảy xuống đáy trang)
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname, activeTab]);
+
   // Quản lý Modal & Drawer & Trang Chi tiết sách
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedBookDetail, setSelectedBookDetail] = useState(null);
@@ -114,6 +119,7 @@ export default function DesktopApp() {
   // Đồng bộ tab và URL khi đổi tab
   const setActiveTab = (tab) => {
     setSelectedBookDetail(null);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     if (tab === 'home' && location.pathname !== '/') {
       navigate('/');
     } else if (tab === 'catalog' && (location.pathname !== '/books' || routeBookId)) {

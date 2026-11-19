@@ -242,7 +242,7 @@ export default function BookListPage({
   const handlePageChange = (page) => {
     if (page < 1 || page > totalPages || page === safeCurrentPage) return;
     setCurrentPage(page);
-    window.scrollTo({ top: 380, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Tạo mảng số trang hiển thị thông minh (có dấu ...)
