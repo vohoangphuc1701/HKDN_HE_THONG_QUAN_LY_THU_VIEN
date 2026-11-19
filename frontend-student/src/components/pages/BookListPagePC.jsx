@@ -20,6 +20,7 @@ import BookCard from '../common/BookCard';
 import FilterSidebarPC from '../responsive/FilterSidebarPC';
 import defaultMockBooks from '../../mockPCBooks.json';
 import bookApi from '../../services/bookApi';
+import { matchBookSmart, expandQueryWithAI } from '../../services/aiSearchService';
 
 /**
  * Component Skeleton Loader hiển thị khung xương khi tải dữ liệu từ API (Session 18 - TV3)
@@ -112,6 +113,43 @@ export default function BookListPage({
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'compact'
   const [sortBy, setSortBy] = useState('relevant');
 
+  // State hỗ trợ tìm kiếm thông minh AI (Gemini Semantic Expansion & Typo Hint)
+  const [aiSuggestion, setAiSuggestion] = useState(null);
+  const [isAiExpanding, setIsAiExpanding] = useState(false);
+
+  // Kích hoạt AI phân tích câu truy vấn tự nhiên hoặc sửa lỗi chính tả
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed || trimmed.length < 3) {
+      setAiSuggestion(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsAiExpanding(true);
+      try {
+        const res = await expandQueryWithAI(trimmed);
+        if (res && res.success) {
+          const isCorrected = res.correctedQuery.toLowerCase() !== trimmed.toLowerCase();
+          const hasExpansion = res.keywords && res.keywords.length > 1;
+          if (isCorrected || hasExpansion) {
+            setAiSuggestion(res);
+          } else {
+            setAiSuggestion(null);
+          }
+        } else {
+          setAiSuggestion(null);
+        }
+      } catch {
+        setAiSuggestion(null);
+      } finally {
+        setIsAiExpanding(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   // Phân trang Pagination (Desktop)
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12); // 8, 12, 16, 24 cuốn / trang
@@ -175,26 +213,36 @@ export default function BookListPage({
     ];
   }, [books]);
 
-  // Bộ lọc danh mục sách
+  // Bộ lọc danh mục sách kết hợp AI & Fuzzy Matching (Phương án 1)
   const filteredBooks = useMemo(() => {
+    const rawQuery = searchQuery.trim();
+
     return books
+      .map((book) => {
+        const smartMatch = matchBookSmart(book, rawQuery);
+        return {
+          ...book,
+          _searchScore: smartMatch.score,
+          _isMatched: smartMatch.matched,
+        };
+      })
       .filter((book) => {
         const matchCategory = selectedCategory === 'ALL' || book.category === selectedCategory;
         const matchType = selectedType === 'ALL' || book.type === selectedType;
         const matchAvailable = !onlyAvailable || (book.availableQuantity || 0) > 0;
         const matchCampus = selectedCampus === 'ALL' || book.campusCode === selectedCampus;
 
-        const query = searchQuery.trim().toLowerCase();
-        const matchQuery =
-          !query ||
-          book.title.toLowerCase().includes(query) ||
-          book.author.toLowerCase().includes(query) ||
-          (book.code && book.code.toLowerCase().includes(query)) ||
-          (book.publisher && book.publisher.toLowerCase().includes(query));
+        const matchQuery = !rawQuery || book._isMatched;
 
         return matchCategory && matchType && matchAvailable && matchCampus && matchQuery;
       })
       .sort((a, b) => {
+        // Nếu có tìm kiếm và ở chế độ Phù hợp nhất, xếp sách có điểm AI khớp cao lên đầu
+        if (rawQuery && sortBy === 'relevant') {
+          if (b._searchScore !== a._searchScore) {
+            return b._searchScore - a._searchScore;
+          }
+        }
         if (sortBy === 'newest') return (b.publishYear || 0) - (a.publishYear || 0);
         if (sortBy === 'available') return (b.availableQuantity || 0) - (a.availableQuantity || 0);
         if (sortBy === 'borrowCount') return (b.borrowCount || 0) - (a.borrowCount || 0);
@@ -461,6 +509,76 @@ export default function BookListPage({
             </div>
           )}
 
+          {/* AI Search Assistance Banner (Gợi ý chính tả & Mở rộng ngữ nghĩa tự nhiên) */}
+          {aiSuggestion && (
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-[#003336] via-[#00474b] to-[#002f32] text-white border border-teal-500/40 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start sm:items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-xs">
+                    <Sparkles className="w-4 h-4 fill-slate-950" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2 py-0.5 rounded-full border border-amber-400/30">
+                        ✨ AI Gợi ý tìm kiếm
+                      </span>
+                      {aiSuggestion.category && aiSuggestion.category !== 'ALL' && (
+                        <span className="text-[10px] font-bold text-teal-200 bg-white/10 px-2 py-0.5 rounded-full">
+                          Ngành: {aiSuggestion.category}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-teal-100 font-medium mt-1">
+                      {aiSuggestion.explanation || `Có phải bạn muốn tìm: "${aiSuggestion.correctedQuery}"?`}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {aiSuggestion.correctedQuery && aiSuggestion.correctedQuery.toLowerCase() !== searchQuery.toLowerCase() && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery(aiSuggestion.correctedQuery);
+                        if (aiSuggestion.category && aiSuggestion.category !== 'ALL') {
+                          setSelectedCategory(aiSuggestion.category);
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
+                    >
+                      Áp dụng "{aiSuggestion.correctedQuery}"
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setAiSuggestion(null)}
+                    className="p-1.5 text-teal-200 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                    title="Đóng gợi ý AI"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Các từ khóa mở rộng */}
+              {aiSuggestion.keywords && aiSuggestion.keywords.length > 1 && (
+                <div className="flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-white/10 flex-wrap text-xs">
+                  <span className="text-[11px] text-teal-300 font-semibold">Chủ đề mở rộng:</span>
+                  {aiSuggestion.keywords.map((kw, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setSearchQuery(kw)}
+                      className="px-2 py-0.5 bg-white/15 hover:bg-white/25 text-white rounded-lg text-[11px] font-medium transition-colors cursor-pointer border border-white/10"
+                    >
+                      {kw}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Thanh điều khiển catalog: Sắp xếp, Số lượng & View Mode */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
             <div className="flex items-center gap-2.5">
@@ -594,6 +712,28 @@ export default function BookListPage({
                   Không có giáo trình nào khớp với từ khóa "{searchQuery}" hoặc tiêu chí lọc hiện tại. Bạn có thể xóa bộ lọc hoặc tìm bằng từ khóa khác.
                 </p>
               </div>
+
+              {aiSuggestion?.correctedQuery && aiSuggestion.correctedQuery.toLowerCase() !== searchQuery.toLowerCase() && (
+                <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 max-w-md mx-auto text-xs text-amber-900 space-y-2">
+                  <p className="font-semibold flex items-center justify-center gap-1.5 text-amber-950">
+                    <Sparkles className="w-4 h-4 text-amber-600" />
+                    <span>Gợi ý từ AI: Có phải bạn muốn tìm "{aiSuggestion.correctedQuery}"?</span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery(aiSuggestion.correctedQuery);
+                      if (aiSuggestion.category && aiSuggestion.category !== 'ALL') {
+                        setSelectedCategory(aiSuggestion.category);
+                      }
+                    }}
+                    className="px-4 py-2 bg-[#00666B] hover:bg-[#005458] text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs active:scale-95"
+                  >
+                    Tìm theo từ khóa "{aiSuggestion.correctedQuery}"
+                  </button>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={handleResetFilters}
