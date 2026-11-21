@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   History,
   Search,
@@ -618,12 +619,18 @@ export default function LoanHistoryTableViewPC({ onBorrowAgain, onShowToast }) {
         )}
       </section>
 
-      {/* 4. MODAL BIÊN LAI ĐỐI SOÁT ĐIỆN TỬ (RECEIPT MODAL) */}
-      {selectedReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs select-none animate-in fade-in duration-150">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200">
+      {/* 4. MODAL BIÊN LAI ĐỐI SOÁT ĐIỆN TỬ (RECEIPT MODAL) - Portal phủ 100% viewport */}
+      {selectedReceipt && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm select-none animate-in fade-in duration-150">
+          {/* Lớp nền click outside để đóng */}
+          <div
+            className="fixed inset-0"
+            onClick={() => setSelectedReceipt(null)}
+          />
+
+          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200 z-10 flex flex-col max-h-[92vh]">
             {/* Header Biên lai */}
-            <div className="bg-[#00666B] text-white p-5 flex items-center justify-between">
+            <div className="bg-[#00666B] text-white p-5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
                   <Receipt className="w-5 h-5 text-teal-200" />
@@ -643,8 +650,8 @@ export default function LoanHistoryTableViewPC({ onBorrowAgain, onShowToast }) {
               </button>
             </div>
 
-            {/* Nội dung Biên lai mô phỏng hóa đơn đối soát thực tế */}
-            <div className="p-6 space-y-5 text-xs text-slate-700 bg-white">
+            {/* Nội dung Biên lai mô phỏng hóa đơn đối soát thực tế - cuộn mượt khi màn hình nhỏ */}
+            <div className="p-6 space-y-5 text-xs text-slate-700 bg-white overflow-y-auto flex-1">
               {/* Thẻ mã biên lai & thời gian */}
               <div className="flex items-center justify-between pb-3 border-b border-dashed border-slate-200">
                 <div>
@@ -743,7 +750,8 @@ export default function LoanHistoryTableViewPC({ onBorrowAgain, onShowToast }) {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -230,6 +230,29 @@ const INTENT_RULES = [
  *   isAiGenerated: boolean
  * }>}
  */
+// Bộ nhớ đệm In-Memory Cache (LRU tối đa 100 truy vấn) giúp phản hồi tức thì 0ms
+// và tiết kiệm hạn mức gọi Google Gemini API
+const aiSearchCache = new Map();
+const MAX_CACHE_SIZE = 100;
+
+function getCachedResult(key) {
+  if (aiSearchCache.has(key)) {
+    const val = aiSearchCache.get(key);
+    aiSearchCache.delete(key);
+    aiSearchCache.set(key, val);
+    return val;
+  }
+  return null;
+}
+
+function setCachedResult(key, val) {
+  if (aiSearchCache.size >= MAX_CACHE_SIZE) {
+    const oldestKey = aiSearchCache.keys().next().value;
+    aiSearchCache.delete(oldestKey);
+  }
+  aiSearchCache.set(key, val);
+}
+
 export async function expandQueryWithAI(userQuery) {
   const query = userQuery?.trim();
   if (!query) {
@@ -242,6 +265,13 @@ export async function expandQueryWithAI(userQuery) {
       explanation: '',
       isAiGenerated: false,
     };
+  }
+
+  // 0. Kiểm tra bộ nhớ đệm Cache
+  const cacheKey = query.toLowerCase();
+  const cached = getCachedResult(cacheKey);
+  if (cached) {
+    return cached;
   }
 
   // 1. Thử gọi Google Gemini API nếu có API key
@@ -285,7 +315,7 @@ Hãy phân tích và trả về DUY NHẤT một chuỗi JSON hợp lệ (không
         const cleanedJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
         const parsed = JSON.parse(cleanedJson);
 
-        return {
+        const aiResult = {
           success: true,
           originalQuery: query,
           correctedQuery: parsed.correctedQuery || query,
@@ -294,6 +324,9 @@ Hãy phân tích và trả về DUY NHẤT một chuỗi JSON hợp lệ (không
           explanation: parsed.explanation || `AI đã tối ưu tìm kiếm cho: "${parsed.correctedQuery || query}"`,
           isAiGenerated: true,
         };
+
+        setCachedResult(cacheKey, aiResult);
+        return aiResult;
       }
     } catch (err) {
       console.warn('[aiSearchService.expandQueryWithAI] Fallback về bộ quy tắc nội bộ:', err.message);
@@ -303,7 +336,7 @@ Hãy phân tích và trả về DUY NHẤT một chuỗi JSON hợp lệ (không
   // 2. Fallback: Dùng bộ quy tắc nội bộ (Rule-based Intent)
   for (const rule of INTENT_RULES) {
     if (rule.pattern.test(query)) {
-      return {
+      const fallbackResult = {
         success: true,
         originalQuery: query,
         correctedQuery: rule.correctedQuery,
@@ -312,11 +345,13 @@ Hãy phân tích và trả về DUY NHẤT một chuỗi JSON hợp lệ (không
         explanation: rule.explanation,
         isAiGenerated: false,
       };
+      setCachedResult(cacheKey, fallbackResult);
+      return fallbackResult;
     }
   }
 
   // Mặc định nếu không trùng quy tắc nào đặc biệt
-  return {
+  const defaultResult = {
     success: false,
     originalQuery: query,
     correctedQuery: query,
@@ -325,6 +360,8 @@ Hãy phân tích và trả về DUY NHẤT một chuỗi JSON hợp lệ (không
     explanation: `Tìm kiếm theo từ khóa "${query}"`,
     isAiGenerated: false,
   };
+  setCachedResult(cacheKey, defaultResult);
+  return defaultResult;
 }
 
 export default {
