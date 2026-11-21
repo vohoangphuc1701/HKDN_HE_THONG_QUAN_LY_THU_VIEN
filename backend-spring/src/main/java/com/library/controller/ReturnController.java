@@ -65,7 +65,7 @@ public class ReturnController {
      * Thủ thư tra cứu phiếu hẹn trả theo mã phiếu (ticketCode) khi quét QR tại quầy
      */
     @GetMapping("/code/{ticketCode}")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<ReturnTicket>> getReturnTicketByCode(@PathVariable String ticketCode) {
         ReturnTicket ticket = returnService.getReturnTicketByCode(ticketCode);
         return ResponseEntity.ok(ApiResponse.success("Thông tin phiếu hẹn trả", ticket));
@@ -75,7 +75,7 @@ public class ReturnController {
      * Thủ thư xem danh sách toàn bộ phiếu hẹn trả (có phân trang và lọc trạng thái)
      */
     @GetMapping
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<Page<ReturnTicket>>> getAllReturnTickets(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) ReturnTicketStatus status,
@@ -90,7 +90,7 @@ public class ReturnController {
      * Thủ thư đối soát tình trạng sách vật lý, hoàn tất nhận trả sách tại quầy & cập nhật tồn kho
      */
     @PostMapping("/{ticketId}/complete")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> completeReturnTicket(
             @PathVariable Long ticketId,
             @RequestBody(required = false) CompleteReturnRequest request

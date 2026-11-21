@@ -78,7 +78,7 @@ public class BookController {
      * Thêm mới 1 đầu sách vào kho (Dành cho Thủ thư - LIBRARIAN)
      */
     @PostMapping
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<Book>> createBook(@Valid @RequestBody Book bookRequest) {
         Book savedBook = bookService.createBook(bookRequest);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -89,7 +89,7 @@ public class BookController {
      * Cập nhật thông tin sách, vị trí kệ và số lượng tồn kho (Dành cho Thủ thư - LIBRARIAN)
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<Book>> updateBook(
             @PathVariable Long id,
             @Valid @RequestBody Book bookRequest
@@ -102,7 +102,7 @@ public class BookController {
      * Xóa đầu sách khỏi danh mục (Dành cho Thủ thư - LIBRARIAN)
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
         return ResponseEntity.ok(ApiResponse.success("Đã xóa sách khỏi kho thành công", null));
