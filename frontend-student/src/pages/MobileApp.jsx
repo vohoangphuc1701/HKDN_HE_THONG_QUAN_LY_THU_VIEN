@@ -25,6 +25,7 @@ import LoansCardListMobile from '../components/responsive/LoansCardListMobile';
 import LoanHistoryPage from './LoanHistoryPage';
 import CartDrawer from '../components/common/CartDrawer';
 import ReturnQrModal from '../components/common/ReturnQrModal';
+import ChatBotWidget from '../components/common/ChatBotWidget';
 import CheckoutSchedulePage from './CheckoutSchedulePage';
 import mockBooks from '../mockPCBooks.json';
 export default function MobileApp() {
@@ -662,6 +663,18 @@ export default function MobileApp() {
         isOpen={Boolean(mobileQrOrder)}
         onClose={() => setMobileQrOrder(null)}
         order={mobileQrOrder}
+      />
+
+      {/* Trợ lý ảo Chatbot AI trên Mobile – Full-screen khi mở, kéo thả khi đóng */}
+      <ChatBotWidget
+        onNavigateToBook={(bookId) => {
+          const book = mockBooks.find((b) => b.id === bookId);
+          if (book) setMobileDetailBook(book);
+        }}
+        onNavigateToTab={(tab) => {
+          setActiveTab(tab === 'catalog' ? 'search' : tab === 'home' ? 'home' : tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
       />
 
       {/* Toast thông báo */}
