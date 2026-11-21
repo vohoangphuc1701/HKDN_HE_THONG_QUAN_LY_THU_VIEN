@@ -454,14 +454,17 @@ export default function FineTrackingPage() {
                             <Banknote size={13} /> Thu phạt
                           </button>
                         ) : (
-                          <button
-                            type="button"
-                            className="icon-button"
-                            title="Xem biên nhận"
-                            onClick={() => setSelectedReceipt(fine)}
-                          >
-                            <Eye size={15} />
-                          </button>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+                            <button
+                              type="button"
+                              className="button button--secondary"
+                              style={{ padding: '5px 8px', fontSize: '11px' }}
+                              title="Xem và in biên lai thu phạt"
+                              onClick={() => setSelectedReceipt(fine)}
+                            >
+                              <Printer size={13} /> In biên lai
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -708,9 +711,14 @@ export default function FineTrackingPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <CheckCircle2 size={20} color="#16a34a" />
-                <h3 style={{ margin: 0, fontSize: '16px', color: '#172033' }}>
-                  Biên nhận thu phạt #{selectedReceipt.fineCode}
-                </h3>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', color: '#172033' }}>
+                    Biên nhận thu phạt #{selectedReceipt.fineCode}
+                  </h3>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                    Thư viện ĐH Giao thông Vận tải TP.HCM (UTH)
+                  </span>
+                </div>
               </div>
               <button
                 type="button"
@@ -721,30 +729,42 @@ export default function FineTrackingPage() {
               </button>
             </div>
 
-            <div style={{ fontSize: '12px', background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ color: '#64748b' }}>Người nộp:</span>
-                <strong>{selectedReceipt.studentName}</strong>
+            <div style={{ fontSize: '12px', background: '#f8fafc', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Người nộp phạt:</span>
+                <strong style={{ color: '#0f172a' }}>{selectedReceipt.studentName}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ color: '#64748b' }}>MSSV:</span>
-                <strong>{selectedReceipt.studentId}</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Mã số sinh viên (MSSV):</span>
+                <strong style={{ color: '#0f172a' }}>{selectedReceipt.studentId}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ color: '#64748b' }}>Tài liệu trễ hạn:</span>
-                <span>{selectedReceipt.bookTitle}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Tài liệu liên quan:</span>
+                <span style={{ color: '#1e293b', fontWeight: 500 }}>{selectedReceipt.bookTitle}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ color: '#64748b' }}>Ngày thu:</span>
-                <span>{selectedReceipt.paymentDate || selectedReceipt.createdAt}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Phí trễ hạn ({selectedReceipt.overdueDays || 0} ngày):</span>
+                <span style={{ color: '#0f172a' }}>{Number(selectedReceipt.lateFee || 0).toLocaleString('vi-VN')} đ</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ color: '#64748b' }}>Hình thức:</span>
-                <span>{selectedReceipt.paymentMethod === 'TRANSFER' ? 'Chuyển khoản' : 'Tiền mặt'}</span>
+              {selectedReceipt.damageFee > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#ea580c' }}>
+                  <span>Phí hư hại tài liệu:</span>
+                  <strong>{Number(selectedReceipt.damageFee).toLocaleString('vi-VN')} đ</strong>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Ngày ghi nhận thu:</span>
+                <span style={{ color: '#0f172a' }}>{selectedReceipt.paymentDate || selectedReceipt.createdAt}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #cbd5e1' }}>
-                <span style={{ fontWeight: 700 }}>Tổng tiền:</span>
-                <strong style={{ color: '#16a34a', fontSize: '15px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Phương thức:</span>
+                <span style={{ color: '#0f172a', fontWeight: 500 }}>
+                  {selectedReceipt.paymentMethod === 'TRANSFER' ? 'Chuyển khoản VietQR' : 'Tiền mặt tại quầy'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1' }}>
+                <span style={{ fontWeight: 700, color: '#172033', fontSize: '13px' }}>Tổng số tiền đã thu:</span>
+                <strong style={{ color: '#16a34a', fontSize: '16px' }}>
                   {Number(selectedReceipt.totalAmount).toLocaleString('vi-VN')} đ
                 </strong>
               </div>
@@ -757,6 +777,13 @@ export default function FineTrackingPage() {
                 onClick={() => setSelectedReceipt(null)}
               >
                 Đóng
+              </button>
+              <button
+                type="button"
+                className="button button--primary"
+                onClick={() => window.print()}
+              >
+                <Printer size={14} /> In biên lai
               </button>
             </div>
           </div>

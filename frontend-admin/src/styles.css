@@ -173,3 +173,9 @@ td strong { color: #263246; font-weight: 600; }
   .topbar__title h1 { font-size: 17px; }
   .topbar__title p { display: none; }
 }
+
+@keyframes scanLaser {
+  0% { top: 8px; opacity: 0.3; }
+  50% { top: calc(100% - 10px); opacity: 1; }
+  100% { top: 8px; opacity: 0.3; }
+}

@@ -8,6 +8,7 @@ const InventoryManagementPage = lazy(() => import('./pages/InventoryManagementPa
 const OrderWorkflowPage = lazy(() => import('./pages/OrderWorkflowPage'))
 const FineTrackingPage = lazy(() => import('./pages/FineTrackingPage'))
 const AuditLogPage = lazy(() => import('./pages/AuditLogPage'))
+const ScanStationPage = lazy(() => import('./pages/ScanStationPage'))
 
 function ScannerPlaceholder({ title, description }) {
   return (
@@ -30,10 +31,7 @@ export default function App() {
           <Route path="orders" element={<OrderWorkflowPage />} />
           <Route path="fines" element={<FineTrackingPage />} />
           <Route path="audit-logs" element={<AuditLogPage />} />
-          <Route
-            path="scan-station"
-            element={<ScannerPlaceholder title="Trạm quét tại quầy" description="Khu vực trạm quét QR phục vụ nhận và hoàn trả sách tại quầy thư viện." />}
-          />
+          <Route path="scan-station" element={<ScanStationPage />} />
           <Route
             path="scanner-remote"
             element={<ScannerPlaceholder title="Máy quét từ xa" description="Giao diện máy quét mã QR di động kết nối đồng bộ hệ thống." />}
