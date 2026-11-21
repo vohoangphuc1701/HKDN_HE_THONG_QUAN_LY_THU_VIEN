@@ -621,7 +621,7 @@ export default function HomePage({
       {toastMessage && (
         <aside
           role="status"
-          className="fixed bottom-6 left-4 right-4 z-50 max-w-sm mx-auto bg-slate-900/95 text-white p-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-2.5 text-xs font-bold"
+          className="fixed top-20 right-6 z-50 max-w-sm bg-slate-900/95 text-white p-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-top-3 select-none"
         >
           <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
             <Check className="w-3.5 h-3.5 stroke-[2.5]" />

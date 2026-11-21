@@ -87,6 +87,11 @@ export default function DesktopApp() {
     return () => clearInterval(timer);
   }, []);
 
+  // Tự động cuộn lên đầu trang khi chuyển trang hoặc đổi tab (tránh bị nhảy xuống đáy trang)
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname, activeTab]);
+
   // Quản lý Modal & Drawer & Trang Chi tiết sách
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedBookDetail, setSelectedBookDetail] = useState(null);
@@ -114,6 +119,7 @@ export default function DesktopApp() {
   // Đồng bộ tab và URL khi đổi tab
   const setActiveTab = (tab) => {
     setSelectedBookDetail(null);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     if (tab === 'home' && location.pathname !== '/') {
       navigate('/');
     } else if (tab === 'catalog' && (location.pathname !== '/books' || routeBookId)) {
@@ -1266,7 +1272,7 @@ export default function DesktopApp() {
         <aside
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-3 duration-200 select-none max-w-sm"
+          className="fixed top-20 right-6 z-50 animate-in fade-in slide-in-from-top-3 duration-200 select-none max-w-sm"
         >
           <div className="relative overflow-hidden rounded-2xl bg-slate-900/95 text-white p-3.5 pl-4 pr-4 shadow-2xl shadow-slate-950/40 border border-slate-700/80 backdrop-blur-md ring-1 ring-white/10 flex items-center gap-3">
             {/* Thanh vạch phát sáng đỉnh */}
