@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { QrCode } from 'lucide-react'
 import AdminLayout from './components/AdminLayout'
 
 const DashboardOverviewPage = lazy(() => import('./pages/DashboardOverviewPage'))
@@ -8,21 +7,22 @@ const InventoryManagementPage = lazy(() => import('./pages/InventoryManagementPa
 const OrderWorkflowPage = lazy(() => import('./pages/OrderWorkflowPage'))
 const FineTrackingPage = lazy(() => import('./pages/FineTrackingPage'))
 const AuditLogPage = lazy(() => import('./pages/AuditLogPage'))
+const ScanStationPage = lazy(() => import('./pages/ScanStationPage'))
+const RemoteScannerPage = lazy(() => import('./pages/RemoteScannerPage'))
 
-function ScannerPlaceholder({ title, description }) {
-  return (
-    <section className="empty-state" aria-labelledby="scanner-title">
-      <span className="empty-state__icon"><QrCode size={28} /></span>
-      <h2 id="scanner-title">{title}</h2>
-      <p>{description}</p>
-    </section>
-  )
-}
-
+/*
+  Dinh tuyen chinh cua he thong quan ly thu vien admin.
+  Bao gom cac trang quan ly kho, luong don, nhat ky, tien phat,
+  tram quet tai quay va giao dien tay quet khong day tren trinh duyet di dong.
+*/
 export default function App() {
   return (
     <Suspense fallback={<div className="route-loading">Đang tải dữ liệu...</div>}>
       <Routes>
+        {/* Giao dien doc lap danh cho trinh duyet dien thoai di dong */}
+        <Route path="scanner-remote" element={<RemoteScannerPage />} />
+
+        {/* Khung bo cuc quan tri Admin Layout cho thu thu tren may tinh */}
         <Route element={<AdminLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardOverviewPage />} />
@@ -30,14 +30,7 @@ export default function App() {
           <Route path="orders" element={<OrderWorkflowPage />} />
           <Route path="fines" element={<FineTrackingPage />} />
           <Route path="audit-logs" element={<AuditLogPage />} />
-          <Route
-            path="scan-station"
-            element={<ScannerPlaceholder title="Trạm quét tại quầy" description="Khu vực này sẽ được tích hợp module quét QR của TV5." />}
-          />
-          <Route
-            path="scanner-remote"
-            element={<ScannerPlaceholder title="Máy quét từ xa" description="Route đã sẵn sàng để TV5 gắn giao diện quét trên điện thoại." />}
-          />
+          <Route path="scan-station" element={<ScanStationPage />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>

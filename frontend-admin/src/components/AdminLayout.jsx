@@ -16,12 +16,10 @@ const pageTitles = {
   '/audit-logs': 'Nhật ký hoạt động',
 }
 
-/**
- * Khung bố cục chính cho trang Admin / Thủ thư.
- * Bao gồm Sidebar bên trái, thanh topbar và vùng nội dung chính.
- *
- * @author TV6
- */
+/*
+  Khung bo cuc chinh cho trang Admin va Thu thu.
+  Bao gom Sidebar ben trai, thanh topbar va vung noi dung chinh.
+*/
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
