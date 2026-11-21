@@ -51,7 +51,7 @@ public class OperationController {
      * Chuyển đơn sang BORROWED, ghi nhận actualPickupDate = NOW(), thiết lập hạn trả dueDate = NOW() + 14 ngày
      */
     @PostMapping("/handover")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @Transactional
     public ResponseEntity<ApiResponse<Map<String, Object>>> handoverBorrowOrder(
             @RequestParam String orderCode
@@ -106,7 +106,7 @@ public class OperationController {
      * và đẩy thông tin thời gian thực lên màn hình máy tính của Thủ thư qua WebSocket
      */
     @GetMapping("/scan-lookup")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> scanLookup(@RequestParam String code) {
         String trimmedCode = code.trim();
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -138,7 +138,7 @@ public class OperationController {
      * Danh sách biên lai phạt cho Thủ thư (hỗ trợ tìm kiếm và lọc UNPAID / PAID)
      */
     @GetMapping("/fines")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<Page<Fine>>> getAllFines(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) FineStatus status,
@@ -154,7 +154,7 @@ public class OperationController {
      * Sinh viên tra cứu biên lai tiền phạt của chính mình
      */
     @GetMapping("/fines/my-fines")
-    @PreAuthorize("hasAnyRole('STUDENT', 'LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('STUDENT', 'LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<Fine>>> getMyFines(@AuthenticationPrincipal User currentUser) {
         List<Fine> myFines = fineRepository.findByUserIdOrderByCreatedAtDesc(currentUser.getId());
         return ResponseEntity.ok(ApiResponse.success("Lịch sử biên lai phạt của bạn", myFines));
@@ -164,7 +164,7 @@ public class OperationController {
      * Thủ thư xác nhận thu tiền phạt tại quầy (CASH hoặc TRANSFER) -> mở khóa quyền mượn sách cho sinh viên
      */
     @PostMapping("/fines/{fineId}/pay")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     @Transactional
     public ResponseEntity<ApiResponse<Fine>> payFine(
             @PathVariable Long fineId,
@@ -189,7 +189,7 @@ public class OperationController {
      * Số liệu tổng hợp Dashboard cho Thủ thư / Quản trị viên
      */
     @GetMapping("/dashboard")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboardOverview() {
         Map<String, Object> stats = new LinkedHashMap<>();
 
