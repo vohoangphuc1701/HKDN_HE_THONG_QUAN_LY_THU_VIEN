@@ -52,6 +52,8 @@ import BookListPage from './BookListPage';
 import CheckoutSchedulePage from './CheckoutSchedulePage';
 import mockBooks from '../mockPCBooks.json';
 import campusesData from '../data/campusesData';
+import CampusExplorerSection from '../components/pages/sections/CampusExplorerSection';
+import AcademicServicesSection from '../components/pages/sections/AcademicServicesSection';
 export default function DesktopApp() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -133,11 +135,31 @@ export default function DesktopApp() {
     }
   };
 
-  // Giỏ mượn sách khởi tạo mẫu
-  const [cartItems, setCartItems] = useState([
-    mockBooks[0], // Python
-    mockBooks[1], // Kinh tế vi mô
-  ]);
+  // Giỏ mượn sách khởi tạo: Tự động khôi phục từ localStorage để không bị mất khi F5
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem('uth_library_cart_tv3');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Lỗi đọc giỏ hàng từ localStorage:', e);
+    }
+    return [
+      mockBooks[0], // Python
+      mockBooks[1], // Kinh tế vi mô
+    ];
+  });
+
+  // Tự động đồng bộ giỏ mượn vào localStorage khi có thay đổi
+  useEffect(() => {
+    try {
+      localStorage.setItem('uth_library_cart_tv3', JSON.stringify(cartItems));
+    } catch (e) {
+      console.warn('Lỗi ghi giỏ hàng vào localStorage:', e);
+    }
+  }, [cartItems]);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -951,205 +973,25 @@ export default function DesktopApp() {
             </div>
           </section>
 
-          {/* MỤC: HỆ THỐNG THƯ VIỆN 3 CƠ SỞ UTH - Có nền thiết kế đồng bộ nhận diện UTH */}
-          <section
-            className="bg-gradient-to-b from-[#eaf5f2] via-[#f0f8f5] to-[#e6f3ee] rounded-3xl p-6 sm:p-8 lg:p-10 border border-[#b8dfd5] shadow-xs relative overflow-hidden space-y-6"
-            aria-labelledby="heading-campuses"
-          >
-            {/* Họa tiết quầng sáng trang trí nền */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-teal-300/15 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-300/15 rounded-full blur-3xl pointer-events-none" />
+          {/* MỤC: HỆ THỐNG THƯ VIỆN 3 CƠ SỞ UTH */}
+          <CampusExplorerSection
+            onSelectCampusCatalog={(campusCode) => {
+              setActiveTab('catalog');
+            }}
+          />
 
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-3 border-b border-[#cce8df] relative z-1">
-              <div>
-                <h2 id="heading-campuses" className="text-2xl sm:text-3xl font-black text-slate-900 font-heading tracking-tight">
-                  Hệ thống Thư viện 3 Cơ sở UTH
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-700 font-medium mt-0.5">
-                  Không gian học tập, phòng đọc hiện đại và quầy nhận sách Pick & Go tại các cơ sở đào tạo của trường.
-                </p>
-              </div>
-              <div className="inline-flex items-center gap-2 bg-white/95 border border-teal-200 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-800 shadow-2xs">
-                <MapPin className="w-3.5 h-3.5 text-[#00666B]" />
-                <span>3 Cơ sở liên thông dữ liệu sách</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-1">
-              {campusesData.map((campus) => (
-                <div
-                  key={campus.id}
-                  className="bg-white rounded-3xl border border-teal-200/90 overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group flex flex-col"
-                >
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${campus.lat},${campus.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="relative h-64 sm:h-72 w-full overflow-hidden block cursor-pointer"
-                    title={`Xem ${campus.name} trên Google Maps`}
-                  >
-                    <img
-                      src={campus.image}
-                      alt={campus.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-black/25 to-transparent pointer-events-none" />
-                    <div className="absolute top-4 left-4 bg-[#00666B] text-white text-xs font-bold px-3 py-1 rounded-xl shadow-md border border-white/20">
-                      {campus.name}
-                    </div>
-                    {/* Icon chỉ đường Google Maps */}
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-[#00666B] text-[10px] font-bold px-2.5 py-1.5 rounded-xl shadow-md border border-teal-200 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>Xem bản đồ</span>
-                      <ArrowUpRight className="w-3 h-3" />
-                    </div>
-                    <div className="absolute bottom-4 left-4 right-4 text-white">
-                      <h3 className="text-lg font-bold leading-snug drop-shadow-xs">{campus.name}</h3>
-                      <p className="text-xs text-teal-100 flex items-center gap-1.5 mt-0.5 font-medium">
-                        <MapPin className="w-3.5 h-3.5 text-teal-300 shrink-0" />
-                        <span className="truncate">{campus.address}</span>
-                      </p>
-                    </div>
-                  </a>
-                  <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4 bg-gradient-to-b from-white to-slate-50/70">
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="p-3 bg-teal-50/70 rounded-2xl border border-teal-100/90 space-y-1">
-                        <span className="text-slate-500 font-semibold block text-[11px]">Giờ mở cửa:</span>
-                        <strong className="text-slate-900 block font-bold">{campus.hours}</strong>
-                        <span className="text-[11px] text-teal-800 font-semibold block">{campus.schedule}</span>
-                      </div>
-                      <div className="p-3 bg-teal-50/70 rounded-2xl border border-teal-100/90 space-y-1">
-                        <span className="text-slate-500 font-semibold block text-[11px]">Không gian học tập:</span>
-                        <strong className="text-slate-900 block font-bold">{campus.seats}</strong>
-                        <span className="text-[11px] text-teal-800 font-semibold block">Trang bị máy lạnh & Wifi</span>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-slate-700 leading-relaxed bg-white/80 p-3.5 rounded-2xl border border-slate-100">
-                      {campus.desc}
-                    </p>
-
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-                        <Phone className="w-3.5 h-3.5 text-[#00666B]" />
-                        <span>{campus.phone}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveTab('catalog');
-                        }}
-                        className="text-xs font-bold text-[#00666B] hover:text-[#004f53] flex items-center gap-1 transition-colors cursor-pointer"
-                      >
-                        <span>Tra cứu {campus.name}</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-
-          </section>
-
-          {/* MỤC 3: HỆ SINH THÁI DỊCH VỤ HỌC THUẬT UTH */}
-          <section className="space-y-4" aria-labelledby="heading-services">
-            <div className="pb-1">
-              <h2 id="heading-services" className="text-2xl font-black text-slate-900 font-heading tracking-tight">
-                Hệ sinh thái dịch vụ học thuật UTH
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 font-medium mt-0.5">
-                Các tiện ích số hóa hỗ trợ sinh viên xuyên suốt quá trình học tập và nghiên cứu.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-              <div
-                onClick={() => setActiveTab('catalog')}
-                className="bg-white/95 border border-slate-200/90 rounded-2xl p-5 shadow-xs hover:border-[#00666B] hover:shadow-lg transition-all flex flex-col justify-between group cursor-pointer space-y-3"
-              >
-                <div>
-                  <div className="w-11 h-11 rounded-xl bg-teal-50 text-[#00666B] border border-teal-100 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-bold text-slate-900 text-sm group-hover:text-[#00666B] transition-colors">
-                    Phòng Tự Học & Thảo Luận
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                    Trang bị máy lạnh, màn hình tương tác, wifi tốc độ cao và nguồn sạc tại từng bàn học.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-[#00666B]">
-                  <span>Xem không gian</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-
-              <div
-                onClick={() => setActiveTab('catalog')}
-                className="bg-white/95 border border-slate-200/90 rounded-2xl p-5 shadow-xs hover:border-blue-500 hover:shadow-lg transition-all flex flex-col justify-between group cursor-pointer space-y-3"
-              >
-                <div>
-                  <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                    <Laptop className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-bold text-slate-900 text-sm group-hover:text-blue-700 transition-colors">
-                    Giáo Trình Số & E-Book
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                    Truy cập hơn 120.000 đầu sách điện tử, giáo trình số hóa đọc trực tuyến 24/7 không giới hạn.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-blue-700">
-                  <span>Tra cứu E-Book</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-
-              <div
-                onClick={() => setActiveTab('catalog')}
-                className="bg-white/95 border border-slate-200/90 rounded-2xl p-5 shadow-xs hover:border-amber-500 hover:shadow-lg transition-all flex flex-col justify-between group cursor-pointer space-y-3"
-              >
-                <div>
-                  <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-800 border border-amber-100 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-bold text-slate-900 text-sm group-hover:text-amber-800 transition-colors">
-                    Kho Luận Văn & Khóa Luận
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                    Tra cứu các công trình nghiên cứu khoa học, luận văn thạc sĩ và khóa luận tốt nghiệp đạt điểm cao.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-amber-800">
-                  <span>Tra cứu đề tài</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-
-              <div
-                onClick={() => setActiveTab('catalog')}
-                className="bg-white/95 border border-slate-200/90 rounded-2xl p-5 shadow-xs hover:border-[#00666B] hover:shadow-lg transition-all flex flex-col justify-between group cursor-pointer space-y-3"
-              >
-                <div>
-                  <div className="w-11 h-11 rounded-xl bg-teal-50 text-[#00666B] border border-teal-100 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                    <Headphones className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-bold text-slate-900 text-sm group-hover:text-[#00666B] transition-colors">
-                    Hỗ Trợ Thủ Thư Trực Tuyến
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                    Tư vấn tìm kiếm tài liệu chuyên sâu, trích dẫn chuẩn APA/IEEE và giải đáp thắc mắc qua chat.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-[#00666B]">
-                  <span>Gửi yêu cầu hỗ trợ</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            </div>
-          </section>
+          {/* MỤC: HỆ SINH THÁI DỊCH VỤ HỌC THUẬT UTH */}
+          <AcademicServicesSection
+            onOpenCatalog={() => setActiveTab('catalog')}
+            onOpenChatbot={() => {
+              const chatBtn =
+                document.querySelector('button[aria-label="Mở Trợ lý ảo AI Thư viện UTH"]') ||
+                Array.from(document.querySelectorAll('button')).find(
+                  (b) => b.title && b.title.includes('Trợ lý ảo')
+                );
+              if (chatBtn) chatBtn.click();
+            }}
+          />
 
           {/* BANNER ĐIỀU HƯỚNG SANG KHO SÁCH ĐẦY ĐỦ */}
           <div className="p-8 sm:p-10 bg-gradient-to-r from-[#002b2e] via-[#00383b] to-[#002b2e] rounded-3xl text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl border border-teal-800/80 relative overflow-hidden">
