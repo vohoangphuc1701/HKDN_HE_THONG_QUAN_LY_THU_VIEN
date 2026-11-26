@@ -164,9 +164,9 @@ const adminApi = {
       const newBook = {
         id: Date.now(),
         code: bookData.code || `UTH-BOOK-${Math.floor(1000 + Math.random() * 9000)}`,
-        isbn: bookData.isbn || 'N/A',
         title: bookData.title,
         author: bookData.author || 'Chưa rõ',
+        coverImage: bookData.coverImage || 'https://picsum.photos/400/600?random=1',
         category: bookData.category || 'Công nghệ thông tin',
         shelfLocation: bookData.shelfLocation || 'Kệ A-01-01',
         totalCopies: Number(bookData.totalCopies) || 1,

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, act } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 import InventoryManagementPage from './InventoryManagementPage'
 
 // Gia lap adminApi de kiem thu giao dien va modal form
@@ -12,11 +12,11 @@ vi.mock('../services/adminApi', () => {
           {
             id: 1,
             code: 'UTH-CNTT-0101',
-            isbn: '978-604-0-12345-1',
             title: 'Kỹ thuật lập trình Java nâng cao',
             author: 'Trần Minh Quân',
             category: 'Công nghệ thông tin',
             shelfLocation: 'Kệ A-02-03',
+            coverImage: 'https://picsum.photos/400/600?random=1',
             totalCopies: 15,
             availableCopies: 10,
             status: 'AVAILABLE'
@@ -32,6 +32,10 @@ vi.mock('../services/adminApi', () => {
 })
 
 describe('InventoryManagementPage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('hien thi dung danh muc va mo modal them dau sach', async () => {
     await act(async () => {
       render(<InventoryManagementPage />)
@@ -49,6 +53,15 @@ describe('InventoryManagementPage', () => {
 
     expect(screen.getByText('Thêm đầu sách mới vào kho')).toBeInTheDocument()
     expect(screen.getByPlaceholderText(/Lập trình ứng dụng Web/i)).toBeInTheDocument()
+
+    // Kiem tra form: co o hinh anh sach, khong con ISBN, tieu de muc 3 mau xanh
+    expect(screen.getByText('Hình ảnh bìa sách')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/dán URL ảnh bìa/i)).toBeInTheDocument()
+    expect(screen.queryByText('Mã chuẩn ISBN')).not.toBeInTheDocument()
+
+    const section3Title = screen.getByText(/3\. Quản lý số lượng & Cập nhật kho/i)
+    expect(section3Title).toBeInTheDocument()
+    expect(section3Title).toHaveStyle({ color: '#2563eb' })
   })
 
   it('mo modal cap nhat so luong nhap kho', async () => {
@@ -64,5 +77,31 @@ describe('InventoryManagementPage', () => {
 
     expect(screen.getByText('Cập nhật số lượng nhập kho')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Xác nhận nhập kho/i })).toBeInTheDocument()
+  })
+
+  it('mo modal quan ly the loai va them the loai moi thanh cong', async () => {
+    await act(async () => {
+      render(<InventoryManagementPage />)
+    })
+
+    // Mo modal Quan ly the loai
+    const categoryBtn = screen.getByRole('button', { name: /Quản lý thể loại/i })
+    await act(async () => {
+      fireEvent.click(categoryBtn)
+    })
+
+    expect(screen.getByText('Quản lý thể loại sách')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Nhập tên thể loại mới...')).toBeInTheDocument()
+
+    // Them the loai moi
+    const inputNewCat = screen.getByPlaceholderText('Nhập tên thể loại mới...')
+    const submitBtn = screen.getByRole('button', { name: /Thêm thể loại/i })
+
+    await act(async () => {
+      fireEvent.change(inputNewCat, { target: { value: 'Khoa học Không gian' } })
+      fireEvent.click(submitBtn)
+    })
+
+    expect(screen.getAllByText('Khoa học Không gian').length).toBeGreaterThan(0)
   })
 })

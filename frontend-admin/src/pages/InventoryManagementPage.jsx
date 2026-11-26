@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import {
   AlertTriangle,
   BookOpen,
@@ -15,7 +15,8 @@ import {
   Layers,
   Building2,
   Calendar,
-  Barcode
+  Barcode,
+  Image
 } from 'lucide-react'
 import adminApi from '../services/adminApi'
 
@@ -31,6 +32,15 @@ export default function InventoryManagementPage() {
   const [searchKeyword, setSearchKeyword] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('ALL')
   const [selectedStatus, setSelectedStatus] = useState('ALL')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  /* Toi uu hieu nang bang du lieu lon voi useMemo va phan trang */
+  const totalPages = Math.ceil(books.length / pageSize) || 1
+  const paginatedBooks = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize
+    return books.slice(startIndex, startIndex + pageSize)
+  }, [books, currentPage, pageSize])
 
   /* Thong bao toast phan hoi thao tac */
   const [toastMessage, setToastMessage] = useState(null)
@@ -42,7 +52,7 @@ export default function InventoryManagementPage() {
     title: '',
     author: '',
     code: '',
-    isbn: '',
+    coverImage: '',
     category: 'Công nghệ thông tin',
     shelfLocation: 'Kệ A-01-01',
     publisher: 'NXB Giao thông Vận tải',
@@ -53,6 +63,12 @@ export default function InventoryManagementPage() {
     condition: 'Mới 100%'
   })
   const [formErrors, setFormErrors] = useState({})
+
+  /* Trang thai modal quan ly the loai (CRUD Danh muc the loai cho Admin) */
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [editingCategoryIndex, setEditingCategoryIndex] = useState(null)
+  const [editingCategoryValue, setEditingCategoryValue] = useState('')
 
   /* Trang thai modal nhap kho nhanh */
   const [isStockModalOpen, setIsStockModalOpen] = useState(false)
@@ -107,6 +123,45 @@ export default function InventoryManagementPage() {
     fetchBooks()
   }
 
+  /* Them the loai moi (CRUD - Create Category) */
+  function handleAddCategory(e) {
+    e.preventDefault()
+    if (!newCategoryName.trim()) return
+    const trimmed = newCategoryName.trim()
+    if (categories.includes(trimmed)) {
+      alert('Thể loại này đã tồn tại trong danh mục!')
+      return
+    }
+    setCategories([...categories, trimmed])
+    setNewCategoryName('')
+    showToast(`Đã thêm mới thể loại "${trimmed}"!`)
+  }
+
+  /* Sua ten the loai (CRUD - Update Category) */
+  function handleSaveEditCategory(index) {
+    if (!editingCategoryValue.trim()) return
+    const trimmed = editingCategoryValue.trim()
+    const oldCat = categories[index]
+    const updated = [...categories]
+    updated[index] = trimmed
+    setCategories(updated)
+
+    // Dong bo cap nhat cac sach thuoc the loai cu
+    setBooks(books.map((b) => (b.category === oldCat ? { ...b, category: trimmed } : b)))
+    setEditingCategoryIndex(null)
+    setEditingCategoryValue('')
+    showToast(`Đã cập nhật thể loại "${oldCat}" thành "${trimmed}"!`)
+  }
+
+  /* Xoa the loai (CRUD - Delete Category) */
+  function handleDeleteCategory(cat) {
+    if (window.confirm(`Bạn có chắc muốn xóa thể loại "${cat}" khỏi danh mục?`)) {
+      setCategories(categories.filter((c) => c !== cat))
+      if (selectedCategory === cat) setSelectedCategory('ALL')
+      showToast(`Đã xóa thể loại "${cat}"!`, 'info')
+    }
+  }
+
   /* Mo modal them moi dau sach */
   function handleOpenCreateModal() {
     setEditingBook(null)
@@ -115,7 +170,7 @@ export default function InventoryManagementPage() {
       title: '',
       author: '',
       code: `UTH-${Math.floor(1000 + Math.random() * 9000)}`,
-      isbn: '978-604-0-' + Math.floor(10000 + Math.random() * 90000) + '-0',
+      coverImage: 'https://picsum.photos/400/600?random=1',
       category: categories[0] || 'Công nghệ thông tin',
       shelfLocation: 'Kệ A-01-01',
       publisher: 'NXB Giao thông Vận tải',
@@ -136,7 +191,7 @@ export default function InventoryManagementPage() {
       title: book.title || '',
       author: book.author || '',
       code: book.code || '',
-      isbn: book.isbn || '',
+      coverImage: book.coverImage || 'https://picsum.photos/400/600?random=1',
       category: book.category || (categories[0] || 'Công nghệ thông tin'),
       shelfLocation: book.shelfLocation || 'Kệ A-01-01',
       publisher: book.publisher || 'NXB Giao thông Vận tải',
@@ -307,7 +362,14 @@ export default function InventoryManagementPage() {
             Quản lý danh mục đầu sách, vị trí kệ và kiểm soát số lượng tổng và số lượng khả dụng trong kho.
           </p>
         </div>
-        <div>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="button button--secondary"
+            onClick={() => setIsCategoryModalOpen(true)}
+          >
+            <Layers size={16} /> Quản lý thể loại
+          </button>
           <button type="button" className="button button--primary" onClick={handleOpenCreateModal}>
             <Plus size={16} /> Thêm đầu sách
           </button>
@@ -433,17 +495,32 @@ export default function InventoryManagementPage() {
                 </tr>
               </thead>
               <tbody>
-                {books.map((book) => {
+                {paginatedBooks.map((book) => {
                   const isAvailable = Number(book.availableCopies) > 0
                   return (
                     <tr key={book.id}>
                       <td>
                         <strong>{book.code}</strong>
-                        <div style={{ fontSize: '10px', color: '#98a2b3' }}>ISBN: {book.isbn}</div>
                       </td>
                       <td>
-                        <strong>{book.title}</strong>
-                        <div style={{ color: '#667085', fontSize: '11px' }}>{book.author}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {book.coverImage ? (
+                            <img
+                              src={book.coverImage}
+                              alt={book.title}
+                              style={{ width: '32px', height: '42px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0, border: '1px solid #e2e8f0' }}
+                              onError={(e) => { e.target.style.display = 'none' }}
+                            />
+                          ) : (
+                            <div style={{ width: '32px', height: '42px', background: '#eff6ff', borderRadius: '4px', display: 'grid', placeItems: 'center', color: '#3b82f6', flexShrink: 0 }}>
+                              <BookOpen size={16} />
+                            </div>
+                          )}
+                          <div>
+                            <strong>{book.title}</strong>
+                            <div style={{ color: '#667085', fontSize: '11px' }}>{book.author}</div>
+                          </div>
+                        </div>
                       </td>
                       <td>{book.category}</td>
                       <td>
@@ -501,6 +578,49 @@ export default function InventoryManagementPage() {
               </tbody>
             </table>
           )}
+        </div>
+
+        {/* Thanh dieu huong phan trang giup toi uu du lieu lon */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid #f1f5f9', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ fontSize: '12px', color: '#64748b' }}>
+            Hiển thị <strong>{paginatedBooks.length}</strong> / <strong>{books.length}</strong> đầu sách | Trang <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <label style={{ fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Số lượng:
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value))
+                  setCurrentPage(1)
+                }}
+                style={{ padding: '2px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              >
+                <option value={5}>5 / trang</option>
+                <option value={10}>10 / trang</option>
+                <option value={20}>20 / trang</option>
+                <option value={50}>50 / trang</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              className="button button--secondary"
+              style={{ padding: '4px 8px', fontSize: '11px' }}
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            >
+              Trang trước
+            </button>
+            <button
+              type="button"
+              className="button button--secondary"
+              style={{ padding: '4px 8px', fontSize: '11px' }}
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Trang sau
+            </button>
+          </div>
         </div>
       </div>
 
@@ -694,36 +814,86 @@ export default function InventoryManagementPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div>
-                      <label
-                        style={{
-                          display: 'block',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          color: '#334155',
-                          marginBottom: '5px'
-                        }}
-                      >
-                        Mã tài liệu / Mã sách <span style={{ color: '#dc2626' }}>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className="date-input"
-                        style={{
-                          width: '100%',
-                          boxSizing: 'border-box',
-                          borderColor: formErrors.code ? '#ef4444' : undefined
-                        }}
-                        placeholder="Ví dụ: UTH-CNTT-0108"
-                        value={formData.code}
-                        onChange={(e) => {
-                          setFormData({ ...formData, code: e.target.value })
-                          if (formErrors.code) setFormErrors({ ...formErrors, code: null })
-                        }}
-                      />
+                  {/* To chuc lai: Nam xuat ban ben duoi Nha xuat ban, xoa ISBN, them o hinh anh sach */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', alignItems: 'start' }}>
+                    {/* Cot trai: Ma tai lieu -> Nha xuat ban -> Nam xuat ban */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div>
+                        <label
+                          style={{
+                            display: 'block',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#334155',
+                            marginBottom: '5px'
+                          }}
+                        >
+                          Mã tài liệu / Mã sách <span style={{ color: '#dc2626' }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="date-input"
+                          style={{
+                            width: '100%',
+                            boxSizing: 'border-box',
+                            borderColor: formErrors.code ? '#ef4444' : undefined
+                          }}
+                          placeholder="Ví dụ: UTH-CNTT-0108"
+                          value={formData.code}
+                          onChange={(e) => {
+                            setFormData({ ...formData, code: e.target.value })
+                            if (formErrors.code) setFormErrors({ ...formErrors, code: null })
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          style={{
+                            display: 'block',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#334155',
+                            marginBottom: '5px'
+                          }}
+                        >
+                          Nhà xuất bản
+                        </label>
+                        <input
+                          type="text"
+                          className="date-input"
+                          style={{ width: '100%', boxSizing: 'border-box' }}
+                          placeholder="Ví dụ: NXB Giao thông Vận tải"
+                          value={formData.publisher}
+                          onChange={(e) => setFormData({ ...formData, publisher: e.target.value })}
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          style={{
+                            display: 'block',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#334155',
+                            marginBottom: '5px'
+                          }}
+                        >
+                          Năm xuất bản
+                        </label>
+                        <input
+                          type="number"
+                          min="1900"
+                          max="2099"
+                          className="date-input"
+                          style={{ width: '100%', boxSizing: 'border-box' }}
+                          value={formData.publishYear}
+                          onChange={(e) => setFormData({ ...formData, publishYear: Number(e.target.value) })}
+                        />
+                      </div>
                     </div>
 
+                    {/* Cot phai: O de hinh anh sach thay cho 2 o cu ISBN va Nam xuat ban */}
                     <div>
                       <label
                         style={{
@@ -734,63 +904,56 @@ export default function InventoryManagementPage() {
                           marginBottom: '5px'
                         }}
                       >
-                        Mã chuẩn ISBN
+                        Hình ảnh bìa sách
                       </label>
                       <input
-                        type="text"
+                        type="url"
                         className="date-input"
-                        style={{ width: '100%', boxSizing: 'border-box' }}
-                        placeholder="978-604-0-..."
-                        value={formData.isbn}
-                        onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
+                        style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px' }}
+                        placeholder="https://... dán URL ảnh bìa"
+                        value={formData.coverImage}
+                        onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
                       />
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div>
-                      <label
+                      <div
                         style={{
-                          display: 'block',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          color: '#334155',
-                          marginBottom: '5px'
+                          height: '138px',
+                          border: '1.5px dashed #cbd5e1',
+                          borderRadius: '8px',
+                          background: '#f8fafc',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          overflow: 'hidden',
+                          position: 'relative'
                         }}
                       >
-                        Nhà xuất bản
-                      </label>
-                      <input
-                        type="text"
-                        className="date-input"
-                        style={{ width: '100%', boxSizing: 'border-box' }}
-                        placeholder="Ví dụ: NXB Giao thông Vận tải"
-                        value={formData.publisher}
-                        onChange={(e) => setFormData({ ...formData, publisher: e.target.value })}
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        style={{
-                          display: 'block',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          color: '#334155',
-                          marginBottom: '5px'
-                        }}
-                      >
-                        Năm xuất bản
-                      </label>
-                      <input
-                        type="number"
-                        min="1900"
-                        max="2099"
-                        className="date-input"
-                        style={{ width: '100%', boxSizing: 'border-box' }}
-                        value={formData.publishYear}
-                        onChange={(e) => setFormData({ ...formData, publishYear: Number(e.target.value) })}
-                      />
+                        {formData.coverImage ? (
+                          <img
+                            src={formData.coverImage}
+                            alt="Xem trước bìa sách"
+                            style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                            onError={(e) => {
+                              e.target.style.display = 'none'
+                              if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          style={{
+                            display: formData.coverImage ? 'none' : 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '4px',
+                            color: '#94a3b8',
+                            fontSize: '11px',
+                            textAlign: 'center',
+                            padding: '10px'
+                          }}
+                        >
+                          <Image size={24} />
+                          <span>Xem trước hình ảnh sách</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -879,7 +1042,7 @@ export default function InventoryManagementPage() {
                     gap: '6px',
                     fontSize: '11px',
                     fontWeight: 700,
-                    color: '#0f172a',
+                    color: '#2563eb',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
                     marginBottom: '12px'
@@ -1258,6 +1421,164 @@ export default function InventoryManagementPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ========================================================================= */}
+      {/* MODAL 3: Quan ly The loai sach (CRUD Danh muc the loai cho Admin)         */}
+      {/* ========================================================================= */}
+      {isCategoryModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.5)',
+            display: 'grid',
+            placeItems: 'center',
+            zIndex: 60,
+            padding: '16px'
+          }}
+        >
+          <div
+            className="card"
+            style={{
+              width: '100%',
+              maxWidth: '520px',
+              padding: '24px',
+              backgroundColor: '#ffffff',
+              borderRadius: '14px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h2 style={{ fontSize: '17px', fontWeight: 700, margin: 0, color: '#172033', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Layers size={18} color="#2563eb" /> Quản lý thể loại sách
+                </h2>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0' }}>
+                  Thêm mới, chỉnh sửa và xóa danh mục thể loại dành cho Quản trị viên
+                </p>
+              </div>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => {
+                  setIsCategoryModalOpen(false)
+                  setEditingCategoryIndex(null)
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Form them moi the loai (Create Category) */}
+            <form onSubmit={handleAddCategory} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <input
+                type="text"
+                className="date-input"
+                style={{ flex: 1 }}
+                placeholder="Nhập tên thể loại mới..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+              />
+              <button type="submit" className="button button--primary" style={{ flexShrink: 0 }}>
+                <Plus size={15} /> Thêm thể loại
+              </button>
+            </form>
+
+            {/* Danh sach the loai hien co (Read, Update, Delete) */}
+            <div style={{ maxHeight: '280px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                    <th style={{ padding: '8px 12px', color: '#64748b', fontSize: '11px' }}>TÊN THỂ LOẠI</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'right', color: '#64748b', fontSize: '11px' }}>THAO TÁC</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categories.map((cat, index) => (
+                    <tr key={cat} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '8px 12px' }}>
+                        {editingCategoryIndex === index ? (
+                          <input
+                            type="text"
+                            className="date-input"
+                            style={{ width: '100%', padding: '4px 8px', fontSize: '12px' }}
+                            value={editingCategoryValue}
+                            onChange={(e) => setEditingCategoryValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveEditCategory(index)
+                              if (e.key === 'Escape') setEditingCategoryIndex(null)
+                            }}
+                            autoFocus
+                          />
+                        ) : (
+                          <span style={{ fontWeight: 600, color: '#334155' }}>{cat}</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right' }}>
+                        {editingCategoryIndex === index ? (
+                          <div style={{ display: 'inline-flex', gap: '4px' }}>
+                            <button
+                              type="button"
+                              className="button button--primary"
+                              style={{ padding: '3px 8px', fontSize: '11px' }}
+                              onClick={() => handleSaveEditCategory(index)}
+                            >
+                              Lưu
+                            </button>
+                            <button
+                              type="button"
+                              className="button button--secondary"
+                              style={{ padding: '3px 8px', fontSize: '11px' }}
+                              onClick={() => setEditingCategoryIndex(null)}
+                            >
+                              Hủy
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'inline-flex', gap: '4px' }}>
+                            <button
+                              type="button"
+                              className="icon-button"
+                              title="Chỉnh sửa tên thể loại"
+                              onClick={() => {
+                                setEditingCategoryIndex(index)
+                                setEditingCategoryValue(cat)
+                              }}
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className="icon-button"
+                              title="Xóa thể loại"
+                              style={{ color: '#dc2626' }}
+                              onClick={() => handleDeleteCategory(cat)}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="button button--secondary"
+                onClick={() => {
+                  setIsCategoryModalOpen(false)
+                  setEditingCategoryIndex(null)
+                }}
+              >
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}

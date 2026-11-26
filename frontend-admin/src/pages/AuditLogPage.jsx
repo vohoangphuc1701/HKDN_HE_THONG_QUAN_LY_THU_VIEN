@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import {
   Activity,
   AlertCircle,
@@ -136,6 +136,8 @@ export default function AuditLogPage() {
   const [selectedAction, setSelectedAction] = useState('ALL')
   const [viewMode, setViewMode] = useState('TABLE') // 'TABLE' hoac 'TIMELINE'
   const [selectedLog, setSelectedLog] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   /* Tai danh sach nhat ky hoat dong */
   async function fetchAuditLogs() {
@@ -183,6 +185,13 @@ export default function AuditLogPage() {
   const handoverLogsCount = logs.filter((l) => l.action === 'HANDOVER_BOOK' || l.action === 'RETURN_BOOK').length
   const stockLogsCount = logs.filter((l) => l.action === 'STOCK_IN' || l.action === 'UPDATE_BOOK').length
   const fineLogsCount = logs.filter((l) => l.action === 'COLLECT_FINE').length
+
+  /* Toi uu hieu nang bang du lieu lon voi useMemo va phan trang */
+  const totalPages = Math.ceil(logs.length / pageSize) || 1
+  const paginatedLogs = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize
+    return logs.slice(startIndex, startIndex + pageSize)
+  }, [logs, currentPage, pageSize])
 
   return (
     <div className="audit-log-page">
@@ -330,7 +339,7 @@ export default function AuditLogPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {logs.map((log) => (
+                  {paginatedLogs.map((log) => (
                     <tr key={log.id}>
                       <td>
                         <strong>{log.time}</strong>
@@ -400,7 +409,7 @@ export default function AuditLogPage() {
         ) : (
           /* Hien thi Che do DONG THOI GIAN (Timeline View) su dung lop .timeline co san */
           <ul className="timeline">
-            {logs.map((log) => (
+            {paginatedLogs.map((log) => (
               <li key={log.id}>
                 <span className="timeline__icon" style={{ color: log.badgeColor }}>
                   <Shield size={16} />
@@ -422,6 +431,49 @@ export default function AuditLogPage() {
             ))}
           </ul>
         )}
+
+        {/* Thanh dieu huong phan trang giup toi uu du lieu lon */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid #f1f5f9', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ fontSize: '12px', color: '#64748b' }}>
+            Hiển thị <strong>{paginatedLogs.length}</strong> / <strong>{logs.length}</strong> bản ghi | Trang <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <label style={{ fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Số lượng:
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value))
+                  setCurrentPage(1)
+                }}
+                style={{ padding: '2px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              >
+                <option value={5}>5 / trang</option>
+                <option value={10}>10 / trang</option>
+                <option value={20}>20 / trang</option>
+                <option value={50}>50 / trang</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              className="button button--secondary"
+              style={{ padding: '4px 8px', fontSize: '11px' }}
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            >
+              Trang trước
+            </button>
+            <button
+              type="button"
+              className="button button--secondary"
+              style={{ padding: '4px 8px', fontSize: '11px' }}
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Trang sau
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ========================================================================= */}

@@ -15,7 +15,7 @@ describe('FineTrackingPage', () => {
     expect(screen.getByText('Quản lý nợ phạt & Ghi nhận thu phạt')).toBeInTheDocument()
     expect(screen.getByText('Tổng tiền nợ phạt (chưa thu)')).toBeInTheDocument()
     expect(screen.getByText('Tổng tiền phạt đã thu thành công')).toBeInTheDocument()
-    expect(screen.getByText('FN-2026-001')).toBeInTheDocument()
+    expect(await screen.findByText('FN-2026-001')).toBeInTheDocument()
     expect(screen.getByText('Phạm Quốc Bảo')).toBeInTheDocument()
   })
 
@@ -23,6 +23,7 @@ describe('FineTrackingPage', () => {
     await act(async () => {
       render(<FineTrackingPage />)
     })
+    await screen.findByText('FN-2026-001')
 
     const collectButtons = screen.getAllByRole('button', { name: /Thu phạt/i })
     await act(async () => {
@@ -37,6 +38,7 @@ describe('FineTrackingPage', () => {
     await act(async () => {
       render(<FineTrackingPage />)
     })
+    await screen.findByText('FN-2026-001')
 
     /* Chon thu phat bien lai FN-2026-002 co ca phi hu hai sach 15.000d */
     const collectButtons = screen.getAllByRole('button', { name: /Thu phạt/i })
@@ -69,6 +71,7 @@ describe('FineTrackingPage', () => {
     await act(async () => {
       render(<FineTrackingPage />)
     })
+    await screen.findByText('FN-2026-001')
 
     /* Tim va nhan nut In bien lai tren danh sach bien lai da thanh toan */
     const printReceiptButtons = screen.getAllByRole('button', { name: /In biên lai/i })

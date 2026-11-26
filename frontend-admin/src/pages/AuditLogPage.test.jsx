@@ -10,7 +10,8 @@ describe('AuditLogPage', () => {
 
     expect(screen.getByText('Nhật ký hoạt động & Kiểm toán thao tác (Audit Log)')).toBeInTheDocument()
     expect(screen.getByText('Tổng số thao tác ghi nhận')).toBeInTheDocument()
-    expect(screen.getAllByText('Lê Văn Hùng').length).toBeGreaterThan(0)
+    const hungItems = await screen.findAllByText('Lê Văn Hùng')
+    expect(hungItems.length).toBeGreaterThan(0)
     expect(screen.getByText('Bàn giao sách tại quầy')).toBeInTheDocument()
   })
 
@@ -19,6 +20,7 @@ describe('AuditLogPage', () => {
       render(<AuditLogPage />)
     })
 
+    await screen.findAllByText('Lê Văn Hùng')
     const timelineBtn = screen.getByRole('button', { name: /Dòng thời gian/i })
     await act(async () => {
       fireEvent.click(timelineBtn)
