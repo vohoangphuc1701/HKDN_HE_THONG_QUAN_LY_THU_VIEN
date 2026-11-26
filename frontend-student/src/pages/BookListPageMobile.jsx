@@ -14,7 +14,7 @@ import BookCardSkeleton from '../components/common/BookCardSkeleton';
 import SearchBar from '../components/common/SearchBar';
 import FilterModalMobile from '../components/responsive/FilterModalMobile';
 import { bookApi } from '../services/bookApi';
-import { matchBookSmart } from '../services/aiSearchService';
+import { expandQueryWithAI, matchBookSmart } from '../services/aiSearchService';
 import mockPCBooks from '../mockPCBooks.json';
 
 /**
@@ -92,9 +92,10 @@ export default function BookListPage({
   const [internalSelectedType, setInternalSelectedType] = useState('ALL');
   const [internalSortBy, setInternalSortBy] = useState('default');
 
-  // Quản lý Modal Bộ Lọc và Chế độ xem Lưới / Danh sách
+  // Quản lý Modal Bộ Lọc, AI Search Hint và Chế độ xem Lưới / Danh sách
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'compact'
+  const [aiHint, setAiHint] = useState(null);
 
   // Hợp nhất dữ liệu Controlled / Uncontrolled
   const searchQuery = propSearchQuery !== undefined ? propSearchQuery : internalSearchQuery;
@@ -113,6 +114,36 @@ export default function BookListPage({
 
   const sortBy = propSortBy !== undefined ? propSortBy : internalSortBy;
   const setSortBy = propOnChangeSortBy || setInternalSortBy;
+
+  // ── Tìm kiếm thông minh AI kèm bộ nhớ đệm Cache (kế thừa từ PR #50) ───────
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length < 3) return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      expandQueryWithAI(q)
+        .then((res) => {
+          if (cancelled) return;
+          if (
+            res?.success &&
+            res.correctedQuery &&
+            res.correctedQuery.toLowerCase() !== q.toLowerCase()
+          ) {
+            setAiHint({ ...res, originalQuery: q });
+          } else {
+            setAiHint(null);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setAiHint(null);
+        });
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
 
   // Danh mục chuyên ngành UTH kèm số lượng sách tương ứng
   const categories = useMemo(() => {
@@ -268,11 +299,45 @@ export default function BookListPage({
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          onClear={() => setSearchQuery('')}
+          onClear={() => {
+            setSearchQuery('');
+            setAiHint(null);
+          }}
           placeholder="Tìm tên giáo trình, tác giả, mã tài liệu UTH..."
           onOpenFilter={() => setIsFilterOpen(true)}
           activeFilterCount={activeFilterCount}
         />
+
+        {/* Gợi ý sửa lỗi / mở rộng từ khóa AI Search (tận dụng Cache) */}
+        {aiHint && searchQuery.trim().length >= 3 && aiHint.originalQuery === searchQuery.trim() && (
+          <div className="mt-2 px-3 py-2 rounded-xl bg-teal-50/90 border border-teal-200/80 flex items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Sparkles className="w-3.5 h-3.5 text-[#00666b] shrink-0" />
+              <span className="text-slate-600 truncate">
+                Ý bạn là{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery(aiHint.correctedQuery);
+                    setAiHint(null);
+                  }}
+                  className="font-bold text-[#00666b] underline cursor-pointer"
+                >
+                  {aiHint.correctedQuery}
+                </button>
+                ?
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAiHint(null)}
+              className="text-slate-400 hover:text-slate-600 shrink-0 cursor-pointer"
+              aria-label="Ẩn gợi ý AI"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 3. DẢI CHIP CHUYÊN NGÀNH CUỘN NGANG (Horizontal Category Chips) */}
