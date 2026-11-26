@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
   Filter,
@@ -10,8 +10,11 @@ import {
   X,
 } from 'lucide-react';
 import BookCard from '../components/common/BookCard';
+import BookCardSkeleton from '../components/common/BookCardSkeleton';
 import SearchBar from '../components/common/SearchBar';
 import FilterModalMobile from '../components/responsive/FilterModalMobile';
+import { bookApi } from '../services/bookApi';
+import { matchBookSmart } from '../services/aiSearchService';
 import mockPCBooks from '../mockPCBooks.json';
 
 /**
@@ -40,7 +43,7 @@ const QUICK_KEYWORDS = [
  * 9. Tích hợp Bottom Sheet FilterModalMobile hoàn chỉnh.
  */
 export default function BookListPage({
-  books = mockPCBooks,
+  books: propBooks,
   searchQuery: propSearchQuery,
   onSearchChange: propOnSearchChange,
   selectedCategory: propSelectedCategory,
@@ -57,6 +60,32 @@ export default function BookListPage({
   onNavigateTab,
 }) {
   // State nội bộ làm fallback khi không truyền prop từ ngoài
+  const [books, setBooks] = useState(propBooks || mockPCBooks);
+  const [isLoading, setIsLoading] = useState(!propBooks);
+
+  // ── Kết nối API động bookApi.getBooks() + Fallback mượt mà ────────────────
+  useEffect(() => {
+    if (propBooks) return;
+    let cancelled = false;
+    bookApi
+      .getBooks({ size: 50 })
+      .then((res) => {
+        if (cancelled) return;
+        const list = res?.content;
+        setBooks(Array.isArray(list) && list.length > 0 ? list : mockPCBooks);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBooks(mockPCBooks);
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [propBooks]);
+
   const [internalSearchQuery, setInternalSearchQuery] = useState('');
   const [internalSelectedCategory, setInternalSelectedCategory] = useState('ALL');
   const [internalOnlyAvailable, setInternalOnlyAvailable] = useState(false);
@@ -140,13 +169,8 @@ export default function BookListPage({
         const matchCat = selectedCategory === 'ALL' || book.category === selectedCategory;
         const matchType = selectedType === 'ALL' || book.type === selectedType;
         const matchAvailable = !onlyAvailable || (book.availableQuantity || 0) > 0;
-        const query = searchQuery.trim().toLowerCase();
-        const matchSearch =
-          !query ||
-          book.title?.toLowerCase().includes(query) ||
-          book.author?.toLowerCase().includes(query) ||
-          (book.code && book.code.toLowerCase().includes(query)) ||
-          (book.publisher && book.publisher.toLowerCase().includes(query));
+        const query = searchQuery.trim();
+        const matchSearch = !query || matchBookSmart(book, query).matched;
         return matchCat && matchType && matchAvailable && matchSearch;
       })
       .sort((a, b) => {
@@ -434,8 +458,14 @@ export default function BookListPage({
         </div>
       </div>
 
-      {/* 6. LƯỚI SÁCH HOẶC TRẠNG THÁI RỖNG (Empty State) */}
-      {filteredBooks.length === 0 ? (
+      {/* 6. LƯỚI SÁCH, SKELETON LOADING HOẶC TRẠNG THÁI RỖNG (Empty State) */}
+      {isLoading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <BookCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : filteredBooks.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3 shadow-xs">
           <div className="w-12 h-12 rounded-2xl bg-teal-50 text-[#00666B] flex items-center justify-center mx-auto">
             <BookOpen className="w-6 h-6 stroke-[1.8]" />
