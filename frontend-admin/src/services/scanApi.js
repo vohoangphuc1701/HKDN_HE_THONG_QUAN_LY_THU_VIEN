@@ -218,6 +218,71 @@ const scanApi = {
         message: 'Hoàn tất nhận trả sách và cập nhật số lượng tồn kho thành công'
       }
     }
+  },
+
+  /*
+    Luu ma quet vao bo nho dem ngoai tuyen (Offline Queue) khi mat ket noi mang.
+  */
+  saveOfflineScan(code, scanType = 'UNKNOWN') {
+    const queueKey = 'library_offline_scan_queue'
+    const existing = this.getOfflineQueue()
+    const scanItem = {
+      id: Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+      code,
+      scanType,
+      timestamp: new Date().toISOString()
+    }
+    const updated = [...existing, scanItem]
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(queueKey, JSON.stringify(updated))
+    }
+    return scanItem
+  },
+
+  /*
+    Lay danh sach ma quet ngoai tuyen dang cho dong bo.
+  */
+  getOfflineQueue() {
+    const queueKey = 'library_offline_scan_queue'
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const stored = window.localStorage.getItem(queueKey)
+        return stored ? JSON.parse(stored) : []
+      } catch {
+        return []
+      }
+    }
+    return []
+  },
+
+  /*
+    Xoa sach danh sach hang doi ngoai tuyen sau khi da dong bo.
+  */
+  clearOfflineQueue() {
+    const queueKey = 'library_offline_scan_queue'
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(queueKey)
+    }
+  },
+
+  /*
+    Dong bo hang doi ngoai tuyen len may chu khi mang duoc phuc hoi.
+  */
+  async syncOfflineQueue() {
+    const queue = this.getOfflineQueue()
+    if (!queue || queue.length === 0) return { syncedCount: 0 }
+
+    const results = []
+    for (const item of queue) {
+      try {
+        const res = await this.sendScanResult(mockLocalSession.sessionToken, item.code, item.scanType)
+        results.push(res)
+      } catch (err) {
+        console.warn('Loi dong bo ma quet offline:', item.code, err.message)
+      }
+    }
+    this.clearOfflineQueue()
+    return { syncedCount: results.length, items: results }
   }
 }
 

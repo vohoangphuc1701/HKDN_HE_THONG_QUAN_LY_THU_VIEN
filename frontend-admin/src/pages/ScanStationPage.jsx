@@ -96,6 +96,20 @@ export default function ScanStationPage() {
     return () => unsubscribe()
   }, [])
 
+  /* Xu ly lang nghe su kien ket noi mang phuc hoi de dong bo ma quet offline */
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    function handleOnline() {
+      scanApi.syncOfflineQueue().then((res) => {
+        if (res?.syncedCount > 0) {
+          showToast(`Đã khôi phục mạng! Đã đồng bộ ${res.syncedCount} mã quét ngoại tuyến lên hệ thống`, 'success')
+        }
+      })
+    }
+    window.addEventListener('online', handleOnline)
+    return () => window.removeEventListener('online', handleOnline)
+  }, [])
+
   /* Xu ly ma sau khi quet qua camera hoac nhap thu cong */
   async function handleProcessScannedCode(scannedCode, suggestedType) {
     if (!scannedCode || !scannedCode.trim()) return
@@ -107,6 +121,14 @@ export default function ScanStationPage() {
       detectedType = 'RETURN_TICKET'
     } else if (upper.startsWith('OD-') || upper.startsWith('ORD-')) {
       detectedType = 'BORROW_ORDER'
+    }
+
+    /* Kiem tra xu ly ngoai le mat mang khi quet QR */
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      scanApi.saveOfflineScan(code, detectedType)
+      showToast(`Mất mạng! Mã ${code} đã lưu vào bộ nhớ đệm ngoại tuyến (Offline Queue)`, 'warning')
+      recordLog(code, detectedType, 'Lưu bộ nhớ đệm ngoại tuyến (Offline)')
+      return
     }
 
     /* Neu la ma phieu tra sach -> Goi doi soat phieu tra */

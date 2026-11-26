@@ -23,8 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Controller cung cấp API cho Cổng Quản Trị Thủ Thư / Admin (frontend-admin -
- * TV6)
+ * Controller cung cấp API cho Cổng Quản Trị Thủ Thư / Admin (frontend-admin)
  * - Thống kê tổng quan Dashboard, biểu đồ phân bổ kho sách và Top sách mượn
  * nhiều nhất
  * - Quản lý Kho sách (/api/admin/inventory) tương thích trực tiếp với
