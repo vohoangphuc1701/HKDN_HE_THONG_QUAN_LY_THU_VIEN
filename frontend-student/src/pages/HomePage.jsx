@@ -501,7 +501,8 @@ export default function HomePage({
           )}
 
           {/* 3 cuốn sách mới đi kèm */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          {/* Mobile: 2 thẻ/hàng; ẩn nút "Xem chi tiết" (bấm bìa/tên sách để xem chi tiết) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 [&_button+button]:hidden">
             {otherNewBooks.map((book) => (
               <BookCard
                 key={book.id}
@@ -552,7 +553,8 @@ export default function HomePage({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+          {/* Mobile: 2 thẻ/hàng; ẩn nút "Xem chi tiết" (bấm bìa/tên sách để xem chi tiết) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 [&_button+button]:hidden">
             {recommendedBooks.map((book) => (
               <BookCard
                 key={book.id}
@@ -619,7 +621,7 @@ export default function HomePage({
       {toastMessage && (
         <aside
           role="status"
-          className="fixed bottom-6 left-4 right-4 z-50 max-w-sm mx-auto bg-slate-900/95 text-white p-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-2.5 text-xs font-bold"
+          className="fixed top-20 right-6 z-50 max-w-sm bg-slate-900/95 text-white p-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-top-3 select-none"
         >
           <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
             <Check className="w-3.5 h-3.5 stroke-[2.5]" />

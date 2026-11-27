@@ -100,7 +100,7 @@ public class BorrowController {
      * Danh sách tất cả đơn mượn cho Thủ thư (có tìm kiếm theo mã đơn / tên SV và lọc trạng thái)
      */
     @GetMapping
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<Page<BorrowOrder>>> getAllBorrowOrders(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) BorrowOrderStatus status,
@@ -115,7 +115,7 @@ public class BorrowController {
      * Thủ thư cập nhật trạng thái chuẩn bị đơn (NEW -> PROCESSING -> READY_FOR_PICKUP)
      */
     @PutMapping("/{orderId}/status")
-    @PreAuthorize("hasRole('LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<ApiResponse<BorrowOrder>> updateOrderStatus(
             @PathVariable Long orderId,
             @RequestParam BorrowOrderStatus status

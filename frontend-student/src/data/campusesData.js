@@ -13,6 +13,8 @@ export const campusesData = [
     desc: 'Tòa nhà điều hành trung tâm khang trang và hiện đại. Bố trí 4 tầng phòng đọc máy lạnh, khu máy tính tra cứu số, phòng thảo luận nhóm và quầy Pick & Go nhận tài liệu nhanh chóng.',
     phone: '(028) 3899 2862 - Nhánh 104',
     code: 'CS1',
+    lat: 10.8047,
+    lng: 106.7167,
   },
   {
     id: 2,
@@ -25,6 +27,8 @@ export const campusesData = [
     desc: 'Khuôn viên xanh thoáng đãng hướng tầm nhìn Landmark 81. Chuyên sâu về kho tài liệu Kỹ thuật công trình, Cơ khí ô tô, Hàng hải và Logistics vận tải, tích hợp không gian mở nghiên cứu sáng tạo.',
     phone: '(028) 3899 2862 - Nhánh 106',
     code: 'CS2',
+    lat: 10.7921,
+    lng: 106.7319,
   },
   {
     id: 3,
@@ -37,6 +41,8 @@ export const campusesData = [
     desc: 'Tòa nhà giảng đường đa năng với các dãy phòng tự học hiện đại. Chuyên sâu kho tài liệu Công nghệ thông tin, Viễn thông, Ngoại ngữ và Kinh tế số, phục vụ đông đảo sinh viên học tập.',
     phone: '(028) 3899 2862 - Nhánh 108',
     code: 'CS3',
+    lat: 10.8655,
+    lng: 106.6186,
   },
 ];
 

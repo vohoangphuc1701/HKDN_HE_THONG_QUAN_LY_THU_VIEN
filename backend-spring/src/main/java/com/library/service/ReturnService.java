@@ -306,8 +306,8 @@ public class ReturnService {
         ReturnTicket ticket = returnTicketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Phiếu hẹn trả", "id", ticketId));
 
-        boolean isLibrarian = currentUser.getRole() == Role.LIBRARIAN;
-        if (!isLibrarian && !ticket.getUser().getId().equals(currentUser.getId())) {
+        boolean isStaff = currentUser.getRole() == Role.LIBRARIAN || currentUser.getRole() == Role.ADMIN;
+        if (!isStaff && !ticket.getUser().getId().equals(currentUser.getId())) {
             throw new BadRequestException("Bạn không có quyền hủy phiếu hẹn trả này");
         }
 

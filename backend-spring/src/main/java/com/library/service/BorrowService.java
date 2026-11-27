@@ -260,8 +260,8 @@ public class BorrowService {
         BorrowOrder order = borrowOrderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Đơn mượn", "id", orderId));
 
-        boolean isLibrarian = currentUser.getRole() == Role.LIBRARIAN;
-        if (!isLibrarian && !order.getUser().getId().equals(currentUser.getId())) {
+        boolean isStaff = currentUser.getRole() == Role.LIBRARIAN || currentUser.getRole() == Role.ADMIN;
+        if (!isStaff && !order.getUser().getId().equals(currentUser.getId())) {
             throw new BadRequestException("Bạn không có quyền hủy đơn mượn này");
         }
 
