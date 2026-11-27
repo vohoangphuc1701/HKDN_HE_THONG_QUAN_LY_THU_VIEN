@@ -9,7 +9,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 /**
  * Cấu hình WebSocket STOMP thời gian thực
  * Phục vụ đồng bộ tức thời khi Thủ thư quét mã QR bàn giao sách hoặc nhận trả sách tại quầy:
- * - Kênh '/topic/scan-station': Cập nhật trực tiếp lên màn hình Trạm quét tại quầy (TV5 & TV6)
+ * - Kênh '/topic/scan-station': Cập nhật trực tiếp lên màn hình Trạm quét tại quầy
  * - Kênh '/topic/orders': Cập nhật trạng thái đơn mượn/phiếu trả thời gian thực cho Sinh viên & Thủ thư
  */
 @Configuration

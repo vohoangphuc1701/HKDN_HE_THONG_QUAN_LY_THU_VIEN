@@ -65,6 +65,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(OfflineScanException.class)
+    public ResponseEntity<ApiResponse<Object>> handleOfflineScanException(OfflineScanException ex) {
+        ApiResponse<Object> response = ApiResponse.error(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                ex.getMessage() != null ? ex.getMessage() : "Mất kết nối mạng khi quét QR. Dữ liệu đã được lưu vào bộ nhớ đệm ngoại tuyến."
+        );
+        return new ResponseEntity<>(response, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGlobalException(Exception ex) {
         ApiResponse<Object> response = ApiResponse.error(
