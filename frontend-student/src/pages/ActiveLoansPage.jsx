@@ -3,17 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import LoansTableViewPC from '../components/responsive/LoansTableViewPC';
 import LoansCardListMobile from '../components/responsive/LoansCardListMobile';
 import ReturnQrModal from '../components/common/ReturnQrModal';
+import useMediaQuery from '../hooks/useMediaQuery';
 import { Compass, CheckCircle2, X } from 'lucide-react';
 
 /**
  * ActiveLoansPage – Trang quản lý tài liệu đang mượn & Phiếu mượn cho Sinh viên UTH.
- * Responsive:
- *   • Mobile / Tablet (< 1024px)  → LoansCardListMobile (TV2)
- *   • Desktop        (≥ 1024px)   → LoansTableViewPC    (TV3)
- * Không chỉnh sửa: TV3 Desktop, Admin TV6, Backend TV4-TV5.
+ * Responsive bằng useMediaQuery('(min-width: 1024px)') tránh mount trùng lặp 2 view.
  */
 export default function ActiveLoansPage({ onNavigateCatalog, onShowToast }) {
   const navigate = useNavigate();
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const [qrModalOrder, setQrModalOrder] = useState(null);
   const [toastMsg, setToastMsg] = useState('');
 
@@ -96,7 +95,7 @@ export default function ActiveLoansPage({ onNavigateCatalog, onShowToast }) {
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-teal-300" />
-                Gia hạn online: 1 lần (+7 ngày) (BR03)
+                Gia hạn online: 2 lần (+7 ngày) (BR03)
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-teal-300" />
@@ -119,22 +118,17 @@ export default function ActiveLoansPage({ onNavigateCatalog, onShowToast }) {
       </div>
 
       {/* ─── RESPONSIVE: Mobile/Tablet → Card List | Desktop → Table ─── */}
-
-      {/* Mobile & Tablet (< 1024px) → LoansCardListMobile (TV2) */}
-      <div className="block lg:hidden">
-        <LoansCardListMobile
-          onOpenQrModal={(order) => setQrModalOrder(order)}
-          onShowToast={handleShowToast}
-        />
-      </div>
-
-      {/* Desktop (≥ 1024px) → LoansTableViewPC (TV3) */}
-      <div className="hidden lg:block">
+      {isDesktop ? (
         <LoansTableViewPC
           onOpenQrModal={(order) => setQrModalOrder(order)}
           onShowToast={handleShowToast}
         />
-      </div>
+      ) : (
+        <LoansCardListMobile
+          onOpenQrModal={(order) => setQrModalOrder(order)}
+          onShowToast={handleShowToast}
+        />
+      )}
 
       {/* Modal QR tiếp nhận tại quầy (Pick & Go) – dùng chung cả 2 view */}
       <ReturnQrModal

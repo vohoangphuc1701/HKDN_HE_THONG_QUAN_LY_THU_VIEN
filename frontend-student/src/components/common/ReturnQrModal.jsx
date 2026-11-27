@@ -15,6 +15,7 @@ import {
   User,
   X,
 } from 'lucide-react';
+import { getStoredStudentProfile } from '../../utils/studentSession';
 
 /**
  * ReturnQrModal - Modal đa năng hiển thị mã QR cho cả 2 luồng:
@@ -37,6 +38,8 @@ export default function ReturnQrModal({ isOpen = false, onClose, order = null })
 
   const isPickup = activeTab === 'pickup';
 
+  const currentStudent = getStoredStudentProfile();
+
   // Dữ liệu cho tab Nhận sách
   const pickupData = {
     code: order.orderCode || (order.mode !== 'return' ? order.code : 'DH-UTH-2026-089'),
@@ -46,7 +49,11 @@ export default function ReturnQrModal({ isOpen = false, onClose, order = null })
       { title: 'Lập trình Python từ cơ bản đến nâng cao', code: 'CNTT-PY-001' },
       { title: 'Kinh tế học vi mô ứng dụng', code: 'KT-VM-002' },
     ],
-    student: order.student || { name: 'Nguyễn Văn A', id: '2251010089', class: 'CNTT2022' },
+    student: order.student || {
+      name: currentStudent.fullName,
+      id: currentStudent.studentId,
+      class: currentStudent.major,
+    },
   };
 
   // Dữ liệu cho tab Phiếu trả

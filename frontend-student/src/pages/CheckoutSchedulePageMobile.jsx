@@ -63,17 +63,22 @@ const TIME_SLOTS = [
   { id: 'evening', label: 'Buổi Tối', time: '17:30 – 20:00', desc: 'Chỉ áp dụng CS1' },
 ];
 
-/* Lấy ngày tối thiểu hợp lệ (ngày mai) dạng yyyy-mm-dd */
+/* Lấy ngày hôm nay dạng yyyy-mm-dd */
+function getToday() {
+  return new Date().toISOString().split('T')[0];
+}
+
+/* Lấy ngày mặc định hợp lệ (ngày mai) dạng yyyy-mm-dd */
 function getTomorrow() {
   const d = new Date();
   d.setDate(d.getDate() + 1);
   return d.toISOString().split('T')[0];
 }
 
-/* Lấy ngày tối đa hợp lệ (ngày mai + 1 ngày = trong 48h = BR05) */
+/* Lấy ngày tối đa hợp lệ (+7 ngày, đồng bộ PC & BorrowService.java) */
 function getMaxDate() {
   const d = new Date();
-  d.setDate(d.getDate() + 2);
+  d.setDate(d.getDate() + 7);
   return d.toISOString().split('T')[0];
 }
 
@@ -98,6 +103,7 @@ export default function CheckoutSchedulePageMobile({
   const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0].id);
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [confirmedOrder, setConfirmedOrder] = useState(null);
 
   const campusObj = useMemo(
@@ -123,6 +129,7 @@ export default function CheckoutSchedulePageMobile({
       return;
     }
     setIsSubmitting(true);
+    setErrorMessage('');
 
     let generatedCode = '';
     let qrCodeBase64 = null;
@@ -131,32 +138,39 @@ export default function CheckoutSchedulePageMobile({
 
     try {
       if (isReturn) {
-        // Gọi API tạo phiếu hẹn trả sang Backend Spring Boot (TV4)
-        try {
-          const res = await returnApi.createReturnTicket({
-            borrowDetailIds: cartItems.map((b) => Number(b.id || b.borrowDetailId || b.bookId || 1)),
-            scheduledReturnDate: pickupDate,
-          });
-          generatedCode = res?.ticketCode || res?.code || fallbackCode;
-          qrCodeBase64 = res?.qrCodeBase64 || null;
-        } catch {
-          generatedCode = fallbackCode;
-        }
+        const res = await returnApi.createReturnTicket({
+          borrowDetailIds: cartItems.map((b) => Number(b.borrowDetailId || b.id || b.bookId || 1)),
+          scheduledReturnDate: pickupDate,
+        });
+        generatedCode = res?.ticketCode || res?.code || fallbackCode;
+        qrCodeBase64 = res?.qrCodeBase64 || null;
       } else {
-        // Gọi API tạo đơn đặt mượn Pick & Go sang Backend Spring Boot (TV4)
-        try {
-          const res = await borrowApi.createBorrowOrder({
-            bookIds: cartItems.map((b) => Number(b.id || b.bookId || 1)),
-            pickupDate,
-            note: `${campusObj.name} (${slotObj.time}) - ${note.trim()}`,
-          });
-          generatedCode = res?.orderCode || res?.code || fallbackCode;
-          qrCodeBase64 = res?.qrCodeBase64 || null;
-        } catch {
-          generatedCode = fallbackCode;
+        // Kiểm tra quy định BR01 (nợ phạt UNPAID hoặc vượt hạn mức 5 cuốn)
+        const eligibility = await borrowApi.checkStudentBorrowEligibility({
+          addingCount: cartItems.length,
+        });
+        if (!eligibility.eligible && eligibility.reason) {
+          setErrorMessage(eligibility.reason);
+          setIsSubmitting(false);
+          if (onShowToast) onShowToast(eligibility.reason);
+          return;
         }
+
+        const res = await borrowApi.createBorrowOrder({
+          bookIds: cartItems.map((b) => Number(b.id || b.bookId || 1)),
+          pickupDate,
+          note: `${campusObj.name} (${slotObj.time})${note.trim() ? ' - ' + note.trim() : ''}`,
+        });
+        generatedCode = res?.orderCode || res?.code || fallbackCode;
+        qrCodeBase64 = res?.qrCodeBase64 || null;
       }
-    } catch {
+    } catch (err) {
+      if (err?.message && !err.message.includes('kết nối đến máy chủ')) {
+        setErrorMessage(err.message);
+        setIsSubmitting(false);
+        if (onShowToast) onShowToast(err.message);
+        return;
+      }
       generatedCode = fallbackCode;
     }
 
@@ -451,7 +465,7 @@ export default function CheckoutSchedulePageMobile({
             <input
               type="date"
               value={pickupDate}
-              min={getTomorrow()}
+              min={getToday()}
               max={!isReturn ? getMaxDate() : undefined}
               onChange={(e) => setPickupDate(e.target.value)}
               required
@@ -460,7 +474,7 @@ export default function CheckoutSchedulePageMobile({
             {!isReturn && (
               <p className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
                 <Info className="w-3 h-3 shrink-0" />
-                Chỉ hẹn được trong vòng 48h (BR05). Hủy tự động nếu không đến lấy.
+                Đặt lịch trong vòng 7 ngày tới; đơn giữ quầy 48h kể từ giờ hẹn (BR05).
               </p>
             )}
           </div>
@@ -547,7 +561,7 @@ export default function CheckoutSchedulePageMobile({
                   • <strong>Bảo lưu đơn (BR05):</strong> Hủy tự động & phục hồi kho sau 48h không đến lấy.
                 </li>
                 <li>
-                  • <strong>Gia hạn (BR03):</strong> Tối đa 1 lần (+7 ngày) trực tuyến trên hệ thống.
+                  • <strong>Gia hạn (BR03):</strong> Tối đa 2 lần (+7 ngày/lần) trực tuyến trên hệ thống.
                 </li>
               </>
             ) : (
@@ -582,6 +596,14 @@ export default function CheckoutSchedulePageMobile({
               <strong className="text-[#00666b]">{bookCount}</strong> tài liệu
             </span>
           </div>
+        )}
+
+        {/* Cảnh báo lỗi nghiệp vụ nếu có */}
+        {errorMessage && (
+          <p className="text-[11px] text-center text-rose-600 font-semibold mb-2 flex items-center justify-center gap-1">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <span>{errorMessage}</span>
+          </p>
         )}
 
         {/* Nút CTA chính */}

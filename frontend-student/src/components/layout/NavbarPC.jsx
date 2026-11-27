@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getStoredStudentProfile, clearAuthSession } from '../../utils/studentSession';
 import {
   Search,
   ShoppingBag,
@@ -29,6 +30,7 @@ const NavbarPC = ({
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const navigate = useNavigate();
+  const studentProfile = getStoredStudentProfile();
 
   const notifRef = useRef(null);
   const profileRef = useRef(null);
@@ -342,14 +344,14 @@ const NavbarPC = ({
               aria-label="Tài khoản sinh viên UTH"
             >
               <div className="w-7 h-7 bg-white text-[#00666B] rounded-lg flex items-center justify-center font-heading font-extrabold text-xs shrink-0 shadow-xs">
-                VA
+                {studentProfile.initials}
               </div>
               <div className="hidden xl:flex flex-col text-left leading-none">
                 <span className="text-xs font-bold text-white truncate max-w-[120px]">
-                  Nguyễn Văn A
+                  {studentProfile.fullName}
                 </span>
                 <span className="text-[10px] text-teal-200 font-mono mt-0.5">
-                  2151053001
+                  {studentProfile.studentId}
                 </span>
               </div>
               <ChevronDown className={`w-3.5 h-3.5 text-teal-200 shrink-0 transition-transform duration-200 ${showProfile ? 'rotate-180' : ''}`} />
@@ -362,19 +364,19 @@ const NavbarPC = ({
                 <div className="p-4 bg-gradient-to-br from-slate-50 to-teal-50/50">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00666B] to-[#00474b] text-white flex items-center justify-center font-heading font-extrabold text-base shadow-sm shrink-0 ring-2 ring-white">
-                      VA
+                      {studentProfile.initials}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-1">
                         <h4 className="text-sm sm:text-base font-bold text-slate-900 truncate">
-                          Nguyễn Văn A
+                          {studentProfile.fullName}
                         </h4>
                         <span className="text-xs font-mono font-bold text-teal-800 bg-teal-100/90 px-2 py-0.5 rounded shrink-0">
-                          2151053001
+                          {studentProfile.studentId}
                         </span>
                       </div>
                       <p className="text-xs text-slate-600 truncate mt-0.5 font-medium">
-                        Khoa Công nghệ Thông tin · UTH
+                        {studentProfile.major}
                       </p>
                       <div className="mt-2 flex items-center gap-2">
                         <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md">
@@ -453,6 +455,7 @@ const NavbarPC = ({
                     type="button"
                     onClick={() => {
                       setShowProfile(false);
+                      clearAuthSession();
                       navigate('/login');
                     }}
                     className="w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer text-left"

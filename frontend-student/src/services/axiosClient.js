@@ -9,7 +9,7 @@ import axios from 'axios';
  * - Xử lý tập trung các lỗi HTTP phổ biến (401 Hết hạn phiên, 403, 500)
  */
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

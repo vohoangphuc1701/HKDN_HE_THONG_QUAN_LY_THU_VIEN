@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import authApi from '../../services/authApi';
 import {
   BookOpen,
   ArrowLeft,
@@ -107,8 +108,8 @@ export default function AuthPage({ initialMode = 'login', onAuthSuccess }) {
 
   const pwdStrength = calculatePasswordStrength(regPassword);
 
-  // Xử lý nộp form Đăng nhập
-  const handleLoginSubmit = (e) => {
+  // Xử lý nộp form Đăng nhập (kết nối /api/auth/login + fallback demo khi offline)
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -122,24 +123,36 @@ export default function AuthPage({ initialMode = 'login', onAuthSuccess }) {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      const res = await authApi.login({
+        username: loginIdentifier.trim(),
+        password: loginPassword,
+      });
       setIsSubmitting(false);
-      showToast('Đăng nhập thành công! Đang chuyển đến thư viện...');
+      const user = res?.user || {};
+      showToast(
+        res?.isOfflineDemo
+          ? 'Đăng nhập chế độ demo (Backend đang offline)...'
+          : 'Đăng nhập thành công! Đang chuyển đến thư viện...'
+      );
       if (onAuthSuccess) {
         onAuthSuccess({
-          name: 'Nguyễn Văn A',
-          studentId: loginIdentifier,
-          email: `${loginIdentifier}@ut.edu.vn`
+          name: user.fullName || user.name || 'Nguyễn Văn A',
+          studentId: user.studentId || user.username || loginIdentifier,
+          email: user.email || `${loginIdentifier}@ut.edu.vn`,
         });
       }
       setTimeout(() => {
         navigate('/');
-      }, 700);
-    }, 600);
+      }, 500);
+    } catch (err) {
+      setIsSubmitting(false);
+      setErrorMsg(err?.message || 'Tên đăng nhập hoặc mật khẩu không chính xác.');
+    }
   };
 
-  // Xử lý nộp form Đăng ký
-  const handleRegisterSubmit = (e) => {
+  // Xử lý nộp form Đăng ký (kết nối /api/auth/register + fallback demo khi offline)
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -165,13 +178,22 @@ export default function AuthPage({ initialMode = 'login', onAuthSuccess }) {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      await authApi.register({
+        username: regStudentId.trim(),
+        password: regPassword,
+        fullName: regFullName.trim(),
+        email: regEmail.trim(),
+      });
       setIsSubmitting(false);
       showToast('Tạo tài khoản thư viện thành công! Hãy đăng nhập để bắt đầu.');
       switchMode('login');
       setLoginIdentifier(regStudentId);
       setLoginPassword(regPassword);
-    }, 700);
+    } catch (err) {
+      setIsSubmitting(false);
+      setErrorMsg(err?.message || 'Không thể đăng ký tài khoản. Vui lòng kiểm tra lại thông tin.');
+    }
   };
 
   // Điền nhanh thông tin sinh viên mẫu để trải nghiệm

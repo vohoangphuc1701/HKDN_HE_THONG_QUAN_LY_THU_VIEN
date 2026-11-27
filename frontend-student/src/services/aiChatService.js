@@ -44,7 +44,7 @@ HƯỚNG DẪN BỔ SUNG:
 - Khi sinh viên hỏi về một ngành học hoặc chủ đề chung (ví dụ: 'sách kinh tế', 'sách cntt', 'sách logistics'), hãy tra cứu danh mục sách UTH ở trên, liệt kê đầy đủ từng cuốn sách phù hợp (gồm: Tên sách, Tác giả, Mã sách, Vị trí kệ và Số lượng còn sẵn).
 - Khi sinh viên hỏi về một cuốn sách cụ thể, nếu có trong danh sách trên, hãy trích dẫn đúng Tên, Tác giả, Vị trí kệ và số lượng còn sẵn.
 - Luôn hoàn thành trọn vẹn câu trả lời, không dừng lửng giữa chừng.
-- Nếu sinh viên hỏi về mượn sách, hãy nhắc đến quy tắc BR01 (tối đa 5 cuốn), BR02 (14 ngày), BR03 (gia hạn 1 lần +7 ngày tại /loans), BR04 (phạt trễ 5.000đ/ngày/cuốn).
+- Nếu sinh viên hỏi về mượn sách, hãy nhắc đến quy tắc BR01 (tối đa 5 cuốn), BR02 (14 ngày), BR03 (gia hạn tối đa 2 lần, mỗi lần +7 ngày tại /loans), BR04 (phạt trễ 5.000đ/ngày/cuốn).
 - Hướng dẫn sinh viên dùng phím tắt Ctrl+K để tra cứu toàn bộ kho sách.
 `.trim();
 }

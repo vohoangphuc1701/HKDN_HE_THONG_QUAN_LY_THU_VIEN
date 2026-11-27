@@ -45,7 +45,7 @@ export const FAQ_DATA = [
     answer: `📚 **Quy định mượn sách Thư viện UTH:**
 - **Hạn mức mượn (BR01):** Tối đa **5 cuốn sách** cùng lúc.
 - **Thời hạn mượn (BR02):** **14 ngày** kể từ ngày nhận sách tại quầy.
-- **Gia hạn (BR03):** Được gia hạn trực tuyến **1 lần (+7 ngày)** nếu sách chưa quá hạn.
+- **Gia hạn (BR03):** Được gia hạn trực tuyến tối đa **2 lần (+7 ngày/lần)** nếu sách chưa quá hạn.
 - **Lưu ý:** Sinh viên có khoản phạt chưa thanh toán (\`UNPAID\`) sẽ bị khóa quyền mượn sách mới.`,
   },
   {
@@ -68,7 +68,7 @@ export const FAQ_DATA = [
 3. Hệ thống sẽ cộng thêm **7 ngày** vào hạn trả của bạn.
 
 ⚠️ **Lưu ý:**
-- Mỗi cuốn sách chỉ được gia hạn **tối đa 1 lần**.
+- Mỗi cuốn sách chỉ được gia hạn trực tuyến **tối đa 2 lần**.
 - Chỉ gia hạn được khi sách **chưa quá hạn**. Nếu sách đã quá hạn (\`OVERDUE\`), bạn cần mang đến quầy để trả và thanh toán phạt.`,
   },
   {

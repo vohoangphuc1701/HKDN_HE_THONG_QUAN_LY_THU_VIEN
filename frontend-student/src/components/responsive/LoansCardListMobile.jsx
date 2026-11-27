@@ -17,7 +17,8 @@ import {
   X,
 } from 'lucide-react';
 import { borrowApi } from '../../services/borrowApi';
-import { returnApi } from '../../services/returnApi';
+import { returnApi, MAX_RENEWALS_ALLOWED } from '../../services/returnApi';
+import { mapLoanFromApi } from '../../utils/studentSession';
 import LoanCardSkeleton from './LoanCardSkeleton';
 
 /**
@@ -168,15 +169,15 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
     if (onShowToast) onShowToast(msg);
   };
 
-  // ── Kết nối API động + Fallback mượt mà ──────────────────────────────────
+  // Kết nối API động + Fallback mượt mà
   useEffect(() => {
     let cancelled = false;
     borrowApi
       .getMyLoans()
       .then((data) => {
         if (cancelled) return;
-        // Backend bật + có data thật → dùng data thật; nếu rỗng → fallback INITIAL_LOANS
-        setLoans(Array.isArray(data) && data.length > 0 ? data : INITIAL_LOANS);
+        const mapped = Array.isArray(data) ? data.map(mapLoanFromApi).filter(Boolean) : [];
+        setLoans(mapped.length > 0 ? mapped : INITIAL_LOANS);
         setIsLoading(false);
       })
       .catch(() => {
@@ -215,13 +216,16 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
     });
   }, [loans, statusFilter, searchQuery]);
 
-  const buildRenewedLoan = (item) => {
+  const buildRenewedLoan = (item, apiRes) => {
     const nextDaysLeft = item.daysLeft + 7;
+    const nextRenewCount = apiRes?.renewalCount ?? (item.renewCount || 0) + 1;
     return {
       ...item,
-      renewCount: 1,
+      renewCount: nextRenewCount,
       daysLeft: nextDaysLeft,
-      dueDate: '18/11/2026',
+      dueDate: apiRes?.newDueDate
+        ? String(apiRes.newDueDate).split('-').reverse().join('/')
+        : '18/11/2026',
       totalDurationDays: item.totalDurationDays + 7,
       status: nextDaysLeft <= 3 ? 'WARNING' : 'NORMAL',
     };
@@ -235,19 +239,23 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
       notify('Không thể gia hạn: Tài liệu đã quá hạn trả theo quy định BR03!');
       return;
     }
-    if (target.renewCount >= 1) {
-      notify('Cuốn sách này đã sử dụng hết 1 lần gia hạn trực tuyến!');
+    if (target.renewCount >= MAX_RENEWALS_ALLOWED) {
+      notify(`Cuốn sách này đã sử dụng hết ${MAX_RENEWALS_ALLOWED} lần gia hạn trực tuyến!`);
       return;
     }
 
     // Thử gọi API gia hạn sang Backend Spring Boot (TV4)
+    let apiRes = null;
     try {
-      await returnApi.renewBook(target.id);
-    } catch {
-      // Tự động fallback cập nhật dữ liệu phía client khi offline / backend đang phát triển
+      apiRes = await returnApi.renewBook(target.borrowDetailId || target.id);
+    } catch (err) {
+      if (err?.message && !err.message.includes('kết nối đến máy chủ')) {
+        notify(err.message);
+        return;
+      }
     }
 
-    const updatedItem = buildRenewedLoan(target);
+    const updatedItem = buildRenewedLoan(target, apiRes);
     setLoans((prev) => prev.map((item) => (item.id === loanId ? updatedItem : item)));
     if (selectedDetailLoan?.id === loanId) {
       setSelectedDetailLoan(updatedItem);
@@ -258,7 +266,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
   const handleBatchRenew = async () => {
     const eligibleIds = selectedBookIds.filter((id) => {
       const target = loans.find((l) => l.id === id);
-      return target && target.renewCount === 0 && target.status !== 'OVERDUE';
+      return target && target.renewCount < MAX_RENEWALS_ALLOWED && target.status !== 'OVERDUE';
     });
 
     if (eligibleIds.length === 0) {
@@ -554,7 +562,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
           {filteredLoans.map((loan) => {
             const badge = STATUS_BADGE_MAP[loan.status] || STATUS_BADGE_MAP.NORMAL;
             const isSelected = selectedBookIds.includes(loan.id);
-            const canRenew = loan.status !== 'OVERDUE' && loan.renewCount === 0;
+            const canRenew = loan.status !== 'OVERDUE' && loan.renewCount < MAX_RENEWALS_ALLOWED;
             const progressPct = Math.min(
               100,
               Math.max(8, Math.round((loan.elapsedDays / loan.totalDurationDays) * 100))
@@ -643,7 +651,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
                   </div>
                   <div className="flex items-center justify-between text-[10px] text-slate-400">
                     <span>Mượn ngày {loan.borrowDate}</span>
-                    <span>Gia hạn: {loan.renewCount}/1 lần</span>
+                    <span>Gia hạn: {loan.renewCount}/{MAX_RENEWALS_ALLOWED} lần</span>
                   </div>
                 </div>
 
@@ -680,7 +688,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
                     <span className="truncate">
                       {loan.status === 'OVERDUE'
                         ? 'Khóa'
-                        : loan.renewCount >= 1
+                        : loan.renewCount >= MAX_RENEWALS_ALLOWED
                         ? 'Đã hạn'
                         : 'Gia hạn'}
                     </span>
@@ -805,9 +813,9 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
               <button
                 type="button"
                 onClick={() => handleRenew(selectedDetailLoan.id)}
-                disabled={selectedDetailLoan.status === 'OVERDUE' || selectedDetailLoan.renewCount >= 1}
+                disabled={selectedDetailLoan.status === 'OVERDUE' || selectedDetailLoan.renewCount >= MAX_RENEWALS_ALLOWED}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-bold ${
-                  selectedDetailLoan.status !== 'OVERDUE' && selectedDetailLoan.renewCount === 0
+                  selectedDetailLoan.status !== 'OVERDUE' && selectedDetailLoan.renewCount < MAX_RENEWALS_ALLOWED
                     ? 'bg-[#00666b] text-white cursor-pointer'
                     : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                 }`}

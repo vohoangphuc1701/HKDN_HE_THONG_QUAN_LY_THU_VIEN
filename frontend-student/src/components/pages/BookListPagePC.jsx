@@ -183,13 +183,20 @@ export default function BookListPage({
         sortDir: sortBy === 'title' ? 'asc' : 'desc',
       })
       .then((res) => {
-        if (active && res && Array.isArray(res.content)) {
+        if (active && res && Array.isArray(res.content) && !res.isFallback) {
           setLiveBooks(res.content);
           setLiveTotalElements(res.totalElements);
+        } else if (active) {
+          setLiveBooks(null);
+          setLiveTotalElements(null);
         }
       })
       .catch((err) => {
         console.warn('[BookListPage] API connection notice, using local books:', err.message);
+        if (active) {
+          setLiveBooks(null);
+          setLiveTotalElements(null);
+        }
       })
       .finally(() => {
         if (active) setIsLoadingApi(false);
@@ -230,7 +237,8 @@ export default function BookListPage({
         const matchCategory = selectedCategory === 'ALL' || book.category === selectedCategory;
         const matchType = selectedType === 'ALL' || book.type === selectedType;
         const matchAvailable = !onlyAvailable || (book.availableQuantity || 0) > 0;
-        const matchCampus = selectedCampus === 'ALL' || book.campusCode === selectedCampus;
+        const bookCampus = book.campusCode || book.campus || 'CS1';
+        const matchCampus = selectedCampus === 'ALL' || bookCampus === selectedCampus;
 
         const matchQuery = !rawQuery || book._isMatched;
 
@@ -473,7 +481,7 @@ export default function BookListPage({
 
               {selectedType !== 'ALL' && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-lg border border-teal-200 text-slate-800 font-medium shadow-2xs">
-                  <span>Loại: <strong>{selectedType === 'PRINT' ? 'Sách in tại quầy' : 'E-Book / Số'}</strong></span>
+                  <span>Loại: <strong>{selectedType === 'PRINT' ? 'Sách in tại quầy' : selectedType === 'EBOOK' ? 'E-Book / Số' : selectedType}</strong></span>
                   <button
                     type="button"
                     onClick={() => setSelectedType('ALL')}

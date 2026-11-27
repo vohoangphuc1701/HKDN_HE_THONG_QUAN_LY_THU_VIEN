@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   BookOpen,
@@ -13,6 +13,9 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
+import { borrowApi } from '../services/borrowApi';
+import { mapOrderHistoryFromApi } from '../utils/studentSession';
+import LoanCardSkeleton from '../components/responsive/LoanCardSkeleton';
 
 /**
  * LoanHistoryPage - Trang Lịch sử mượn trả & Đối soát tiền phạt cho Mobile/Tablet (TV2)
@@ -116,30 +119,54 @@ const HISTORY_BADGE_MAP = {
 };
 
 export default function LoanHistoryPage({ onBorrowAgain, onShowToast }) {
+  const [history, setHistory] = useState(INITIAL_HISTORY);
+  const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const summary = useMemo(() => {
-    const total = INITIAL_HISTORY.length;
-    const onTime = INITIAL_HISTORY.filter((h) => h.status === 'ON_TIME').length;
-    const late = INITIAL_HISTORY.filter((h) => h.status === 'LATE').length;
-    const totalFine = INITIAL_HISTORY.reduce((sum, h) => sum + (h.fineAmount || 0), 0);
-    return { total, onTime, late, totalFine };
+  // Kết nối API động borrowApi.getMyOrders() + Fallback mượt mà
+  useEffect(() => {
+    let cancelled = false;
+    borrowApi
+      .getMyOrders()
+      .then((data) => {
+        if (cancelled) return;
+        const mapped = Array.isArray(data) ? data.map(mapOrderHistoryFromApi).filter(Boolean) : [];
+        setHistory(mapped.length > 0 ? mapped : INITIAL_HISTORY);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setHistory(INITIAL_HISTORY);
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const summary = useMemo(() => {
+    const total = history.length;
+    const onTime = history.filter((h) => h.status === 'ON_TIME').length;
+    const late = history.filter((h) => h.status === 'LATE').length;
+    const totalFine = history.reduce((sum, h) => sum + (h.fineAmount || 0), 0);
+    return { total, onTime, late, totalFine };
+  }, [history]);
 
   const filteredHistory = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    return INITIAL_HISTORY.filter((item) => {
+    return history.filter((item) => {
       const matchStatus = statusFilter === 'ALL' || item.status === statusFilter;
       const matchQuery =
         !query ||
-        item.title.toLowerCase().includes(query) ||
-        item.code.toLowerCase().includes(query) ||
-        item.orderCode.toLowerCase().includes(query) ||
-        item.author.toLowerCase().includes(query);
+        item.title?.toLowerCase().includes(query) ||
+        item.code?.toLowerCase().includes(query) ||
+        item.orderCode?.toLowerCase().includes(query) ||
+        item.author?.toLowerCase().includes(query);
       return matchStatus && matchQuery;
     });
-  }, [statusFilter, searchQuery]);
+  }, [history, statusFilter, searchQuery]);
 
   const handleBorrowAgain = (item) => {
     if (onBorrowAgain) {
@@ -240,8 +267,8 @@ export default function LoanHistoryPage({ onBorrowAgain, onShowToast }) {
           {HISTORY_FILTERS.map((filter) => {
             const count =
               filter.id === 'ALL'
-                ? INITIAL_HISTORY.length
-                : INITIAL_HISTORY.filter((h) => h.status === filter.id).length;
+                ? history.length
+                : history.filter((h) => h.status === filter.id).length;
             const isActive = statusFilter === filter.id;
             return (
               <button
@@ -262,7 +289,13 @@ export default function LoanHistoryPage({ onBorrowAgain, onShowToast }) {
       </div>
 
       {/* Danh sách thẻ lịch sử (1 cột Mobile, 2 cột Tablet) */}
-      {filteredHistory.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <LoanCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : filteredHistory.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-2">
           <BookOpen className="w-8 h-8 text-slate-300 mx-auto" />
           <p className="text-xs font-semibold text-slate-700">Chưa có bản ghi lịch sử phù hợp.</p>

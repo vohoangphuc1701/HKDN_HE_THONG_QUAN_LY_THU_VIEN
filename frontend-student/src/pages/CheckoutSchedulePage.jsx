@@ -1,25 +1,18 @@
 import React from 'react';
 import CheckoutSchedulePagePC from './CheckoutSchedulePagePC';
 import CheckoutSchedulePageMobile from './CheckoutSchedulePageMobile';
+import useMediaQuery from '../hooks/useMediaQuery';
 
 /**
  * CheckoutSchedulePage - Màn hình Xác nhận Đơn mượn & Đặt lịch hẹn Pick & Go Thư viện UTH
- * - Tự động hiển thị CheckoutSchedulePagePC trên màn hình máy tính & tablet (Desktop md >= 768px - TV3)
- * - Tự động hiển thị CheckoutSchedulePageMobile trên điện thoại (Mobile < 768px - TV2)
+ * Dùng useMediaQuery('(min-width: 768px)') để chỉ mount đúng 1 giao diện Mobile (TV2) hoặc PC (TV3).
  */
 export default function CheckoutSchedulePage(props) {
-  if (props.mode) {
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+
+  if (props.mode || !isDesktop) {
     return <CheckoutSchedulePageMobile {...props} />;
   }
 
-  return (
-    <>
-      <div className="md:hidden">
-        <CheckoutSchedulePageMobile {...props} />
-      </div>
-      <div className="hidden md:block">
-        <CheckoutSchedulePagePC {...props} />
-      </div>
-    </>
-  );
+  return <CheckoutSchedulePagePC {...props} />;
 }

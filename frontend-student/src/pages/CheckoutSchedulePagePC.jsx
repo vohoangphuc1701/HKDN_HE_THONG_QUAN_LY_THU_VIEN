@@ -27,7 +27,7 @@ import borrowApi from '../services/borrowApi';
  * Tuân thủ đầy đủ các quy tắc nghiệp vụ BR01 - BR08 của Thư viện UTH:
  * - BR01: Quản lý hạn mức tối đa 5 cuốn / sinh viên. Chặn nếu có nợ phạt.
  * - BR02: Thời hạn mượn mặc định 14 ngày kể từ khi nhận sách tại quầy.
- * - BR03: Quy định gia hạn online 1 lần (+7 ngày).
+ * - BR03: Quy định gia hạn online tối đa 2 lần (+7 ngày/lần).
  * - BR04: Minh bạch tiền phạt 5.000 VNĐ / ngày / cuốn nếu trễ hạn.
  * - BR05: Cảnh báo thời gian giữ sách tối đa 48 giờ tại quầy trước khi tự động hủy.
  * - Bảng tóm tắt tài liệu, chọn 3 cơ sở đào tạo UTH, chọn ngày & khung giờ hẹn nhận, và xuất mã QR.

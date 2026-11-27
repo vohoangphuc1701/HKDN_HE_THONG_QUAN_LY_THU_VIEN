@@ -15,6 +15,12 @@ import { matchBookSmart } from './aiSearchService';
 // Hàm chuẩn hóa dữ liệu đầu sách từ Backend sang giao diện UI
 export const normalizeBook = (book) => {
   if (!book) return null;
+  const shelfLoc = book.shelfLocation || 'CS1_A1_01';
+  const inferredCampus =
+    book.campusCode ||
+    book.campus ||
+    (typeof shelfLoc === 'string' && shelfLoc.startsWith('CS') ? shelfLoc.slice(0, 3) : 'CS1');
+
   return {
     id: book.id,
     title: book.title || 'Chưa có tiêu đề',
@@ -23,18 +29,22 @@ export const normalizeBook = (book) => {
     type: book.type || (book.isEbook ? 'EBOOK' : 'PRINT'),
     code: book.documentCode || book.code || `UTH-BK-${book.id}`,
     documentCode: book.documentCode || book.code || `UTH-BK-${book.id}`,
-    totalQuantity: book.totalQuantity ?? 1,
+    totalQuantity: book.totalQuantity ?? book.quantity ?? 1,
+    quantity: book.quantity ?? book.totalQuantity ?? 1,
     availableQuantity: book.availableQuantity ?? 1,
     coverImage:
       book.coverImage ||
       'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=400',
+    coverTheme: book.coverTheme,
     publishYear: book.publishYear || 2024,
     publisher: book.publisher || 'NXB Đại học Giao thông Vận tải',
-    shelfLocation: book.shelfLocation || 'CS1_A1_01',
+    shelfLocation: shelfLoc,
+    location: book.location || shelfLoc,
     description: book.description || 'Tài liệu giáo trình chính quy phục vụ đào tạo tại Thư viện UTH.',
     borrowCount: book.borrowCount || 0,
-    pageCount: book.pageCount || 250,
-    campus: book.campus || 'CS1',
+    pageCount: book.pageCount || book.pages || 250,
+    campus: inferredCampus,
+    campusCode: inferredCampus,
     isNew: book.isNew ?? (book.publishYear >= 2023),
   };
 };
@@ -95,6 +105,7 @@ export const bookApi = {
           size: data.size ?? size,
           totalElements: data.totalElements ?? data.content.length,
           totalPages: data.totalPages ?? Math.ceil((data.totalElements || data.content.length) / size),
+          isFallback: false,
         };
       }
       
@@ -105,6 +116,7 @@ export const bookApi = {
           size: data.length,
           totalElements: data.length,
           totalPages: 1,
+          isFallback: false,
         };
       }
 
@@ -147,6 +159,7 @@ export const bookApi = {
         size,
         totalElements,
         totalPages,
+        isFallback: true,
       };
     }
   },

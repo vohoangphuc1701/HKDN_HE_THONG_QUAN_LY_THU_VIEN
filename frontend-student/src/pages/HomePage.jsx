@@ -15,6 +15,8 @@ import {
   Zap,
 } from 'lucide-react';
 import BookCard from '../components/common/BookCard';
+import BookCardSkeleton from '../components/common/BookCardSkeleton';
+import { bookApi } from '../services/bookApi';
 import mockPCBooks from '../mockPCBooks.json';
 
 /**
@@ -69,10 +71,34 @@ export default function HomePage({
   onQuickSearch,
   onSelectCategory,
 }) {
+  const [books, setBooks] = useState(mockPCBooks);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [recommendCategory, setRecommendCategory] = useState('ALL');
   const [heroCampus, setHeroCampus] = useState(1);
   const [toastMessage, setToastMessage] = useState('');
+
+  // Kết nối API động bookApi.getBooks() + Fallback mượt mà
+  useEffect(() => {
+    let cancelled = false;
+    bookApi
+      .getBooks({ size: 50 })
+      .then((res) => {
+        if (cancelled) return;
+        const list = res?.content;
+        setBooks(Array.isArray(list) && list.length > 0 ? list : mockPCBooks);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBooks(mockPCBooks);
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -83,38 +109,38 @@ export default function HomePage({
 
   const categories = useMemo(
     () => [
-      { id: 'ALL', label: 'Tất cả tài liệu', count: mockPCBooks.length },
+      { id: 'ALL', label: 'Tất cả tài liệu', count: books.length },
       {
         id: 'CÔNG NGHỆ THÔNG TIN',
         label: 'Công nghệ thông tin',
-        count: mockPCBooks.filter((b) => b.category === 'CÔNG NGHỆ THÔNG TIN').length,
+        count: books.filter((b) => b.category === 'CÔNG NGHỆ THÔNG TIN').length,
       },
       {
         id: 'KINH TẾ',
         label: 'Kinh tế & Quản trị',
-        count: mockPCBooks.filter((b) => b.category === 'KINH TẾ').length,
+        count: books.filter((b) => b.category === 'KINH TẾ').length,
       },
       {
         id: 'LOGISTICS & VẬN TẢI',
         label: 'Logistics & Vận tải',
-        count: mockPCBooks.filter((b) => b.category === 'LOGISTICS & VẬN TẢI').length,
+        count: books.filter((b) => b.category === 'LOGISTICS & VẬN TẢI').length,
       },
       {
         id: 'NGOẠI NGỮ',
         label: 'Ngoại ngữ chuyên ngành',
-        count: mockPCBooks.filter((b) => b.category === 'NGOẠI NGỮ').length,
+        count: books.filter((b) => b.category === 'NGOẠI NGỮ').length,
       },
     ],
-    []
+    [books]
   );
 
   const newBooks = useMemo(
     () =>
-      mockPCBooks
+      books
         .filter((b) => b.isNew || (b.publishYear && b.publishYear >= 2023))
         .sort((a, b) => (b.publishYear || 0) - (a.publishYear || 0))
         .slice(0, 4),
-    []
+    [books]
   );
 
   const featuredBook = newBooks[0];
@@ -122,11 +148,11 @@ export default function HomePage({
 
   const recommendedBooks = useMemo(
     () =>
-      mockPCBooks
+      books
         .filter((b) => recommendCategory === 'ALL' || b.category === recommendCategory)
         .sort((a, b) => (b.borrowCount || 0) - (a.borrowCount || 0))
         .slice(0, 4),
-    [recommendCategory]
+    [books, recommendCategory]
   );
 
   const currentCampus = HERO_CAMPUSES.find((c) => c.id === heroCampus) || HERO_CAMPUSES[0];
@@ -503,15 +529,17 @@ export default function HomePage({
           {/* 3 cuốn sách mới đi kèm */}
           {/* Mobile: 2 thẻ/hàng; ẩn nút "Xem chi tiết" (bấm bìa/tên sách để xem chi tiết) */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 [&_button+button]:hidden">
-            {otherNewBooks.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                onAddToCart={handleAdd}
-                onViewDetail={(item) => handleDetail(item || book)}
-                isInCart={cartItems.some((c) => c.id === book.id)}
-              />
-            ))}
+            {isLoading
+              ? [1, 2, 3].map((i) => <BookCardSkeleton key={i} />)
+              : otherNewBooks.map((book) => (
+                  <BookCard
+                    key={book.id}
+                    book={book}
+                    onAddToCart={handleAdd}
+                    onViewDetail={(item) => handleDetail(item || book)}
+                    isInCart={cartItems.some((c) => c.id === book.id)}
+                  />
+                ))}
           </div>
         </section>
 
@@ -555,15 +583,17 @@ export default function HomePage({
 
           {/* Mobile: 2 thẻ/hàng; ẩn nút "Xem chi tiết" (bấm bìa/tên sách để xem chi tiết) */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 [&_button+button]:hidden">
-            {recommendedBooks.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                onAddToCart={handleAdd}
-                onViewDetail={(item) => handleDetail(item || book)}
-                isInCart={cartItems.some((c) => c.id === book.id)}
-              />
-            ))}
+            {isLoading
+              ? [1, 2, 3, 4].map((i) => <BookCardSkeleton key={i} />)
+              : recommendedBooks.map((book) => (
+                  <BookCard
+                    key={book.id}
+                    book={book}
+                    onAddToCart={handleAdd}
+                    onViewDetail={(item) => handleDetail(item || book)}
+                    isInCart={cartItems.some((c) => c.id === book.id)}
+                  />
+                ))}
           </div>
         </section>
 

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Home, Compass, BookMarked, Clock, User } from 'lucide-react';
+import { getStoredStudentProfile, clearAuthSession } from '../../utils/studentSession';
 
 /**
  * BottomNavMobile - Thanh điều hướng cố định chân trang cho Mobile Web
  * Đồng bộ màu sắc & thành phần theo bản thiết kế Figma FE-PC:
  * - Tone màu chủ đạo: Xanh mòng két #00666b (uth-primary)
  * - 5 nút ngón cái: Trang chủ, Danh mục, Phiếu mượn, Lịch sử, Tài khoản
- * - Ngăn menu trượt Drawer tài khoản sinh viên "Nguyễn Thành Lâm"
+ * - Ngăn menu trượt Drawer tài khoản sinh viên đồng bộ từ localStorage
  * - Hoạt động trơn tru cả trên thiết bị di động thật và chế độ xem trên PC/Laptop
  */
 export default function BottomNavMobile({
@@ -17,14 +18,10 @@ export default function BottomNavMobile({
   isDrawerOpen: controlledDrawerOpen,
   onDrawerOpen,
   onDrawerClose,
-  user = {
-    name: 'Nguyễn Thành Lâm',
-    studentId: '2151050123',
-    email: 'lam.nt@ut.edu.vn',
-    major: 'Công nghệ thông tin',
-    cardStatus: 'Đang hoạt động'
-  }
+  user: propUser,
+  onLogout,
 }) {
+  const user = propUser || getStoredStudentProfile();
   const [internalDrawerOpen, setInternalDrawerOpen] = useState(false);
   
   // Hỗ trợ cả điều khiển từ bên ngoài (controlled) và state nội bộ (uncontrolled)
@@ -210,7 +207,7 @@ export default function BottomNavMobile({
           {/* Card hồ sơ */}
           <div className="flex items-center gap-3 p-3.5 bg-[#eaf3f0] border border-[#d1e5e0] rounded-2xl shadow-sm">
             <div className="w-12 h-12 rounded-full bg-[#00666b] text-white flex items-center justify-center font-bold text-base shadow-sm">
-              NL
+              {user.initials || 'VA'}
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-bold text-slate-900 truncate">{user.name}</h3>
@@ -290,7 +287,15 @@ export default function BottomNavMobile({
           <div className="pt-2">
             <button
               type="button"
-              onClick={() => alert('Đã đăng xuất')}
+              onClick={() => {
+                clearAuthSession();
+                closeDrawer();
+                if (onLogout) {
+                  onLogout();
+                } else {
+                  window.location.href = '/login';
+                }
+              }}
               className="w-full py-2.5 px-4 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 active:bg-rose-100 text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
