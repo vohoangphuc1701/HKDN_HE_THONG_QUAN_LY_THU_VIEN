@@ -157,7 +157,7 @@ export default function OrderWorkflowPage() {
   }
 
   /* Phan loai don vao cac cot Kanban */
-  const pendingOrders = filteredOrders.filter((o) => o.status === 'PENDING')
+  const pendingOrders = filteredOrders.filter((o) => o.status === 'PENDING' || o.status === 'PROCESSING')
   const readyOrders = filteredOrders.filter((o) => o.status === 'READY_FOR_PICKUP')
   const borrowedOrders = filteredOrders.filter((o) => o.status === 'BORROWED')
   const overdueOrReturnedOrders = filteredOrders.filter(
@@ -519,13 +519,37 @@ export default function OrderWorkflowPage() {
 
                           {/* Cac nut hanh dong theo tung giai doan */}
                           {order.status === 'PENDING' && (
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button
+                                type="button"
+                                className="button button--secondary"
+                                style={{ padding: '4px 6px', fontSize: '10px' }}
+                                title="Chuyển sang trạng thái Chờ gom sách"
+                                onClick={() => handleAdvanceStatus(order, 'PROCESSING', 'Chờ gom')}
+                              >
+                                Chờ gom <ArrowRight size={10} />
+                              </button>
+                              <button
+                                type="button"
+                                className="button button--primary"
+                                style={{ padding: '4px 6px', fontSize: '10px' }}
+                                title="Chuyển sang trạng thái Sẵn sàng"
+                                onClick={() => handleAdvanceStatus(order, 'READY_FOR_PICKUP', 'Sẵn sàng')}
+                              >
+                                Soạn xong <Check size={10} />
+                              </button>
+                            </div>
+                          )}
+
+                          {order.status === 'PROCESSING' && (
                             <button
                               type="button"
                               className="button button--primary"
                               style={{ padding: '4px 8px', fontSize: '10px' }}
+                              title="Gom sách xong, chuyển sang Sẵn sàng"
                               onClick={() => handleAdvanceStatus(order, 'READY_FOR_PICKUP', 'Sẵn sàng')}
                             >
-                              Soạn xong <ArrowRight size={12} />
+                              Sẵn sàng <Check size={12} />
                             </button>
                           )}
 
@@ -769,12 +793,31 @@ export default function OrderWorkflowPage() {
               </button>
 
               {selectedOrder.status === 'PENDING' && (
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    type="button"
+                    className="button button--secondary"
+                    onClick={() => handleAdvanceStatus(selectedOrder, 'PROCESSING', 'Chờ gom')}
+                  >
+                    Chuyển Chờ gom
+                  </button>
+                  <button
+                    type="button"
+                    className="button button--primary"
+                    onClick={() => handleAdvanceStatus(selectedOrder, 'READY_FOR_PICKUP', 'Sẵn sàng')}
+                  >
+                    Xác nhận đã soạn xong
+                  </button>
+                </div>
+              )}
+
+              {selectedOrder.status === 'PROCESSING' && (
                 <button
                   type="button"
                   className="button button--primary"
                   onClick={() => handleAdvanceStatus(selectedOrder, 'READY_FOR_PICKUP', 'Sẵn sàng')}
                 >
-                  Xác nhận đã soạn xong
+                  Xác nhận gom xong (Sẵn sàng)
                 </button>
               )}
 

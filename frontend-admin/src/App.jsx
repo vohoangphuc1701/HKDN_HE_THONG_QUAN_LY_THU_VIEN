@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import AdminLayout from './components/AdminLayout'
+import AdminRouteGuard, { RemoteScannerGuard } from './components/AdminRouteGuard'
 
 const DashboardOverviewPage = lazy(() => import('./pages/DashboardOverviewPage'))
 const InventoryManagementPage = lazy(() => import('./pages/InventoryManagementPage'))
