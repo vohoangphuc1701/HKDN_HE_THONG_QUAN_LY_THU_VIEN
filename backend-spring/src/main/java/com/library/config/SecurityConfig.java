@@ -85,18 +85,21 @@ public class SecurityConfig {
                 .requestMatchers("/swagger.json", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
 
-                // 2. Endpoint tra cứu phạt cá nhân cho cả STUDENT và LIBRARIAN
-                .requestMatchers("/api/operations/fines/my-fines").hasAnyRole("STUDENT", "LIBRARIAN")
+                // 2. Endpoint tra cứu phạt cá nhân cho cả STUDENT, LIBRARIAN và ADMIN
+                .requestMatchers("/api/operations/fines/my-fines").hasAnyRole("STUDENT", "LIBRARIAN", "ADMIN")
 
-                // 3. Các Endpoint dành riêng cho Thủ thư / Quản trị (LIBRARIAN)
-                .requestMatchers(HttpMethod.POST, "/api/books/**").hasRole("LIBRARIAN")
-                .requestMatchers(HttpMethod.PUT, "/api/books/**").hasRole("LIBRARIAN")
-                .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasRole("LIBRARIAN")
-                .requestMatchers("/api/admin/**", "/api/dashboard/**", "/api/operations/**").hasRole("LIBRARIAN")
+                // 3. Các Endpoint quản lý Thủ thư & Phân quyền (CHỈ DÀNH RIÊNG CHO ADMIN)
+                .requestMatchers("/api/admin/librarians/**", "/api/admin/users/*/role").hasRole("ADMIN")
 
-                // 4. Các Endpoint nghiệp vụ Mượn / Trả / Tiền phạt (cả STUDENT và LIBRARIAN)
+                // 4. Các Endpoint dành cho Thủ thư và Quản trị viên (LIBRARIAN & ADMIN)
+                .requestMatchers(HttpMethod.POST, "/api/books/**").hasAnyRole("LIBRARIAN", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/books/**").hasAnyRole("LIBRARIAN", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasAnyRole("LIBRARIAN", "ADMIN")
+                .requestMatchers("/api/admin/**", "/api/dashboard/**", "/api/operations/**").hasAnyRole("LIBRARIAN", "ADMIN")
+
+                // 5. Các Endpoint nghiệp vụ Mượn / Trả / Tiền phạt (STUDENT, LIBRARIAN và ADMIN)
                 .requestMatchers("/api/borrows/**", "/api/returns/**", "/api/fines/**", "/api/users/**")
-                    .hasAnyRole("STUDENT", "LIBRARIAN")
+                    .hasAnyRole("STUDENT", "LIBRARIAN", "ADMIN")
 
                 // 4. Tất cả request còn lại yêu cầu đã đăng nhập
                 .anyRequest().authenticated()

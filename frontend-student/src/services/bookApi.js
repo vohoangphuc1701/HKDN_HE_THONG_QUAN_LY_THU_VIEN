@@ -1,5 +1,6 @@
 import axiosClient from './axiosClient';
 import mockPCBooks from '../mockPCBooks.json';
+import { matchBookSmart } from './aiSearchService';
 
 /**
  * Service API Kho Sách & Giáo Trình Học Thuật UTH (TV3 - Desktop & Mobile)
@@ -115,14 +116,7 @@ export const bookApi = {
       let filtered = [...mockPCBooks];
 
       if (effectiveSearch) {
-        const kw = effectiveSearch.toLowerCase();
-        filtered = filtered.filter(
-          (b) =>
-            b.title?.toLowerCase().includes(kw) ||
-            b.author?.toLowerCase().includes(kw) ||
-            b.code?.toLowerCase().includes(kw) ||
-            b.documentCode?.toLowerCase().includes(kw)
-        );
+        filtered = filtered.filter((b) => matchBookSmart(b, effectiveSearch).matched);
       }
 
       if (category && category !== 'ALL') {

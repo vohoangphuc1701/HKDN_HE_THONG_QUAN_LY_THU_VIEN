@@ -18,10 +18,7 @@ import {
   Phone,
   Building,
   User,
-  Check,
   Sparkles,
-  Download,
-  Share2
 } from 'lucide-react';
 import borrowApi from '../services/borrowApi';
 
@@ -57,7 +54,6 @@ export default function CheckoutSchedulePagePC({
   const [pickupTimeSlot, setPickupTimeSlot] = useState('morning');
   const [studentNote, setStudentNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [confirmedOrder, setConfirmedOrder] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
   // Danh mục 3 Cơ sở đào tạo UTH
@@ -65,34 +61,31 @@ export default function CheckoutSchedulePagePC({
     {
       id: 'CS1',
       code: 'CS1',
-      name: 'Cơ sở 1 (Trụ sở chính)',
+      name: 'Cơ sở 1',
       address: 'Số 2 Võ Oanh, Phường 25, Quận Bình Thạnh, TP.HCM',
       counter: 'Quầy tiếp nhận Pick & Go · Tầng trệt Tòa H1',
       hours: '07:30 – 20:30 (Thứ 2 – Thứ 7)',
       phone: '(028) 3899 2862 - Nhánh 104',
-      badge: 'Trụ sở chính',
       allowsEvening: true,
     },
     {
       id: 'CS2',
       code: 'CS2',
-      name: 'Cơ sở 2 (Khuôn viên Kỹ thuật)',
+      name: 'Cơ sở 2',
       address: 'Số 10 Đường 12, P. An Khánh, TP. Thủ Đức, TP.HCM',
       counter: 'Quầy Giáo trình & Tài liệu Kỹ thuật · Tòa D',
       hours: '07:30 – 17:00 (Thứ 2 – Thứ 6)',
       phone: '(028) 3899 2862 - Nhánh 106',
-      badge: 'Khoa Kỹ thuật',
       allowsEvening: false,
     },
     {
       id: 'CS3',
       code: 'CS3',
-      name: 'Cơ sở 3 (CNTT & Kinh tế số)',
+      name: 'Cơ sở 3',
       address: 'Số 70 Tô Ký, P. Trung Mỹ Tây, Quận 12, TP.HCM',
       counter: 'Phòng đọc số & Bàn giao tài liệu · Tòa đa năng',
       hours: '07:30 – 17:00 (Thứ 2 – Thứ 7)',
       phone: '(028) 3899 2862 - Nhánh 108',
-      badge: 'Khoa CNTT & KT',
       allowsEvening: false,
     },
   ];
@@ -132,12 +125,6 @@ export default function CheckoutSchedulePagePC({
     d.setDate(d.getDate() + 7);
     return d.toISOString().split('T')[0];
   })();
-
-  const setQuickDate = (offsetDays) => {
-    const d = new Date();
-    d.setDate(d.getDate() + offsetDays);
-    setPickupDate(d.toISOString().split('T')[0]);
-  };
 
   // Xử lý xác nhận đặt mượn
   const handleConfirmOrder = async (e) => {
@@ -185,183 +172,21 @@ export default function CheckoutSchedulePagePC({
       };
 
       setIsSubmitting(false);
-      setConfirmedOrder(newOrder);
 
       if (onCheckoutSuccess) {
         onCheckoutSuccess(newOrder);
+      }
+      if (onOpenQrModal) {
+        onOpenQrModal(newOrder);
+      }
+      if (onBackToCatalog) {
+        onBackToCatalog();
       }
     } catch (error) {
       setIsSubmitting(false);
       setErrorMessage(error?.message || 'Không thể tạo đơn đặt mượn sách. Vui lòng kiểm tra lại!');
     }
   };
-
-  /* ==================== TRƯỜNG HỢP 1: ĐÃ XÁC NHẬN THÀNH CÔNG VÀ XUẤT MÃ QR ==================== */
-  if (confirmedOrder) {
-    return (
-      <div className="max-w-4xl mx-auto space-y-8 py-6 select-none animate-in fade-in zoom-in-95 duration-300">
-        {/* Banner Chúc mừng & Mã đơn */}
-        <div className="bg-gradient-to-br from-[#00383b] via-[#00474b] to-[#00282b] text-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-teal-700/60 relative overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-80 h-80 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-400 text-slate-950 flex items-center justify-center font-black shadow-lg shrink-0">
-              <Check className="w-9 h-9 stroke-[3]" />
-            </div>
-            <div className="space-y-2 flex-1">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Đặt mượn thành công trên hệ thống UTH</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-black font-heading text-white">
-                Đơn Mượn Pick &amp; Go: <span className="text-amber-300 font-mono">{confirmedOrder.code}</span>
-              </h1>
-              <p className="text-sm text-teal-100 max-w-2xl leading-relaxed">
-                Thủ thư tại <strong>{confirmedOrder.pickupCampus}</strong> đang tiến hành gom sách vào khay chờ. Bạn chỉ cần mở mã QR này tại quầy tiếp nhận để hoàn tất thủ tục trong dưới 30 giây!
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Khối Thẻ QR Code & Hướng dẫn nhận sách */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-          {/* Cột trái: Mã QR Code để quét tại quầy */}
-          <div className="md:col-span-5 bg-white rounded-3xl border-2 border-slate-200/90 p-6 shadow-md text-center space-y-4">
-            <div className="p-2 bg-gradient-to-b from-teal-50 to-emerald-50/40 rounded-2xl border border-teal-100 inline-block">
-              {/* Giả lập khung QR Code UTH độ tương phản cao */}
-              <div className="w-56 h-56 mx-auto bg-white p-3 rounded-xl border border-slate-300 shadow-inner flex flex-col items-center justify-center relative">
-                {/* SVG QR Code minh họa thực tế */}
-                <div className="w-48 h-48 bg-slate-950 rounded-lg p-2.5 flex items-center justify-center relative">
-                  <div className="absolute inset-2 bg-white rounded flex items-center justify-center p-2">
-                    <div className="w-full h-full border-4 border-slate-900 flex flex-col justify-between p-1.5 relative">
-                      <div className="flex justify-between">
-                        <div className="w-8 h-8 bg-slate-900 rounded-sm" />
-                        <div className="w-8 h-8 bg-slate-900 rounded-sm" />
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <div className="w-7 h-7 rounded-md bg-[#00666B] text-white flex items-center justify-center font-black text-[9px]">
-                          UTH
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-end">
-                        <div className="w-8 h-8 bg-slate-900 rounded-sm" />
-                        <div className="w-10 h-3 bg-slate-900 rounded-xs" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <span className="text-xs font-mono font-bold text-slate-500 block">Mã xác thực đơn</span>
-              <strong className="text-base font-black text-slate-900 font-mono tracking-wider">{confirmedOrder.code}</strong>
-            </div>
-
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-left space-y-1">
-              <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                <span>Quy định giữ chỗ 48h (BR05)</span>
-              </span>
-              <p className="text-[11px] text-amber-800/90 leading-relaxed">
-                Đơn hàng được giữ tại quầy tối đa <strong>48 giờ</strong>. Sau thời gian này, sách sẽ được tự động hoàn về kho để phục vụ bạn đọc khác.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-center gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>In phiếu nhận</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (onOpenQrModal) onOpenQrModal(confirmedOrder);
-                }}
-                className="flex-1 py-2.5 px-3 bg-[#00666B] hover:bg-[#005458] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
-              >
-                <QrCode className="w-3.5 h-3.5" />
-                <span>Xem toàn màn hình</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Cột phải: Chi tiết phiếu hẹn & Danh mục tài liệu */}
-          <div className="md:col-span-7 space-y-5">
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm space-y-4">
-              <h3 className="font-heading font-black text-base text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#00666B]" />
-                <span>Thông Tin Lịch Hẹn Đã Xác Nhận</span>
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div>
-                  <span className="text-slate-500 font-medium block">Cơ sở bàn giao:</span>
-                  <strong className="text-slate-800 text-sm font-bold block mt-0.5">{confirmedOrder.pickupCampus}</strong>
-                  <span className="text-slate-500 text-[11px] block mt-0.5">{confirmedOrder.pickupAddress}</span>
-                </div>
-
-                <div>
-                  <span className="text-slate-500 font-medium block">Thời gian hẹn lấy:</span>
-                  <strong className="text-emerald-700 text-sm font-bold block mt-0.5">{confirmedOrder.pickupDate}</strong>
-                  <span className="text-slate-500 text-[11px] block mt-0.5">Thời hạn mượn: 14 ngày (BR02)</span>
-                </div>
-
-                <div className="sm:col-span-2 pt-2 border-t border-slate-100">
-                  <span className="text-slate-500 font-medium block">Vị trí quầy bàn giao:</span>
-                  <p className="text-slate-800 font-semibold mt-0.5 text-xs">{confirmedOrder.pickupCounter}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Danh mục sách trong đơn */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm space-y-3">
-              <h4 className="font-heading font-bold text-sm text-slate-900 flex items-center justify-between">
-                <span>Danh mục {confirmedOrder.books.length} cuốn giáo trình</span>
-                <span className="text-xs font-mono text-[#00666B] font-bold">Hạn mức BR01: Đạt yêu cầu</span>
-              </h4>
-
-              <div className="divide-y divide-slate-100">
-                {confirmedOrder.books.map((book, idx) => (
-                  <div key={book.id || idx} className="py-2.5 flex items-center justify-between gap-3 text-xs">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="w-5 h-5 rounded-full bg-teal-50 text-[#00666B] font-mono font-bold flex items-center justify-center text-[10px] shrink-0">
-                        {idx + 1}
-                      </span>
-                      <div className="min-w-0">
-                        <h5 className="font-bold text-slate-900 truncate">{book.title}</h5>
-                        <p className="text-[11px] text-slate-500 font-mono">{book.code} · Kệ: {book.location || 'Khu A'}</p>
-                      </div>
-                    </div>
-                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full shrink-0">
-                      Sẵn sàng
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Nút quay lại trang chủ hoặc kho sách */}
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onBackToCatalog}
-                className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-2xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Tiếp tục tìm mượn sách khác</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   /* ==================== TRƯỜNG HỢP 2: GIỎ SÁCH ĐANG TRỐNG ==================== */
   if (cartItems.length === 0) {
@@ -623,9 +448,6 @@ export default function CheckoutSchedulePagePC({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-1">
                           <strong className="text-xs font-bold text-slate-900">{campus.name}</strong>
-                          <span className="text-[9px] font-extrabold uppercase px-2 py-0.2 rounded bg-white text-slate-600 border border-slate-200 shadow-2xs">
-                            {campus.badge}
-                          </span>
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{campus.address}</p>
                         <span className="text-[10px] font-mono text-[#00666B] block mt-1 font-semibold">
@@ -644,50 +466,6 @@ export default function CheckoutSchedulePagePC({
                 <span>2. Ngày hẹn lấy sách</span>
                 <span className="text-[10px] text-slate-400 font-medium">Tối đa trong 7 ngày</span>
               </label>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setQuickDate(0)}
-                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold border transition-all cursor-pointer text-center ${
-                    pickupDate === minDate
-                      ? 'bg-[#00666B] text-white border-[#00666B]'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  Hôm nay
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuickDate(1)}
-                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold border transition-all cursor-pointer text-center ${
-                    pickupDate === (() => {
-                      const d = new Date();
-                      d.setDate(d.getDate() + 1);
-                      return d.toISOString().split('T')[0];
-                    })()
-                      ? 'bg-[#00666B] text-white border-[#00666B]'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  Ngày mai
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuickDate(2)}
-                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold border transition-all cursor-pointer text-center ${
-                    pickupDate === (() => {
-                      const d = new Date();
-                      d.setDate(d.getDate() + 2);
-                      return d.toISOString().split('T')[0];
-                    })()
-                      ? 'bg-[#00666B] text-white border-[#00666B]'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  Ngày mốt
-                </button>
-              </div>
 
               <div className="relative">
                 <input

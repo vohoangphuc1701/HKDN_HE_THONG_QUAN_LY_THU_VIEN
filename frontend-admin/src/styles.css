@@ -179,3 +179,13 @@ td strong { color: #263246; font-weight: 600; }
   50% { top: calc(100% - 10px); opacity: 1; }
   100% { top: 8px; opacity: 0.3; }
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-icon {
+  animation: spin 1.2s linear infinite;
+}
+

@@ -35,7 +35,7 @@ CREATE TABLE dbo.users (
     full_name NVARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     phone VARCHAR(20) NULL,
-    role VARCHAR(20) NOT NULL CONSTRAINT chk_user_role CHECK (role IN ('STUDENT', 'LIBRARIAN')),
+    role VARCHAR(20) NOT NULL CONSTRAINT chk_user_role CHECK (role IN ('STUDENT', 'LIBRARIAN', 'ADMIN')),
     status VARCHAR(20) NOT NULL CONSTRAINT df_user_status DEFAULT 'ACTIVE' CONSTRAINT chk_user_status CHECK (status IN ('ACTIVE', 'LOCKED')),
     created_at DATETIME NOT NULL CONSTRAINT df_user_created_at DEFAULT GETDATE(),
     updated_at DATETIME NULL
@@ -184,10 +184,11 @@ GO
 -- ==============================================================================
 -- 10. THÊM DỮ LIỆU MẪU (SEED DATA ĐỂ TEST THỬ)
 -- ==============================================================================
--- Tài khoản thủ thư (mật khẩu mẫu: 123456)
+-- Tài khoản Quản trị viên, Thủ thư và Sinh viên (mật khẩu mẫu: 123456)
 INSERT INTO dbo.users (username, password, full_name, email, phone, role, status)
 VALUES 
-('admin', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEFGH', N'Thủ Thư Trưởng', 'admin@uth.edu.vn', '0901234567', 'LIBRARIAN', 'ACTIVE'),
+('admin', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEFGH', N'Quản Trị Viên Hệ Thống', 'admin@uth.edu.vn', '0901234567', 'ADMIN', 'ACTIVE'),
+('librarian', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEFGH', N'Thủ Thư Trưởng', 'thuthu@uth.edu.vn', '0902345678', 'LIBRARIAN', 'ACTIVE'),
 ('sv2026', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEFGH', N'Võ Hoàng Phúc', 'sv2026@uth.edu.vn', '0912345678', 'STUDENT', 'ACTIVE');
 
 -- Kho sách mẫu

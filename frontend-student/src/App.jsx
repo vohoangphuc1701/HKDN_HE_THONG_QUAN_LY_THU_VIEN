@@ -1,6 +1,8 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { RefreshCw } from 'lucide-react';
+import useMediaQuery from './hooks/useMediaQuery';
+
 // Code-splitting các phân hệ Mobile (TV2), Desktop (TV3) và Auth
 const MobileApp = lazy(() => import('./pages/MobileApp'));
 const DesktopApp = lazy(() => import('./pages/DesktopApp'));
@@ -24,6 +26,30 @@ function PageLoadingFallback() {
   );
 }
 
+function MainAppSwitcher() {
+  // Tối ưu hóa Session 20: Dùng useMediaQuery để Conditional Rendering thực sự,
+  // chỉ mount DesktopApp (TV3) khi >= 768px và MobileApp (TV2) khi < 768px.
+  // Tránh duplicate API calls, duplicate timers và tiết kiệm 50% DOM node.
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+
+  if (!isDesktop) {
+    return <MobileApp />;
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<DesktopApp />} />
+      <Route path="/books" element={<DesktopApp />} />
+      <Route path="/books/:id" element={<DesktopApp />} />
+      <Route path="/loans" element={<DesktopApp />} />
+      <Route path="/history" element={<DesktopApp />} />
+      <Route path="/checkout" element={<DesktopApp />} />
+      <Route path="/home" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -33,32 +59,8 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Các màn hình ứng dụng thư viện */}
-          <Route
-            path="/*"
-            element={
-              <>
-                {/* Màn hình nhỏ dưới md (dưới 768px) hiển thị Mobile Web (TV2) */}
-                <div className="md:hidden">
-                  <MobileApp />
-                </div>
-
-                {/* Màn hình máy tính & tablet từ md (768px trở lên) hiển thị Desktop Web (TV3) */}
-                <div className="hidden md:block">
-                  <Routes>
-                    <Route path="/" element={<DesktopApp />} />
-                    <Route path="/books" element={<DesktopApp />} />
-                    <Route path="/books/:id" element={<DesktopApp />} />
-                    <Route path="/loans" element={<DesktopApp />} />
-                    <Route path="/history" element={<DesktopApp />} />
-                    <Route path="/checkout" element={<DesktopApp />} />
-                    <Route path="/home" element={<Navigate to="/" replace />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </div>
-              </> 
-            }
-          />
+          {/* Phân hệ thư viện tự động chuyển đổi theo kích thước màn hình */}
+          <Route path="/*" element={<MainAppSwitcher />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

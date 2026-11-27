@@ -1,87 +1,173 @@
 import { render, screen, fireEvent, act } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 import ScanStationPage from './ScanStationPage'
+import socketClient from '../services/socketClient'
+import scanApi from '../services/scanApi'
+
+vi.mock('../components/scanner/Html5QrScanner', () => {
+  return {
+    default: () => <div data-testid="mock-html5-scanner">Mock Camera Scanner</div>
+  }
+})
+
+vi.mock('../services/scanApi', () => {
+  return {
+    default: {
+      createSession: vi.fn(() =>
+        Promise.resolve({
+          sessionToken: 'SCAN-8A2F9C',
+          stationId: 'STATION-DESK-01',
+          stationName: 'Trạm quét quầy 1',
+          status: 'WAITING_FOR_PAIRING'
+        })
+      ),
+      getSession: vi.fn(() =>
+        Promise.resolve({
+          sessionToken: 'SCAN-8A2F9C',
+          status: 'WAITING_FOR_PAIRING'
+        })
+      ),
+      verifyReturnQr: vi.fn((code) =>
+        Promise.resolve({
+          scanType: 'RETURN_TICKET',
+          ticketId: 101,
+          ticketCode: code || 'RT-2026-001',
+          ticketStatus: 'PENDING_RETURN',
+          scheduledReturnDate: '2026-03-05',
+          student: {
+            fullName: 'Trần Thị Mai',
+            username: '2251120032'
+          },
+          items: [
+            {
+              detailId: 201,
+              borrowDetailId: 301,
+              bookId: 10,
+              title: 'Kỹ thuật lập trình Java nâng cao',
+              author: 'Nguyễn Văn A',
+              isbn: '978-604-01-2345-1',
+              shelfLocation: 'Kệ A-01-01',
+              dueDate: '2026-03-04',
+              overdueDays: 1,
+              overdueFine: 5000,
+              bookCondition: 'NORMAL',
+              damageFee: 0,
+              itemTotalFine: 5000,
+              note: 'Sách bảo quản tốt'
+            }
+          ],
+          totalBooks: 1,
+          totalOverdueDays: 1,
+          totalOverdueFine: 5000,
+          totalDamageFee: 0,
+          totalFineAmount: 5000,
+          unpaidPreviousFines: 0
+        })
+      ),
+      completeReturn: vi.fn(() =>
+        Promise.resolve({
+          ticketId: 101,
+          status: 'COMPLETED',
+          message: 'Hoàn tất nhận trả sách và cập nhật số lượng tồn kho thành công'
+        })
+      ),
+      handoverBorrowOrder: vi.fn(() =>
+        Promise.resolve({
+          orderCode: 'ORD-2026-1001',
+          status: 'BORROWED'
+        })
+      ),
+      saveOfflineScan: vi.fn((code, scanType) => ({
+        id: 'offline-01',
+        code,
+        scanType,
+        timestamp: new Date().toISOString()
+      })),
+      getOfflineQueue: vi.fn(() => []),
+      clearOfflineQueue: vi.fn(),
+      syncOfflineQueue: vi.fn(() => Promise.resolve({ syncedCount: 1 }))
+    }
+  }
+})
 
 describe('ScanStationPage', () => {
-  it('hien thi dung bo cuc khung quet ScanStationPage va san sang nhan ma', async () => {
-    await act(async () => {
-      render(<ScanStationPage />)
-    })
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('hien thi dung tieu de tram quet va cac nut chuc nang', () => {
+    render(<ScanStationPage />)
 
     expect(screen.getByText('Trạm quét QR tại quầy')).toBeInTheDocument()
-    expect(screen.getByText('Khung quét mã trực tiếp tại quầy')).toBeInTheDocument()
-    expect(screen.getByText('Khung quét sẵn sàng nhận mã')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(/VD: 2251120145 hoặc ORD-2026-1001/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Tra cứu/i })).toBeInTheDocument()
-    expect(screen.getByText(/Lịch sử quét trong ca trực/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Ghép đôi điện thoại/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Nhập mã thủ công/i })).toBeInTheDocument()
+    expect(screen.getByText('Camera quét trực tiếp tại quầy')).toBeInTheDocument()
   })
 
-  it('thiet ke giao dien the sinh vien (Student Info Card) sau khi quet ma QR thanh cong', async () => {
+  it('mo modal ghep doi dien thoai khi nhan nut Ghep doi', async () => {
+    render(<ScanStationPage />)
+
+    const pairBtn = screen.getByRole('button', { name: /Ghép đôi điện thoại/i })
     await act(async () => {
-      render(<ScanStationPage />)
+      fireEvent.click(pairBtn)
     })
 
-    /* Mo phong quet thanh cong ma sinh vien 2251120145 */
-    const quickBtn = screen.getByRole('button', { name: /\+ SV Nguyễn Văn An/i })
-    await act(async () => {
-      fireEvent.click(quickBtn)
-    })
-
-    /* Kiem tra giao dien the sinh vien hien thi day du cac truong thong tin */
-    expect(screen.getAllByText('Nguyễn Văn An').length).toBeGreaterThan(0)
-    expect(screen.getByText(/MSSV: 2251120145/i)).toBeInTheDocument()
-    expect(screen.getByText('Khoa Công nghệ Thông tin')).toBeInTheDocument()
-    expect(screen.getByText('an.nguyen@uth.edu.vn')).toBeInTheDocument()
-    expect(screen.getByText('Thẻ hợp lệ')).toBeInTheDocument()
-    expect(screen.getByText('2 / 5 cuốn')).toBeInTheDocument()
-    expect(screen.getByText(/Không nợ phạt thư viện/i)).toBeInTheDocument()
-
-    /* Kiem tra thong tin don muon lien quan */
-    expect(screen.getByText(/Đơn mượn đang chờ nhận: #ORD-2026-1001/i)).toBeInTheDocument()
-    expect(screen.getByText('Kỹ thuật lập trình Java nâng cao')).toBeInTheDocument()
-    expect(screen.getByText('Kệ A-01-01')).toBeInTheDocument()
-
-    /* Kiem tra cac nut hanh dong tai quay */
-    expect(screen.getByRole('button', { name: /Xác nhận bàn giao sách/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /In phiếu hẹn/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Quét thẻ khác/i })).toBeInTheDocument()
+    expect(screen.getByText('Ghép đôi điện thoại làm máy quét')).toBeInTheDocument()
   })
 
-  it('xac nhan ban giao sach cho sinh vien tai quay trong vong 30 giay', async () => {
+  it('ket noi socketClient: dien thoai quet ma -> laptop hien thi tuc thi ReturnVerificationView', async () => {
+    render(<ScanStationPage />)
+
+    // Dien thoai di dong ban su kien SCAN_DATA_RECEIVED qua WebSocket socketClient
     await act(async () => {
-      render(<ScanStationPage />)
+      socketClient.publish('/topic/scan-station', {
+        event: 'SCAN_DATA_RECEIVED',
+        code: 'RT-2026-001',
+        scanType: 'RETURN_TICKET'
+      })
     })
 
-    /* Quet the sinh vien */
-    const quickBtn = screen.getByRole('button', { name: /\+ SV Nguyễn Văn An/i })
-    await act(async () => {
-      fireEvent.click(quickBtn)
-    })
-
-    /* Nhan nut xac nhan ban giao sach */
-    const handoverBtn = screen.getByRole('button', { name: /Xác nhận bàn giao sách/i })
-    await act(async () => {
-      fireEvent.click(handoverBtn)
-    })
-
-    /* Hien thi thong bao ban giao thanh cong */
-    expect(screen.getByText('Đã bàn giao sách cho sinh viên thành công!')).toBeInTheDocument()
-    expect(screen.getByText(/Hạn trả mới: 14 ngày tới/i)).toBeInTheDocument()
+    // Laptop lap tuc hien thi giao dien doi soat phieu tra ReturnVerificationView
+    expect(scanApi.verifyReturnQr).toHaveBeenCalledWith('RT-2026-001')
+    expect(await screen.findByText('Đối soát Phiếu hẹn trả sách')).toBeInTheDocument()
+    expect(screen.getAllByText('RT-2026-001').length).toBeGreaterThan(0)
+    expect(screen.getByText('Trần Thị Mai')).toBeInTheDocument()
   })
 
-  it('canh bao no phat tren the sinh vien khi sinh vien co sach qua han chua nop phat', async () => {
+  it('ket noi socketClient: ghep doi dien thoai thanh cong va hien thi thong bao thiet bi', async () => {
+    render(<ScanStationPage />)
+
     await act(async () => {
-      render(<ScanStationPage />)
+      socketClient.publish('/topic/scan-station', {
+        event: 'DEVICE_PAIRED',
+        deviceName: 'iPhone 15 Pro Max',
+        sessionToken: 'SCAN-8A2F9C'
+      })
     })
 
-    /* Quet the sinh vien co no phat 2251120032 */
-    const quickBtn = screen.getByRole('button', { name: /\+ SV Trần Thị Mai/i })
+    expect(await screen.findByText(/Đã ghép đôi với điện thoại: iPhone 15 Pro Max/i)).toBeInTheDocument()
+  })
+
+  it('xu ly ngoai le mat mang khi quet QR va luu vao bo nho dem ngoai tuyen (Offline Queue)', async () => {
+    // Gia lap trang thai mat mang ngoai tuyen
+    const originalOnLine = navigator.onLine
+    Object.defineProperty(navigator, 'onLine', { value: false, configurable: true })
+
+    render(<ScanStationPage />)
+
     await act(async () => {
-      fireEvent.click(quickBtn)
+      socketClient.publish('/topic/scan-station', {
+        event: 'SCAN_DATA_RECEIVED',
+        code: 'RT-2026-OFFLINE-01',
+        scanType: 'RETURN_TICKET'
+      })
     })
 
-    expect(screen.getAllByText('Trần Thị Mai').length).toBeGreaterThan(0)
-    expect(screen.getByText('25.000 đ')).toBeInTheDocument()
-    expect(screen.getByText(/Có sách trễ hạn chưa nộp phạt/i)).toBeInTheDocument()
+    // Kiem tra ham saveOfflineScan da duoc kich hoat de luu vao offline queue
+    expect(scanApi.saveOfflineScan).toHaveBeenCalledWith('RT-2026-OFFLINE-01', 'RETURN_TICKET')
+    expect(await screen.findByText(/Mất mạng! Mã RT-2026-OFFLINE-01 đã lưu vào bộ nhớ đệm ngoại tuyến/i)).toBeInTheDocument()
+
+    // Khoi phuc lai gia tri ban dau
+    Object.defineProperty(navigator, 'onLine', { value: originalOnLine, configurable: true })
   })
 })

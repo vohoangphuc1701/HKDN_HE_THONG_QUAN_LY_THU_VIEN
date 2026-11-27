@@ -56,6 +56,16 @@ public class QrService {
     }
 
     /*
+     * Mã hóa returnTicketId, ngày hẹn trả và danh sách sách thành chuỗi QR Base64 cho phiếu hẹn trả.
+     */
+    public String generateReturnTicketQrBase64(String returnTicketId, String appointmentDate, List<String> books) {
+        log.info("Mã hóa QR phiếu hẹn trả: returnTicketId={}, appointmentDate={}, số lượng sách={}",
+                returnTicketId, appointmentDate, books != null ? books.size() : 0);
+        String content = QrCodeUtil.buildReturnTicketContent(returnTicketId, appointmentDate, books, System.currentTimeMillis());
+        return QrCodeUtil.generateQrBase64(content);
+    }
+
+    /*
      * Mã hóa đơn trả theo mã đơn và mã sinh viên thành chuỗi QR Base64.
      */
     public String generateReturnQrBase64(Long orderId, String studentId) {

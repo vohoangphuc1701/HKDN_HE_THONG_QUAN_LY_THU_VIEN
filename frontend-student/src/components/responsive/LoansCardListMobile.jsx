@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -16,7 +16,9 @@ import {
   UserCheck,
   X,
 } from 'lucide-react';
+import { borrowApi } from '../../services/borrowApi';
 import { returnApi } from '../../services/returnApi';
+import LoanCardSkeleton from './LoanCardSkeleton';
 
 /**
  * LoansCardListMobile - Danh sách tài liệu đang mượn & phiếu mượn dạng thẻ cho Mobile/Tablet (TV2)
@@ -149,6 +151,7 @@ const STATUS_BADGE_MAP = {
 
 export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpenScheduleReturn }) {
   const [loans, setLoans] = useState(INITIAL_LOANS);
+  const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBookIds, setSelectedBookIds] = useState([]);
@@ -164,6 +167,28 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
   const notify = (msg) => {
     if (onShowToast) onShowToast(msg);
   };
+
+  // ── Kết nối API động + Fallback mượt mà ──────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    borrowApi
+      .getMyLoans()
+      .then((data) => {
+        if (cancelled) return;
+        // Backend bật + có data thật → dùng data thật; nếu rỗng → fallback INITIAL_LOANS
+        setLoans(Array.isArray(data) && data.length > 0 ? data : INITIAL_LOANS);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLoans(INITIAL_LOANS);
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const stats = useMemo(() => {
     const totalBorrowed = loans.length;
@@ -501,7 +526,13 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
       )}
 
       {/* Danh sách thẻ sách đang mượn (1 cột Mobile, 2 cột Tablet) */}
-      {filteredLoans.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[1, 2, 3].map((i) => (
+            <LoanCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : filteredLoans.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-2">
           <BookOpen className="w-8 h-8 text-slate-300 mx-auto" />
           <p className="text-xs font-semibold text-slate-700">
