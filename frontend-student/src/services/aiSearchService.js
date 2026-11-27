@@ -1,5 +1,3 @@
-import mockBooks from '../mockPCBooks.json';
-
 /**
  * Service Tìm kiếm Thông minh Bằng AI & Fuzzy Matching (Phương án 1)
  * Thư viện Trường Đại học Giao thông Vận tải TP.HCM (UTH)

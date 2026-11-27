@@ -63,7 +63,7 @@ export default function BookListPage({
   const [books, setBooks] = useState(propBooks || mockPCBooks);
   const [isLoading, setIsLoading] = useState(!propBooks);
 
-  // ── Kết nối API động bookApi.getBooks() + Fallback mượt mà ────────────────
+  // Kết nối API động bookApi.getBooks() + Fallback mượt mà
   useEffect(() => {
     if (propBooks) return;
     let cancelled = false;
@@ -115,10 +115,12 @@ export default function BookListPage({
   const sortBy = propSortBy !== undefined ? propSortBy : internalSortBy;
   const setSortBy = propOnChangeSortBy || setInternalSortBy;
 
-  // ── Tìm kiếm thông minh AI kèm bộ nhớ đệm Cache (kế thừa từ PR #50) ───────
+  // Tìm kiếm thông minh AI kèm bộ nhớ đệm Cache
   useEffect(() => {
     const q = searchQuery.trim();
-    if (q.length < 3) return;
+    if (q.length < 3) {
+      return;
+    }
     let cancelled = false;
     const timer = setTimeout(() => {
       expandQueryWithAI(q)
@@ -308,7 +310,7 @@ export default function BookListPage({
           activeFilterCount={activeFilterCount}
         />
 
-        {/* Gợi ý sửa lỗi / mở rộng từ khóa AI Search (tận dụng Cache) */}
+        {/* Gợi ý sửa lỗi / mở rộng từ khóa AI Search */}
         {aiHint && searchQuery.trim().length >= 3 && aiHint.originalQuery === searchQuery.trim() && (
           <div className="mt-2 px-3 py-2 rounded-xl bg-teal-50/90 border border-teal-200/80 flex items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-1.5 min-w-0">

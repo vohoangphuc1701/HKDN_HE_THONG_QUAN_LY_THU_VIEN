@@ -78,7 +78,7 @@ export default function HomePage({
   const [heroCampus, setHeroCampus] = useState(1);
   const [toastMessage, setToastMessage] = useState('');
 
-  // ── Kết nối API động bookApi.getBooks() + Fallback mượt mà ────────────────
+  // Kết nối API động bookApi.getBooks() + Fallback mượt mà
   useEffect(() => {
     let cancelled = false;
     bookApi

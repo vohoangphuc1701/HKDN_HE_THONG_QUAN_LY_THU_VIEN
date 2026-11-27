@@ -14,6 +14,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { borrowApi } from '../services/borrowApi';
+import { mapOrderHistoryFromApi } from '../utils/studentSession';
 import LoanCardSkeleton from '../components/responsive/LoanCardSkeleton';
 
 /**
@@ -123,14 +124,15 @@ export default function LoanHistoryPage({ onBorrowAgain, onShowToast }) {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ── Kết nối API động borrowApi.getMyOrders() + Fallback mượt mà ──────────
+  // Kết nối API động borrowApi.getMyOrders() + Fallback mượt mà
   useEffect(() => {
     let cancelled = false;
     borrowApi
       .getMyOrders()
       .then((data) => {
         if (cancelled) return;
-        setHistory(Array.isArray(data) && data.length > 0 ? data : INITIAL_HISTORY);
+        const mapped = Array.isArray(data) ? data.map(mapOrderHistoryFromApi).filter(Boolean) : [];
+        setHistory(mapped.length > 0 ? mapped : INITIAL_HISTORY);
         setIsLoading(false);
       })
       .catch(() => {

@@ -1,4 +1,5 @@
 import mockBooks from '../mockPCBooks.json';
+import bookApi from './bookApi';
 import campusesData from '../data/campusesData';
 import { SYSTEM_PROMPT, findInstantAnswer } from '../data/chatbotKnowledge';
 
@@ -12,11 +13,23 @@ const GEMINI_MODEL = 'gemini-3.5-flash-lite';
 const getGeminiEndpoint = () =>
   `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
+async function loadCatalogContextBooks() {
+  try {
+    const res = await bookApi.getBooks({ size: 25 });
+    if (res && Array.isArray(res.content) && res.content.length > 0 && !res.isFallback) {
+      return res.content;
+    }
+  } catch {
+    // Fallback gracefully to bundled catalog when backend is unavailable
+  }
+  return mockBooks;
+}
+
 /**
  * Chuẩn bị ngữ cảnh tóm tắt kho sách và cơ sở để đưa vào System Instruction (RAG gọn nhẹ)
  */
-function buildLibraryContext() {
-  const booksSummary = mockBooks
+function buildLibraryContext(catalogBooks = mockBooks) {
+  const booksSummary = catalogBooks
     .slice(0, 25)
     .map(
       (b) =>
@@ -44,7 +57,7 @@ HƯỚNG DẪN BỔ SUNG:
 - Khi sinh viên hỏi về một ngành học hoặc chủ đề chung (ví dụ: 'sách kinh tế', 'sách cntt', 'sách logistics'), hãy tra cứu danh mục sách UTH ở trên, liệt kê đầy đủ từng cuốn sách phù hợp (gồm: Tên sách, Tác giả, Mã sách, Vị trí kệ và Số lượng còn sẵn).
 - Khi sinh viên hỏi về một cuốn sách cụ thể, nếu có trong danh sách trên, hãy trích dẫn đúng Tên, Tác giả, Vị trí kệ và số lượng còn sẵn.
 - Luôn hoàn thành trọn vẹn câu trả lời, không dừng lửng giữa chừng.
-- Nếu sinh viên hỏi về mượn sách, hãy nhắc đến quy tắc BR01 (tối đa 5 cuốn), BR02 (14 ngày), BR03 (gia hạn 1 lần +7 ngày tại /loans), BR04 (phạt trễ 5.000đ/ngày/cuốn).
+- Nếu sinh viên hỏi về mượn sách, hãy nhắc đến quy tắc BR01 (tối đa 5 cuốn), BR02 (14 ngày), BR03 (gia hạn tối đa 2 lần, mỗi lần +7 ngày tại /loans), BR04 (phạt trễ 5.000đ/ngày/cuốn).
 - Hướng dẫn sinh viên dùng phím tắt Ctrl+K để tra cứu toàn bộ kho sách.
 `.trim();
 }
@@ -60,8 +73,9 @@ export async function sendMessageToAI(conversationHistory = [], userMessage) {
     throw new Error('Tin nhắn không được để trống.');
   }
 
-  // 1. Chuẩn bị payload theo định dạng Gemini API
-  const fullSystemInstruction = `${SYSTEM_PROMPT}\n\n${buildLibraryContext()}`;
+  // 1. Nạp danh mục sách thực tế từ API (fallback mockBooks) và chuẩn bị System Instruction
+  const catalogBooks = await loadCatalogContextBooks();
+  const fullSystemInstruction = `${SYSTEM_PROMPT}\n\n${buildLibraryContext(catalogBooks)}`;
 
   // Lọc lịch sử hội thoại: Bắt buộc lượt đầu tiên gửi lên Gemini phải là 'user'
   // (Loại bỏ tin nhắn chào mừng ban đầu của model để tránh lỗi cắt cụt câu trả lời)
@@ -148,7 +162,7 @@ export async function sendMessageToAI(conversationHistory = [], userMessage) {
     }
 
     // Tìm các sách liên quan được nhắc tới trong câu trả lời
-    const matchedBooks = extractRelatedBooks(replyText, userMessage);
+    const matchedBooks = extractRelatedBooks(replyText, userMessage, catalogBooks);
 
     return {
       text: replyText,
@@ -167,7 +181,7 @@ export async function sendMessageToAI(conversationHistory = [], userMessage) {
 - Xem quy định: Mượn tối đa 5 cuốn trong 14 ngày, phạt trễ 5.000đ/ngày/cuốn.
 Bạn vui lòng thử nhắn lại sau ít phút nhé!`;
 
-    const matchedBooks = extractRelatedBooks(fallbackAnswer, userMessage);
+    const matchedBooks = extractRelatedBooks(fallbackAnswer, userMessage, catalogBooks);
 
     return {
       text: fallbackAnswer,
@@ -182,15 +196,16 @@ Bạn vui lòng thử nhắn lại sau ít phút nhé!`;
  * Bóc tách các sách phù hợp từ kho dữ liệu dựa trên câu trả lời hoặc câu hỏi
  * @param {string} text
  * @param {string} query
+ * @param {Array} catalogBooks
  * @returns {Array}
  */
-function extractRelatedBooks(text = '', query = '') {
+function extractRelatedBooks(text = '', query = '', catalogBooks = mockBooks) {
   const combined = `${text} ${query}`.toLowerCase();
-  return mockBooks
+  return catalogBooks
     .filter((b) => {
-      const titleLower = b.title.toLowerCase();
-      const codeLower = b.code.toLowerCase();
-      return combined.includes(titleLower) || combined.includes(codeLower);
+      const titleLower = (b.title || '').toLowerCase();
+      const codeLower = (b.code || '').toLowerCase();
+      return (titleLower && combined.includes(titleLower)) || (codeLower && combined.includes(codeLower));
     })
     .slice(0, 3);
 }

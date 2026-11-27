@@ -1,30 +1,21 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import borrowApi from '../../services/borrowApi';
+import { getStoredStudentProfile, mapOrderHistoryFromApi } from '../../utils/studentSession';
 import {
   History,
   Search,
-  Filter,
   CheckCircle2,
   AlertCircle,
   XCircle,
   FileText,
   RotateCcw,
   Printer,
-  Download,
-  Calendar,
-  Clock,
   MapPin,
-  BookOpen,
-  ArrowUpDown,
   ChevronDown,
   X,
   Receipt,
-  Sparkles,
   ShieldCheck,
-  Building,
-  User,
-  CreditCard,
-  Check
 } from 'lucide-react';
 
 /**
@@ -239,15 +230,32 @@ const CAMPUSES = [
 /**
  * Component Bảng Lịch sử Mượn trả & Đối soát nợ phạt cho Desktop (TV3)
  */
-export default function LoanHistoryTableViewPC({ onBorrowAgain, onShowToast }) {
-  const [historyList] = useState(MOCK_HISTORY_RECORDS);
+export default function LoanHistoryTableViewPC({ onBorrowAgain }) {
+  const studentProfile = getStoredStudentProfile();
+  const [historyList, setHistoryList] = useState(MOCK_HISTORY_RECORDS);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [selectedSemester, setSelectedSemester] = useState('Tất cả học kỳ');
   const [selectedCampus, setSelectedCampus] = useState('ALL');
   const [selectedReceipt, setSelectedReceipt] = useState(null); // Bản ghi đang xem biên nhận
-  const [sortField, setSortField] = useState('borrowDate');
-  const [sortAsc, setSortAsc] = useState(false);
+
+  // Kết nối API lấy danh sách đơn mượn thực tế khi Backend hoạt động
+  useEffect(() => {
+    let cancelled = false;
+    borrowApi
+      .getMyOrders()
+      .then((data) => {
+        if (cancelled) return;
+        const mapped = Array.isArray(data) ? data.map(mapOrderHistoryFromApi).filter(Boolean) : [];
+        if (mapped.length > 0) {
+          setHistoryList(mapped);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Thống kê nhanh chỉ số học thuật
   const stats = useMemo(() => {
@@ -473,7 +481,6 @@ export default function LoanHistoryTableViewPC({ onBorrowAgain, onShowToast }) {
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                 {filteredList.map((record) => {
                   const statusInfo = STATUS_CONFIG[record.status] || STATUS_CONFIG.ALL;
-                  const StatusIcon = statusInfo.icon || CheckCircle2;
 
                   return (
                     <tr
@@ -668,7 +675,7 @@ export default function LoanHistoryTableViewPC({ onBorrowAgain, onShowToast }) {
               <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Sinh viên:</span>
-                  <span className="font-bold text-slate-800">Nguyễn Thành Luân (MSSV: 2251120000)</span>
+                  <span className="font-bold text-slate-800">{studentProfile.fullName} (MSSV: {studentProfile.studentId})</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Điểm tiếp nhận:</span>

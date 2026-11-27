@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   BookOpen,
   Calendar,
@@ -17,7 +17,9 @@ import {
   Check,
   MapPin
 } from 'lucide-react';
-import returnApi from '../../services/returnApi';
+import borrowApi from '../../services/borrowApi';
+import returnApi, { MAX_RENEWALS_ALLOWED } from '../../services/returnApi';
+import { mapLoanFromApi } from '../../utils/studentSession';
 import ReturnScheduleModal from './ReturnScheduleModal';
 
 /**
@@ -25,10 +27,10 @@ import ReturnScheduleModal from './ReturnScheduleModal';
  * Tuân thủ đầy đủ các quy tắc nghiệp vụ BR01 - BR08:
  * - BR01: Tối đa 5 tài liệu/sinh viên. Chặn mượn nếu có tiền phạt chưa thanh toán.
  * - BR02: Thời gian mượn mặc định 14 ngày.
- * - BR03: Tối đa 1 lần gia hạn trực tuyến (+7 ngày), chỉ cho phép khi chưa quá hạn.
+ * - BR03: Tối đa 2 lần gia hạn trực tuyến (+7 ngày/lần), chỉ cho phép khi chưa quá hạn.
  * - BR04: Phạt trễ hạn 5.000 VNĐ / ngày / cuốn.
  * - BR05: Đơn giữ quầy tối đa 48h.
- * - BR06: Lịch hẹn trả phải <= hạn trả sớm nhất của các tài liệu được chọn.
+ * - BR06: Lịch hẹn trả phải <= hạn trả lớn nhất của các tài liệu được chọn.
  */
 export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
   // Dữ liệu mẫu danh sách tài liệu đang mượn phong phú đại diện đầy đủ các trạng thái
@@ -136,6 +138,24 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
     },
   ]);
 
+  // Kết nối API động lấy danh sách sách đang mượn (fallback dữ liệu mẫu khi offline)
+  useEffect(() => {
+    let cancelled = false;
+    borrowApi
+      .getMyLoans()
+      .then((data) => {
+        if (cancelled) return;
+        const mapped = Array.isArray(data) ? data.map(mapLoanFromApi).filter(Boolean) : [];
+        if (mapped.length > 0) {
+          setLoans(mapped);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Bộ lọc trạng thái & tìm kiếm
   const [statusFilter, setStatusFilter] = useState('ALL'); // ALL | NORMAL | WARNING | OVERDUE
   const [searchQuery, setSearchQuery] = useState('');
@@ -189,34 +209,51 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
     });
   }, [loans, statusFilter, searchQuery]);
 
-  // Xử lý gia hạn trực tuyến (+7 ngày, tối đa 1 lần theo BR03)
+  // Xử lý gia hạn trực tuyến (+7 ngày, tối đa 2 lần theo BR03)
   const handleRenew = async (loanId) => {
+    const target = loans.find((item) => item.id === loanId);
+    if (!target) return;
+
+    if (target.status === 'OVERDUE') {
+      if (onShowToast) onShowToast('Không thể gia hạn: Tài liệu đã quá hạn trả theo quy định BR03!');
+      return;
+    }
+    if (target.renewCount >= MAX_RENEWALS_ALLOWED) {
+      if (onShowToast) onShowToast(`Cuốn sách này đã sử dụng hết ${MAX_RENEWALS_ALLOWED} lần gia hạn trực tuyến!`);
+      return;
+    }
+
+    let apiRes = null;
     try {
-      await returnApi.renewBook(loanId);
+      apiRes = await returnApi.renewBook(target.borrowDetailId || loanId);
     } catch (err) {
+      if (err?.message && !err.message.includes('kết nối đến máy chủ')) {
+        if (onShowToast) onShowToast(err.message);
+        return;
+      }
       console.warn('[handleRenew] Backend renew fallback:', err);
     }
 
     setLoans((prev) =>
       prev.map((item) => {
         if (item.id === loanId) {
-          if (item.status === 'OVERDUE') {
-            if (onShowToast) onShowToast('Không thể gia hạn: Tài liệu đã quá hạn trả theo quy định BR03!');
-            return item;
-          }
-          if (item.renewCount >= 1) {
-            if (onShowToast) onShowToast('Cuốn sách này đã sử dụng hết 1 lần gia hạn trực tuyến!');
-            return item;
-          }
           if (onShowToast) {
             onShowToast(`Gia hạn thành công cuốn "${item.title}" thêm 7 ngày!`);
           }
+          const nextRenewCount = apiRes?.renewalCount ?? (item.renewCount || 0) + 1;
+          const nextDueDate = apiRes?.newDueDate
+            ? String(apiRes.newDueDate).split('-').reverse().join('/')
+            : '18/11/2026';
+          const nextDueTs = apiRes?.newDueDate
+            ? new Date(apiRes.newDueDate).getTime()
+            : (item.dueTimestamp || Date.now()) + 7 * 86400000;
+
           const updatedItem = {
             ...item,
-            renewCount: 1,
+            renewCount: nextRenewCount,
             daysLeft: item.daysLeft + 7,
-            dueDate: '18/11/2026',
-            dueTimestamp: new Date('2026-11-18').getTime(),
+            dueDate: nextDueDate,
+            dueTimestamp: nextDueTs,
             totalDurationDays: item.totalDurationDays + 7,
             status: item.daysLeft + 7 <= 3 ? 'WARNING' : 'NORMAL',
           };
@@ -231,10 +268,10 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
   };
 
   // Gia hạn hàng loạt cho tất cả các sách đang được chọn và đủ điều kiện
-  const handleBatchRenew = () => {
+  const handleBatchRenew = async () => {
     const eligibleIds = selectedBookIds.filter((id) => {
       const target = loans.find((l) => l.id === id);
-      return target && target.renewCount === 0 && target.status !== 'OVERDUE';
+      return target && target.renewCount < MAX_RENEWALS_ALLOWED && target.status !== 'OVERDUE';
     });
 
     if (eligibleIds.length === 0) {
@@ -242,15 +279,23 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
       return;
     }
 
+    for (const id of eligibleIds) {
+      try {
+        await returnApi.renewBook(id);
+      } catch {
+        // Fallback im lặng khi offline
+      }
+    }
+
     setLoans((prev) =>
       prev.map((item) => {
         if (eligibleIds.includes(item.id)) {
           return {
             ...item,
-            renewCount: 1,
+            renewCount: (item.renewCount || 0) + 1,
             daysLeft: item.daysLeft + 7,
             dueDate: '18/11/2026',
-            dueTimestamp: new Date('2026-11-18').getTime(),
+            dueTimestamp: (item.dueTimestamp || Date.now()) + 7 * 86400000,
             totalDurationDays: item.totalDurationDays + 7,
             status: item.daysLeft + 7 <= 3 ? 'WARNING' : 'NORMAL',
           };
@@ -850,12 +895,12 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
                       <td className="p-3.5 text-center">
                         <span
                           className={`text-[11px] font-mono px-2 py-0.5 rounded-full font-bold tabular-nums ${
-                            loan.renewCount >= 1
+                            loan.renewCount >= MAX_RENEWALS_ALLOWED
                               ? 'bg-slate-100 text-slate-500'
                               : 'bg-teal-50 text-[#00666B] border border-teal-200/80'
                           }`}
                         >
-                          {loan.renewCount}/1 lần
+                          {loan.renewCount}/{MAX_RENEWALS_ALLOWED} lần
                         </span>
                       </td>
 
@@ -863,17 +908,17 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
                       <td className="p-3.5 text-right space-x-2">
                         <button
                           type="button"
-                          disabled={loan.renewCount >= 1 || isOverdue}
+                          disabled={loan.renewCount >= MAX_RENEWALS_ALLOWED || isOverdue}
                           onClick={() => handleRenew(loan.id)}
                           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                            loan.renewCount >= 1 || isOverdue
+                            loan.renewCount >= MAX_RENEWALS_ALLOWED || isOverdue
                               ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                               : 'bg-[#00666B] hover:bg-[#005458] text-white shadow-2xs'
                           }`}
                           title={
                             isOverdue
                               ? 'Không thể gia hạn khi đã quá hạn'
-                              : loan.renewCount >= 1
+                              : loan.renewCount >= MAX_RENEWALS_ALLOWED
                               ? 'Đã hết lượt gia hạn trực tuyến (+7 ngày)'
                               : 'Gia hạn trực tuyến thêm 7 ngày'
                           }
@@ -882,7 +927,7 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
                           <span>
                             {isOverdue
                               ? 'Quá hạn'
-                              : loan.renewCount >= 1
+                              : loan.renewCount >= MAX_RENEWALS_ALLOWED
                               ? 'Đã gia hạn'
                               : 'Gia hạn (+7d)'}
                           </span>
@@ -911,7 +956,7 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
           <Info className="w-4 h-4 text-[#00666B] shrink-0 mt-0.5" />
           <div className="space-y-1 leading-relaxed">
             <p>
-              • <strong>Chính sách gia hạn (BR03):</strong> Mỗi tài liệu được gia hạn tối đa <strong>1 lần (+7 ngày)</strong> qua cổng trực tuyến khi sách chưa quá hạn và kho sách còn bản sao khả dụng.
+              • <strong>Chính sách gia hạn (BR03):</strong> Mỗi tài liệu được gia hạn tối đa <strong>{MAX_RENEWALS_ALLOWED} lần (+7 ngày/lần)</strong> qua cổng trực tuyến khi sách chưa quá hạn và kho sách còn bản sao khả dụng.
             </p>
             <p>
               • <strong>Phạt trễ hạn (BR04):</strong> Mức phạt là <strong>5.000 VNĐ / ngày / cuốn</strong> tính tự động từ ngày quá hạn. Khi có nợ phạt, bạn không thể tạo yêu cầu mượn sách mới (BR01).
@@ -1099,7 +1144,9 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
                   <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
                     <span className="text-slate-400 block text-[10px]">Tình trạng gia hạn</span>
                     <strong className="text-[#00666B] font-bold block mt-0.5">
-                      {selectedDetailLoan.renewCount >= 1 ? 'Đã gia hạn (+7d)' : 'Chưa gia hạn (0/1)'}
+                      {selectedDetailLoan.renewCount >= MAX_RENEWALS_ALLOWED
+                        ? `Đã hết lượt (${selectedDetailLoan.renewCount}/${MAX_RENEWALS_ALLOWED})`
+                        : `Còn lượt (${selectedDetailLoan.renewCount}/${MAX_RENEWALS_ALLOWED})`}
                     </strong>
                   </div>
                 </div>
@@ -1172,13 +1219,13 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   type="button"
-                  disabled={selectedDetailLoan.renewCount >= 1 || selectedDetailLoan.status === 'OVERDUE'}
+                  disabled={selectedDetailLoan.renewCount >= MAX_RENEWALS_ALLOWED || selectedDetailLoan.status === 'OVERDUE'}
                   onClick={() => handleRenew(selectedDetailLoan.id)}
                   className="flex-1 sm:flex-initial px-4 py-2 bg-[#00666B] hover:bg-[#005458] disabled:opacity-40 text-white font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 text-xs cursor-pointer"
                   title={
                     selectedDetailLoan.status === 'OVERDUE'
                       ? 'Không thể gia hạn khi đã quá hạn'
-                      : selectedDetailLoan.renewCount >= 1
+                      : selectedDetailLoan.renewCount >= MAX_RENEWALS_ALLOWED
                       ? 'Đã hết lượt gia hạn trực tuyến'
                       : 'Gia hạn thêm 7 ngày'
                   }
@@ -1187,7 +1234,7 @@ export default function LoansTableViewPC({ onOpenQrModal, onShowToast }) {
                   <span>
                     {selectedDetailLoan.status === 'OVERDUE'
                       ? 'Quá hạn'
-                      : selectedDetailLoan.renewCount >= 1
+                      : selectedDetailLoan.renewCount >= MAX_RENEWALS_ALLOWED
                       ? 'Đã hết lượt'
                       : 'Gia hạn (+7d)'}
                   </span>

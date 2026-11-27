@@ -41,6 +41,7 @@ export default function BookDetailPage({
   isInCart = false,
   onOpenCart,
   allBooks = [],
+  cartItems = [],
   onSelectBook,
   cartCount = 0,
 }) {
@@ -518,7 +519,7 @@ export default function BookDetailPage({
                 <Zap className="w-3.5 h-3.5 text-amber-500" />
                 <span>Gia hạn (BR03)</span>
               </div>
-              <strong className="block text-slate-900 font-black">+7 ngày (1 lần)</strong>
+              <strong className="block text-slate-900 font-black">+7 ngày (tối đa 2 lần)</strong>
               <span className="text-[10px] text-slate-500 block leading-tight">
                 Gia hạn trực tuyến trước hạn trả 1 ngày.
               </span>
@@ -747,7 +748,7 @@ export default function BookDetailPage({
                   book={relBook}
                   onAddToCart={onAddToCart}
                   onViewDetail={(item) => onSelectBook && onSelectBook(item || relBook)}
-                  isInCart={isInCart}
+                  isInCart={cartItems.some((item) => item.id === relBook.id)}
                   viewMode="grid"
                 />
               ))}

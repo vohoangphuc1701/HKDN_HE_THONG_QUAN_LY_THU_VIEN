@@ -11,7 +11,6 @@ import {
   Compass,
   BookMarked,
   ShoppingBag,
-  Sparkles,
   ArrowRight,
   History
 } from 'lucide-react';

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   BookOpen,
   Menu,
@@ -27,8 +28,19 @@ import CartDrawer from '../components/common/CartDrawer';
 import ReturnQrModal from '../components/common/ReturnQrModal';
 import ChatBotWidget from '../components/common/ChatBotWidget';
 import CheckoutSchedulePage from './CheckoutSchedulePage';
+import bookApi from '../services/bookApi';
+import {
+  loadCartItems,
+  saveCartItems,
+  getStoredStudentProfile,
+  clearAuthSession,
+} from '../utils/studentSession';
 import mockBooks from '../mockPCBooks.json';
+
 export default function MobileApp() {
+  const navigate = useNavigate();
+  const studentProfile = getStoredStudentProfile();
+  const [books, setBooks] = useState(mockBooks);
   const [activeTab, setActiveTab] = useState('home');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false);
@@ -38,14 +50,34 @@ export default function MobileApp() {
   const [selectedType, setSelectedType] = useState('ALL');
   const [sortBy, setSortBy] = useState('default');
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState([
-    mockBooks[0],
-    mockBooks[1],
-  ]);
+  const [cartItems, setCartItems] = useState(() =>
+    loadCartItems([mockBooks[0], mockBooks[1]])
+  );
   const [toastMessage, setToastMessage] = useState('');
   const [mobileDetailBook, setMobileDetailBook] = useState(null);
   const [mobileQrOrder, setMobileQrOrder] = useState(null);
   const [scheduleData, setScheduleData] = useState(null); // { mode: 'pickup' | 'return', items: [] }
+
+  // Đồng bộ giỏ mượn vào localStorage dùng chung với Desktop
+  useEffect(() => {
+    saveCartItems(cartItems);
+  }, [cartItems]);
+
+  // Tải danh sách sách động (fallback mockBooks khi Backend offline)
+  useEffect(() => {
+    let cancelled = false;
+    bookApi
+      .getBooks({ size: 50 })
+      .then((res) => {
+        if (!cancelled && Array.isArray(res?.content) && res.content.length > 0) {
+          setBooks(res.content);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const showMobileToast = (msg) => {
     setToastMessage(msg);
@@ -55,7 +87,7 @@ export default function MobileApp() {
   const handleAddToCart = (book) => {
     if (!book) return;
     const normalizedBook =
-      mockBooks.find(
+      books.find(
         (b) => b.id === book.id || (book.code && b.code === book.code)
       ) || book;
 
@@ -103,7 +135,8 @@ export default function MobileApp() {
           onAddToCart={handleAddToCart}
           isInCart={cartItems.some((item) => item.id === mobileDetailBook.id)}
           onOpenCart={() => setIsCartOpen(true)}
-          allBooks={mockBooks}
+          allBooks={books}
+          cartItems={cartItems}
           onSelectBook={setMobileDetailBook}
           cartCount={cartItems.length}
         />
@@ -232,7 +265,7 @@ export default function MobileApp() {
             title="Tài khoản sinh viên & Đăng xuất"
             aria-label="Tài khoản sinh viên"
           >
-            NL
+            {studentProfile.initials}
           </button>
         </div>
       </header>
@@ -260,7 +293,6 @@ export default function MobileApp() {
         <main className="flex-1 p-3.5 sm:p-6 max-w-md sm:max-w-2xl md:max-w-4xl mx-auto w-full pb-20 space-y-3.5">
           {activeTab === 'search' && (
             <BookListPage
-              books={mockBooks}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               selectedCategory={selectedCategory}
@@ -373,7 +405,7 @@ export default function MobileApp() {
               <div className="grid grid-cols-2 gap-1.5 text-[11px] text-teal-100/70">
                 <span>📚 Tối đa <strong className="text-white">5 cuốn</strong>/lần</span>
                 <span>⏱ Mượn tối đa <strong className="text-white">14 ngày</strong></span>
-                <span>🔄 Gia hạn <strong className="text-white">1 lần</strong> (+7 ngày)</span>
+                <span>🔄 Gia hạn <strong className="text-white">2 lần</strong> (+7 ngày)</span>
                 <span>💰 Phạt <strong className="text-white">5.000đ</strong>/ngày/cuốn</span>
               </div>
             </div>
@@ -554,17 +586,17 @@ export default function MobileApp() {
             <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
             <div className="flex items-center gap-3.5">
               <div className="w-13 h-13 rounded-2xl bg-white/20 border-2 border-white/30 text-white flex items-center justify-center font-bold text-lg shadow-inner shrink-0">
-                NL
+                {studentProfile.initials}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold truncate">Nguyễn Thành Lâm</h3>
+                  <h3 className="text-sm font-bold truncate">{studentProfile.fullName}</h3>
                   <span className="px-2 py-0.5 text-[9px] font-extrabold bg-emerald-400 text-slate-900 rounded-full shrink-0">
-                    Thẻ hoạt động
+                    {studentProfile.cardStatus}
                   </span>
                 </div>
-                <p className="text-teal-200 text-xs mt-0.5">MSSV: <span className="font-semibold text-white">2151050123</span></p>
-                <p className="text-teal-100/80 text-[11px] truncate">lam.nt@ut.edu.vn • CNTT</p>
+                <p className="text-teal-200 text-xs mt-0.5">MSSV: <span className="font-semibold text-white">{studentProfile.studentId}</span></p>
+                <p className="text-teal-100/80 text-[11px] truncate">{studentProfile.email} • {studentProfile.major}</p>
               </div>
             </div>
 
@@ -591,7 +623,7 @@ export default function MobileApp() {
               type="button"
               onClick={() => {
                 setIsDrawerOpen(false);
-                alert('Quy định Thư viện UTH:\n- Tối đa: 5 cuốn/sinh viên\n- Thời hạn: 14 ngày (gia hạn 1 lần +7 ngày)\n- Phạt quá hạn: 5.000đ/ngày/cuốn\n- Lấy sách nhanh tại quầy Pick & Go < 30 giây');
+                showMobileToast('Quy định UTH: Tối đa 5 cuốn · 14 ngày · Gia hạn 2 lần (+7 ngày) · Phạt 5.000đ/ngày.');
               }}
               className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-white active:bg-slate-100 transition-colors text-left cursor-pointer"
             >
@@ -611,7 +643,7 @@ export default function MobileApp() {
               type="button"
               onClick={() => {
                 setIsDrawerOpen(false);
-                alert('Thông báo nhắc hạn trả sách đã được kích hoạt qua email lam.nt@ut.edu.vn (nhắc trước 2 ngày).');
+                showMobileToast(`Đã bật nhắc hạn trả sách qua email ${studentProfile.email} (trước 2 ngày).`);
               }}
               className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-white active:bg-slate-100 transition-colors text-left cursor-pointer"
             >
@@ -634,7 +666,8 @@ export default function MobileApp() {
               type="button"
               onClick={() => {
                 setIsDrawerOpen(false);
-                alert('Đã đăng xuất khỏi Cổng Dịch Vụ Sinh Viên Thư Viện UTH.');
+                clearAuthSession();
+                navigate('/login');
               }}
               className="w-full py-3 px-4 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
             >
@@ -668,7 +701,7 @@ export default function MobileApp() {
       {/* Trợ lý ảo Chatbot AI trên Mobile – Full-screen khi mở, kéo thả khi đóng */}
       <ChatBotWidget
         onNavigateToBook={(bookId) => {
-          const book = mockBooks.find((b) => b.id === bookId);
+          const book = books.find((b) => b.id === bookId);
           if (book) setMobileDetailBook(book);
         }}
         onNavigateToTab={(tab) => {

@@ -13,6 +13,7 @@ import {
   ShoppingBag,
   Check,
 } from 'lucide-react';
+import borrowApi from '../../services/borrowApi';
 
 /**
  * CartDrawer - Ngăn kéo giỏ mượn sách & Lên lịch hẹn nhận tài liệu Pick & Go
@@ -34,8 +35,16 @@ export default function CartDrawer({
     d.setDate(d.getDate() + 1);
     return d.toISOString().split('T')[0];
   });
-  const [pickupTime, setPickupTime] = useState('08:00 - 11:30');
+  const [pickupTime, setPickupTime] = useState('08:00 – 11:30');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const [minDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [maxDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d.toISOString().split('T')[0];
+  });
 
   if (!isOpen) return null;
 
@@ -64,31 +73,57 @@ export default function CartDrawer({
   ];
 
   const timeSlots = [
-    { id: 'morning', label: 'Buổi Sáng', time: '08:00 - 11:30', desc: 'Thủ thư soạn từ 07:30' },
-    { id: 'afternoon', label: 'Buổi Chiều', time: '13:30 - 17:00', desc: 'Lấy trước giờ tan học' },
-    { id: 'evening', label: 'Buổi Tối', time: '17:30 - 20:00', desc: 'Chỉ áp dụng CS1' },
+    { id: 'morning', label: 'Buổi Sáng', time: '08:00 – 11:30', desc: 'Thủ thư soạn từ 07:30' },
+    { id: 'afternoon', label: 'Buổi Chiều', time: '13:30 – 17:00', desc: 'Lấy trước giờ tan học' },
+    { id: 'evening', label: 'Buổi Tối', time: '17:30 – 20:00', desc: 'Chỉ áp dụng CS1' },
   ];
 
   const maxSlots = 5;
   const currentCount = cartItems.length;
   const isFull = currentCount >= maxSlots;
 
-  const handleCheckout = (e) => {
+  const handleSelectCampus = (campusId) => {
+    setSelectedCampus(campusId);
+    if (campusId !== 'CS1' && pickupTime === '17:30 – 20:00') {
+      setPickupTime('08:00 – 11:30');
+    }
+  };
+
+  const handleCheckout = async (e) => {
     e.preventDefault();
     if (cartItems.length === 0) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const orderCode = `DH-UTH-2026-${Math.floor(100 + Math.random() * 900)}`;
-      const campusObj = campuses.find((c) => c.id === selectedCampus);
+    setErrorMsg('');
 
+    try {
+      const eligibility = await borrowApi.checkStudentBorrowEligibility({
+        addingCount: cartItems.length,
+      });
+      if (!eligibility.eligible && eligibility.reason) {
+        setErrorMsg(eligibility.reason);
+        setIsSubmitting(false);
+        return;
+      }
+
+      const campusObj = campuses.find((c) => c.id === selectedCampus);
+      const res = await borrowApi.createBorrowOrder({
+        bookIds: cartItems.map((b) => Number(b.id || b.bookId)),
+        pickupDate,
+        note: `${campusObj?.name || selectedCampus} (${pickupTime})`,
+      });
+
+      const orderCode = res?.orderCode || `DH-UTH-2026-${Math.floor(100 + Math.random() * 900)}`;
       const newOrder = {
         code: orderCode,
+        orderCode,
+        orderId: res?.orderId,
         pickupDate: `${pickupDate} (${pickupTime})`,
         dueDate: '14 ngày kể từ khi nhận sách tại quầy',
         campus: `${campusObj?.name} - ${campusObj?.address}`,
         books: cartItems,
-        status: 'READY_FOR_PICKUP',
+        status: res?.status || 'READY_FOR_PICKUP',
+        qrCodeBase64: res?.qrCodeBase64 || null,
         createdAt: new Date().toLocaleDateString('vi-VN'),
       };
 
@@ -99,7 +134,10 @@ export default function CartDrawer({
       if (onClose) {
         onClose();
       }
-    }, 500);
+    } catch (err) {
+      setIsSubmitting(false);
+      setErrorMsg(err?.message || 'Không thể tạo đơn mượn sách. Vui lòng thử lại!');
+    }
   };
 
   const selectedCampusObj = campuses.find((c) => c.id === selectedCampus) || campuses[0];
@@ -331,7 +369,7 @@ export default function CartDrawer({
                   return (
                     <div
                       key={campus.id}
-                      onClick={() => setSelectedCampus(campus.id)}
+                      onClick={() => handleSelectCampus(campus.id)}
                       className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                         isSelected
                           ? 'bg-gradient-to-r from-[#e6f4f1] to-white border-[#00666B] ring-2 ring-[#00666B]/20 shadow-xs'
@@ -402,6 +440,8 @@ export default function CartDrawer({
                 </label>
                 <input
                   type="date"
+                  min={minDate}
+                  max={maxDate}
                   value={pickupDate}
                   onChange={(e) => setPickupDate(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#00666B] focus:ring-2 focus:ring-[#00666B]/20 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-semibold cursor-pointer transition-all"
@@ -417,21 +457,25 @@ export default function CartDrawer({
                 <div className="grid grid-cols-3 gap-2">
                   {timeSlots.map((slot) => {
                     const isSelected = pickupTime === slot.time;
+                    const isDisabled = slot.id === 'evening' && selectedCampus !== 'CS1';
                     return (
                       <button
                         key={slot.id}
                         type="button"
-                        onClick={() => setPickupTime(slot.time)}
-                        className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-[#00666B] text-white border-[#00666B] shadow-xs'
-                            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                        disabled={isDisabled}
+                        onClick={() => !isDisabled && setPickupTime(slot.time)}
+                        className={`p-2.5 rounded-xl border text-center transition-all ${
+                          isDisabled
+                            ? 'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed'
+                            : isSelected
+                            ? 'bg-[#00666B] text-white border-[#00666B] shadow-xs cursor-pointer'
+                            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 cursor-pointer'
                         }`}
                       >
                         <span className="block text-[11px] font-bold">{slot.label}</span>
                         <span
                           className={`block text-[10px] font-mono mt-0.5 ${
-                            isSelected ? 'text-teal-100' : 'text-slate-500'
+                            isDisabled ? 'text-slate-300' : isSelected ? 'text-teal-100' : 'text-slate-500'
                           }`}
                         >
                           {slot.time}
@@ -452,7 +496,7 @@ export default function CartDrawer({
                   • <strong>Bàn giao nhanh chóng:</strong> Thủ thư gom sẵn tài liệu vào khay chờ trước giờ bạn tới.
                 </p>
                 <p className="text-[11px] text-teal-900/90 leading-relaxed">
-                  • <strong>Thời hạn mượn:</strong> 14 ngày (gia hạn trực tuyến 1 lần +7 ngày trên hệ thống).
+                  • <strong>Thời hạn mượn:</strong> 14 ngày (gia hạn trực tuyến tối đa 2 lần, mỗi lần +7 ngày).
                 </p>
                 <p className="text-[11px] text-teal-900/90 leading-relaxed">
                   • <strong>Bảo lưu đơn:</strong> Hệ thống tự động hủy và phục hồi kho nếu sau 48h không đến lấy.
@@ -480,6 +524,14 @@ export default function CartDrawer({
                 </span>
               </div>
             </div>
+
+            {/* Thông báo lỗi nghiệp vụ BR01 nếu có */}
+            {errorMsg && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <span className="font-medium leading-snug">{errorMsg}</span>
+              </div>
+            )}
 
             {/* Nút bấm Bolder hành động quyết định */}
             {onOpenSchedulePage && (

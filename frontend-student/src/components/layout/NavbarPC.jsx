@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import borrowApi from '../../services/borrowApi';
+import { getStoredStudentProfile, clearAuthSession, mapLoanFromApi } from '../../utils/studentSession';
 import {
   Search,
   ShoppingBag,
@@ -18,6 +20,25 @@ import {
   LogOut
 } from 'lucide-react';
 
+const DEFAULT_NOTIFICATIONS = [
+  {
+    id: 'default-due',
+    type: 'warning',
+    title: 'Sách sắp đến hạn trả hôm nay!',
+    message: 'Cuốn "Lập trình Python" đến hạn trả. Bấm để gia hạn trực tuyến.',
+    time: '10 phút trước',
+    tab: 'loans',
+  },
+  {
+    id: 'default-ready',
+    type: 'info',
+    title: 'Đơn mượn sẵn sàng tại quầy',
+    message: 'Thủ thư đã gom xong tài liệu. Nhận tại quầy tiếp nhận trước 17:30.',
+    time: '1 giờ trước',
+    tab: 'loans',
+  },
+];
+
 const NavbarPC = ({
   activeTab = 'catalog',
   setActiveTab,
@@ -28,11 +49,78 @@ const NavbarPC = ({
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [notificationsRead, setNotificationsRead] = useState(false);
+  const [loanSummary, setLoanSummary] = useState({
+    activeCount: 3,
+    nearestDue: '15/11',
+    totalFine: 0,
+    notifications: DEFAULT_NOTIFICATIONS,
+  });
   const navigate = useNavigate();
+  const studentProfile = getStoredStudentProfile();
 
   const notifRef = useRef(null);
   const profileRef = useRef(null);
   const searchInputRef = useRef(null);
+
+  // Nạp trạng thái sách đang mượn & thông báo động khi sinh viên đã đăng nhập
+  useEffect(() => {
+    const token =
+      typeof window !== 'undefined' &&
+      (localStorage.getItem('token') || localStorage.getItem('accessToken'));
+    if (!token) return;
+
+    let cancelled = false;
+    borrowApi
+      .getMyLoans()
+      .then((list) => {
+        if (cancelled || !Array.isArray(list)) return;
+        const mapped = list.map(mapLoanFromApi).filter(Boolean);
+        const activeLoans = mapped.filter((l) => l.status !== 'RETURNED');
+        const totalFine = mapped.reduce((sum, l) => sum + (Number(l.fineAmount) || 0), 0);
+
+        const datedLoans = activeLoans
+          .map((l) => ({ ...l, _dueMs: Date.parse(l.dueDate) }))
+          .filter((l) => Number.isFinite(l._dueMs))
+          .sort((a, b) => a._dueMs - b._dueMs);
+
+        const nearestDue = datedLoans.length
+          ? new Date(datedLoans[0]._dueMs).toLocaleDateString('vi-VN', {
+              day: '2-digit',
+              month: '2-digit',
+            })
+          : 'Không có';
+
+        const dynamicAlerts = activeLoans
+          .filter((l) => l.status === 'OVERDUE' || l.status === 'WARNING')
+          .slice(0, 4)
+          .map((l) => ({
+            id: `loan-${l.id}`,
+            type: 'warning',
+            title:
+              l.status === 'OVERDUE'
+                ? `Quá hạn trả ${Math.abs(l.daysRemaining || 0)} ngày`
+                : 'Sách sắp đến hạn trả!',
+            message: `Cuốn "${l.bookTitle}" — bấm để xem chi tiết hoặc gia hạn trực tuyến.`,
+            time: `Hạn: ${l.dueDate || 'Đang cập nhật'}`,
+            tab: 'loans',
+          }));
+
+        setLoanSummary({
+          activeCount: activeLoans.length,
+          nearestDue,
+          totalFine,
+          notifications: dynamicAlerts,
+        });
+      })
+      .catch(() => {
+        // Giữ fallback khi kết nối Backend tạm thời gián đoạn
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -138,7 +226,7 @@ const NavbarPC = ({
             <button
               type="button"
               onClick={() => setActiveTab && setActiveTab('loans')}
-              title="Sách đang mượn (3 cuốn)"
+              title={`Sách đang mượn (${loanSummary.activeCount} cuốn)`}
               className={`px-2.5 py-1.5 lg:px-3 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                 activeTab === 'loans'
                   ? 'bg-white/20 text-white shadow-xs'
@@ -149,7 +237,7 @@ const NavbarPC = ({
               <span className="hidden xl:inline">Sách đang mượn</span>
               <span className="hidden lg:inline xl:hidden">Đang mượn</span>
               <span className="bg-amber-400 text-slate-900 text-[10px] font-black px-1.5 py-0.5 rounded tabular-nums">
-                3
+                {loanSummary.activeCount}
               </span>
             </button>
 
@@ -225,7 +313,9 @@ const NavbarPC = ({
               title="Thông báo thư viện"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-400 rounded-full ring-2 ring-[#00666B]"></span>
+              {!notificationsRead && loanSummary.notifications.length > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-400 rounded-full ring-2 ring-[#00666B]"></span>
+              )}
             </button>
 
             {/* Dropdown Thông báo */}
@@ -237,53 +327,57 @@ const NavbarPC = ({
                       Thông báo thư viện
                     </h4>
                     <span className="bg-[#e0eff0] text-[#00666B] text-[10px] font-bold px-1.5 py-0.5 rounded">
-                      2 mới
+                      {notificationsRead ? '0' : loanSummary.notifications.length} mới
                     </span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setShowNotifications(false)}
+                    onClick={() => {
+                      setNotificationsRead(true);
+                      setShowNotifications(false);
+                    }}
                     className="text-[11px] text-[#00666B] hover:underline font-medium cursor-pointer"
                   >
                     Đã đọc
                   </button>
                 </div>
                 <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-                  <div
-                    onClick={() => {
-                      setShowNotifications(false);
-                      if (setActiveTab) setActiveTab('loans');
-                    }}
-                    className="p-3 hover:bg-slate-50 transition-colors flex gap-2.5 cursor-pointer"
-                  >
-                    <div className="w-6 h-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <AlertCircle className="w-3.5 h-3.5" />
+                  {loanSummary.notifications.length > 0 ? (
+                    loanSummary.notifications.map((notif) => (
+                      <div
+                        key={notif.id}
+                        onClick={() => {
+                          setNotificationsRead(true);
+                          setShowNotifications(false);
+                          if (setActiveTab) setActiveTab(notif.tab || 'loans');
+                        }}
+                        className="p-3 hover:bg-slate-50 transition-colors flex gap-2.5 cursor-pointer"
+                      >
+                        <div
+                          className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${
+                            notif.type === 'warning'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-[#e0eff0] text-[#00666B]'
+                          }`}
+                        >
+                          {notif.type === 'warning' ? (
+                            <AlertCircle className="w-3.5 h-3.5" />
+                          ) : (
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-slate-900 truncate">{notif.title}</p>
+                          <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">{notif.message}</p>
+                          <span className="text-[10px] text-slate-400 mt-1 inline-block">{notif.time}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-xs text-slate-500">
+                      Không có tài liệu sắp đến hạn trả.
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-900 truncate">
-                        Sách sắp đến hạn trả hôm nay!
-                      </p>
-                      <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
-                        Cuốn "Lập trình Python" đến hạn trả. Bấm để gia hạn trực tuyến.
-                      </p>
-                      <span className="text-[10px] text-slate-400 mt-1 inline-block">10 phút trước</span>
-                    </div>
-                  </div>
-
-                  <div className="p-3 hover:bg-slate-50 transition-colors flex gap-2.5 cursor-pointer">
-                    <div className="w-6 h-6 rounded-md bg-[#e0eff0] text-[#00666B] flex items-center justify-center shrink-0 mt-0.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-900 truncate">
-                        Đơn mượn sẵn sàng tại quầy
-                      </p>
-                      <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
-                        Thủ thư đã gom xong tài liệu. Nhận tại quầy tiếp nhận trước 17:30.
-                      </p>
-                      <span className="text-[10px] text-slate-400 mt-1 inline-block">1 giờ trước</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -342,14 +436,14 @@ const NavbarPC = ({
               aria-label="Tài khoản sinh viên UTH"
             >
               <div className="w-7 h-7 bg-white text-[#00666B] rounded-lg flex items-center justify-center font-heading font-extrabold text-xs shrink-0 shadow-xs">
-                VA
+                {studentProfile.initials}
               </div>
               <div className="hidden xl:flex flex-col text-left leading-none">
                 <span className="text-xs font-bold text-white truncate max-w-[120px]">
-                  Nguyễn Văn A
+                  {studentProfile.fullName}
                 </span>
                 <span className="text-[10px] text-teal-200 font-mono mt-0.5">
-                  2151053001
+                  {studentProfile.studentId}
                 </span>
               </div>
               <ChevronDown className={`w-3.5 h-3.5 text-teal-200 shrink-0 transition-transform duration-200 ${showProfile ? 'rotate-180' : ''}`} />
@@ -362,19 +456,19 @@ const NavbarPC = ({
                 <div className="p-4 bg-gradient-to-br from-slate-50 to-teal-50/50">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00666B] to-[#00474b] text-white flex items-center justify-center font-heading font-extrabold text-base shadow-sm shrink-0 ring-2 ring-white">
-                      VA
+                      {studentProfile.initials}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-1">
                         <h4 className="text-sm sm:text-base font-bold text-slate-900 truncate">
-                          Nguyễn Văn A
+                          {studentProfile.fullName}
                         </h4>
                         <span className="text-xs font-mono font-bold text-teal-800 bg-teal-100/90 px-2 py-0.5 rounded shrink-0">
-                          2151053001
+                          {studentProfile.studentId}
                         </span>
                       </div>
                       <p className="text-xs text-slate-600 truncate mt-0.5 font-medium">
-                        Khoa Công nghệ Thông tin · UTH
+                        {studentProfile.major}
                       </p>
                       <div className="mt-2 flex items-center gap-2">
                         <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md">
@@ -389,15 +483,21 @@ const NavbarPC = ({
                   <div className="mt-3.5 grid grid-cols-3 gap-2 pt-3 border-t border-slate-200/70 text-center">
                     <div className="bg-white rounded-xl py-2 px-1 sm:px-2 border border-slate-100 shadow-2xs">
                       <span className="block text-[11px] sm:text-xs text-slate-500 font-medium whitespace-nowrap">Đang mượn</span>
-                      <strong className="block text-sm font-bold text-slate-900 mt-0.5 tabular-nums">3 cuốn</strong>
+                      <strong className="block text-sm font-bold text-slate-900 mt-0.5 tabular-nums">{loanSummary.activeCount} cuốn</strong>
                     </div>
                     <div className="bg-white rounded-xl py-2 px-1 sm:px-2 border border-slate-100 shadow-2xs">
                       <span className="block text-[11px] sm:text-xs text-slate-500 font-medium whitespace-nowrap">Hạn gần nhất</span>
-                      <strong className="block text-sm font-bold text-amber-700 mt-0.5 tabular-nums">15/11</strong>
+                      <strong className="block text-sm font-bold text-amber-700 mt-0.5 tabular-nums">{loanSummary.nearestDue}</strong>
                     </div>
                     <div className="bg-white rounded-xl py-2 px-1 sm:px-2 border border-slate-100 shadow-2xs">
                       <span className="block text-[11px] sm:text-xs text-slate-500 font-medium whitespace-nowrap">Phí phạt</span>
-                      <strong className="block text-sm font-bold text-emerald-700 mt-0.5 tabular-nums">0đ</strong>
+                      <strong
+                        className={`block text-sm font-bold mt-0.5 tabular-nums ${
+                          loanSummary.totalFine > 0 ? 'text-rose-700' : 'text-emerald-700'
+                        }`}
+                      >
+                        {loanSummary.totalFine.toLocaleString('vi-VN')}đ
+                      </strong>
                     </div>
                   </div>
                 </div>
@@ -420,7 +520,7 @@ const NavbarPC = ({
                         Sách đang mượn & Gia hạn
                       </strong>
                       <span className="block text-xs text-slate-500 mt-0.5">
-                        Quản lý 3 tài liệu và gia hạn trực tuyến
+                        Quản lý {loanSummary.activeCount} tài liệu và gia hạn trực tuyến
                       </span>
                     </div>
                   </button>
@@ -453,6 +553,7 @@ const NavbarPC = ({
                     type="button"
                     onClick={() => {
                       setShowProfile(false);
+                      clearAuthSession();
                       navigate('/login');
                     }}
                     className="w-full flex items-center gap-3 p-2.5 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer text-left"

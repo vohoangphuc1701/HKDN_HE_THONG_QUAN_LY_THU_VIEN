@@ -654,7 +654,7 @@ export default function BookDetailPage({
                 <div className="p-3.5 rounded-xl bg-teal-50/90 border border-teal-200 flex items-start gap-2.5">
                   <Calendar className="w-4 h-4 text-[#00666B] shrink-0 mt-0.5" />
                   <div>
-                    <strong className="block text-teal-950 font-bold">Gia hạn: 1 lần (+7d) (BR03)</strong>
+                    <strong className="block text-teal-950 font-bold">Gia hạn: 2 lần (+7d) (BR03)</strong>
                     <span className="text-[11px] text-teal-700">Trực tuyến khi chưa quá hạn</span>
                   </div>
                 </div>

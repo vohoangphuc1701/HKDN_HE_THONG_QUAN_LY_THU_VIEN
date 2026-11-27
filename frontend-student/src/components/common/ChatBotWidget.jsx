@@ -1,15 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  MessageSquare,
-  X,
   Send,
-  Sparkles,
   Bot,
   RotateCcw,
   BookOpen,
   ChevronDown,
   ArrowRight,
-  GripHorizontal,
 } from 'lucide-react';
 import { sendMessageToAI } from '../../services/aiChatService';
 import { QUICK_SUGGESTIONS, BOT_NAME } from '../../data/chatbotKnowledge';
@@ -17,21 +13,27 @@ import { QUICK_SUGGESTIONS, BOT_NAME } from '../../data/chatbotKnowledge';
 const BUTTON_SIZE = 58; // Đường kính nút tròn (px)
 const PADDING = 20; // Khoảng cách an toàn so với mép màn hình
 
-export default function ChatBotWidget({ onNavigateToBook, onNavigateToTab }) {
+const createWelcomeMessage = () => ({
+  id: 'welcome',
+  role: 'model',
+  text: `Dạ chào bạn! 👋 Mình là **${BOT_NAME}**.\n\nMình có thể hỗ trợ bạn tìm kiếm giáo trình, giải đáp quy định mượn trả (BR01-BR08), giờ mở cửa 3 cơ sở đào tạo, hoặc quy trình nhận sách Pick & Go trong 30 giây.\n\nBạn đang cần hỗ trợ điều gì hôm nay?`,
+  timestamp: new Date(),
+});
+
+export default function ChatBotWidget({ onNavigateToBook }) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      id: 'welcome',
-      role: 'model',
-      text: `Dạ chào bạn! 👋 Mình là **${BOT_NAME}**.\n\nMình có thể hỗ trợ bạn tìm kiếm giáo trình, giải đáp quy định mượn trả (BR01-BR08), giờ mở cửa 3 cơ sở đào tạo, hoặc quy trình nhận sách Pick & Go trong 30 giây.\n\nBạn đang cần hỗ trợ điều gì hôm nay?`,
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState(() => [createWelcomeMessage()]);
 
   // Vị trí kéo thả (tọa độ left, top tuyệt đối trên viewport)
-  const [position, setPosition] = useState(null);
+  const [position, setPosition] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    return {
+      x: PADDING + 12,
+      y: Math.max(PADDING, window.innerHeight - BUTTON_SIZE - PADDING - 12),
+    };
+  });
   const [isDragging, setIsDragging] = useState(false);
 
   const dragRef = useRef({
@@ -46,12 +48,11 @@ export default function ChatBotWidget({ onNavigateToBook, onNavigateToTab }) {
   const inputRef = useRef(null);
   const widgetRef = useRef(null);
 
-  // Khởi tạo vị trí mặc định ở góc dưới bên trái màn hình
+  // Tự động neo sát cạnh gần nhất khi thay đổi kích thước viewport
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const initX = PADDING + 12;
       const initY = Math.max(PADDING, window.innerHeight - BUTTON_SIZE - PADDING - 12);
-      setPosition({ x: initX, y: initY });
 
       const handleResize = () => {
         setPosition((prev) => {
@@ -207,7 +208,7 @@ export default function ChatBotWidget({ onNavigateToBook, onNavigateToTab }) {
       };
 
       setMessages((prev) => [...prev, aiMsg]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {

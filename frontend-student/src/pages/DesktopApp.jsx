@@ -7,9 +7,6 @@ import {
   Clock,
   Zap,
   ShieldCheck,
-  LayoutGrid,
-  List,
-  RotateCcw,
   BookOpen,
   Compass,
   Sparkles,
@@ -21,35 +18,20 @@ import {
   ArrowUpRight,
   Boxes,
   Laptop,
-  Users,
-  FileText,
-  Headphones,
   MapPin,
-  Phone,
   ShoppingBag,
-  Menu,
-  Home,
-  BookMarked,
-  History,
-  User,
-  Bell,
-  HelpCircle,
-  LogOut,
-  ChevronRight,
-  QrCode,
-  RefreshCw,
-  AlertCircle
 } from 'lucide-react';
 import StudentLayout from '../components/layout/StudentLayout';
 import BookCard from '../components/common/BookCard';
 import CartDrawer from '../components/common/CartDrawer';
 import ReturnQrModal from '../components/common/ReturnQrModal';
-import FilterSidebarPC from '../components/responsive/FilterSidebarPC';
 import BookDetailPage from '../components/pages/BookDetailPage';
 import LoansTableViewPC from '../components/responsive/LoansTableViewPC';
 import LoanHistoryTableViewPC from '../components/responsive/LoanHistoryTableViewPC';
 import BookListPage from './BookListPage';
 import CheckoutSchedulePage from './CheckoutSchedulePage';
+import bookApi from '../services/bookApi';
+import { loadCartItems, saveCartItems } from '../utils/studentSession';
 import mockBooks from '../mockPCBooks.json';
 import campusesData from '../data/campusesData';
 import CampusExplorerSection from '../components/pages/sections/CampusExplorerSection';
@@ -75,8 +57,8 @@ export default function DesktopApp() {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [selectedType, setSelectedType] = useState('ALL');
+  const [selectedCampus, setSelectedCampus] = useState('ALL');
   const [sortBy, setSortBy] = useState('relevant');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'compact'
 
   // Tab lọc đề xuất nhanh trên Trang Chủ
   const [recommendCategory, setRecommendCategory] = useState('ALL');
@@ -100,9 +82,26 @@ export default function DesktopApp() {
   const [qrModalOrder, setQrModalOrder] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
 
+  // Danh sách giáo trình động từ API (fallback sang mockBooks khi Backend offline)
+  const [books, setBooks] = useState(mockBooks);
+  useEffect(() => {
+    let cancelled = false;
+    bookApi
+      .getBooks({ size: 50 })
+      .then((res) => {
+        if (!cancelled && Array.isArray(res?.content) && res.content.length > 0 && !res.isFallback) {
+          setBooks(res.content);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Cuốn sách đang xem chi tiết (ưu tiên id trên URL /books/:id hoặc state)
   const viewingBook = routeBookId
-    ? mockBooks.find((b) => String(b.id) === String(routeBookId)) || selectedBookDetail
+    ? books.find((b) => String(b.id) === String(routeBookId)) || selectedBookDetail
     : null;
 
   const handleViewBookDetail = (book) => {
@@ -135,30 +134,14 @@ export default function DesktopApp() {
     }
   };
 
-  // Giỏ mượn sách khởi tạo: Tự động khôi phục từ localStorage để không bị mất khi F5
-  const [cartItems, setCartItems] = useState(() => {
-    try {
-      const saved = localStorage.getItem('uth_library_cart_tv3');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (e) {
-      console.warn('Lỗi đọc giỏ hàng từ localStorage:', e);
-    }
-    return [
-      mockBooks[0], // Python
-      mockBooks[1], // Kinh tế vi mô
-    ];
-  });
+  // Giỏ mượn sách khởi tạo: Tự động khôi phục từ localStorage dùng chung giữa Mobile & Desktop
+  const [cartItems, setCartItems] = useState(() =>
+    loadCartItems([mockBooks[0], mockBooks[1]])
+  );
 
   // Tự động đồng bộ giỏ mượn vào localStorage khi có thay đổi
   useEffect(() => {
-    try {
-      localStorage.setItem('uth_library_cart_tv3', JSON.stringify(cartItems));
-    } catch (e) {
-      console.warn('Lỗi ghi giỏ hàng vào localStorage:', e);
-    }
+    saveCartItems(cartItems);
   }, [cartItems]);
 
   const showToast = (msg) => {
@@ -189,31 +172,6 @@ export default function DesktopApp() {
     showToast(`Đặt mượn thành công! Đơn hàng: ${newOrder.code}`);
   };
 
-  // Danh mục chuyên ngành UTH cho bộ lọc catalog
-  const categories = [
-    { key: 'ALL', label: 'Tất cả chuyên ngành', count: mockBooks.length },
-    {
-      key: 'CÔNG NGHỆ THÔNG TIN',
-      label: 'Công nghệ thông tin',
-      count: mockBooks.filter((b) => b.category === 'CÔNG NGHỆ THÔNG TIN').length,
-    },
-    {
-      key: 'KINH TẾ',
-      label: 'Kinh tế & Quản trị',
-      count: mockBooks.filter((b) => b.category === 'KINH TẾ').length,
-    },
-    {
-      key: 'LOGISTICS & VẬN TẢI',
-      label: 'Logistics & Vận tải',
-      count: mockBooks.filter((b) => b.category === 'LOGISTICS & VẬN TẢI').length,
-    },
-    {
-      key: 'NGOẠI NGỮ',
-      label: 'Ngoại ngữ chuyên ngành',
-      count: mockBooks.filter((b) => b.category === 'NGOẠI NGỮ').length,
-    },
-  ];
-
   // Tab lọc đề xuất nhanh trên Trang Chủ
   const recommendTabs = [
     { key: 'ALL', label: 'Tất cả đề xuất' },
@@ -224,7 +182,7 @@ export default function DesktopApp() {
   ];
 
   // Sách mới (isNew hoặc xuất bản năm 2023 trở lại đây)
-  const newBooks = mockBooks
+  const newBooks = books
     .filter((b) => b.isNew || (b.publishYear && b.publishYear >= 2023))
     .sort((a, b) => (b.publishYear || 0) - (a.publishYear || 0))
     .slice(0, 4);
@@ -233,44 +191,13 @@ export default function DesktopApp() {
   const otherNewBooks = newBooks.slice(1, 4);
 
   // Sách đề xuất trên Trang Chủ (lọc theo tab chuyên ngành, sắp xếp theo lượt mượn & đánh giá)
-  const recommendedBooks = mockBooks
+  const recommendedBooks = books
     .filter((b) => {
       if (recommendCategory === 'ALL') return true;
       return b.category === recommendCategory;
     })
     .sort((a, b) => (b.borrowCount || 0) - (a.borrowCount || 0))
     .slice(0, 4);
-
-  // Lọc và sắp xếp sách cho trang Kho sách
-  const filteredBooks = mockBooks
-    .filter((book) => {
-      const matchCat = selectedCategory === 'ALL' || book.category === selectedCategory;
-      const matchType = selectedType === 'ALL' || book.type === selectedType;
-      const matchAvailable = !onlyAvailable || book.availableQuantity > 0;
-      const matchSearch =
-        !searchQuery.trim() ||
-        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (book.code && book.code.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchCat && matchType && matchAvailable && matchSearch;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'newest') return (b.publishYear || 0) - (a.publishYear || 0);
-      if (sortBy === 'available') return (b.availableQuantity || 0) - (a.availableQuantity || 0);
-      if (sortBy === 'borrowCount') return (b.borrowCount || 0) - (a.borrowCount || 0);
-      if (sortBy === 'title') return a.title.localeCompare(b.title);
-      return a.id - b.id;
-    });
-
-  const hasActiveFilters =
-    selectedCategory !== 'ALL' || onlyAvailable || selectedType !== 'ALL' || searchQuery !== '';
-
-  const handleResetFilters = () => {
-    setSelectedCategory('ALL');
-    setOnlyAvailable(false);
-    setSelectedType('ALL');
-    setSearchQuery('');
-  };
 
   const handleSearchFromHero = (e) => {
     e.preventDefault();
@@ -296,7 +223,7 @@ export default function DesktopApp() {
           onAddToCart={handleAddToCart}
           isInCart={cartItems.some((item) => item.id === viewingBook.id)}
           onOpenCart={() => setIsCartOpen(true)}
-          allBooks={mockBooks}
+          allBooks={books}
           onSelectBook={handleViewBookDetail}
         />
       ) : (
@@ -336,7 +263,7 @@ export default function DesktopApp() {
                       </span>
                       <span className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-teal-300" />
-                        Gia hạn online: 1 lần (+7 ngày) (BR03)
+                        Gia hạn online: 2 lần (+7 ngày) (BR03)
                       </span>
                       <span className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-teal-300" />
@@ -763,7 +690,7 @@ export default function DesktopApp() {
                 }}
                 className="text-xs font-bold text-[#00666B] hover:text-[#004f53] flex items-center gap-1.5 transition-colors cursor-pointer group shrink-0"
               >
-                <span>Xem tất cả sách mới ({mockBooks.filter((b) => b.isNew || (b.publishYear && b.publishYear >= 2023)).length})</span>
+                <span>Xem tất cả sách mới ({books.filter((b) => b.isNew || (b.publishYear && b.publishYear >= 2023)).length})</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -976,6 +903,7 @@ export default function DesktopApp() {
           {/* MỤC: HỆ THỐNG THƯ VIỆN 3 CƠ SỞ UTH */}
           <CampusExplorerSection
             onSelectCampusCatalog={(campusCode) => {
+              setSelectedCampus(campusCode || 'ALL');
               setActiveTab('catalog');
             }}
           />
@@ -1024,7 +952,7 @@ export default function DesktopApp() {
       {/* 3. MÀN HÌNH KHO SÁCH (ĐÃ TÁCH THÀNH COMPONENT RIÊNG BOOKLISTPAGE - SESSION 7) */}
       {activeTab === 'catalog' && (
         <BookListPage
-          books={mockBooks}
+          books={books}
           cartItems={cartItems}
           onAddToCart={handleAddToCart}
           onViewDetail={handleViewBookDetail}
@@ -1036,6 +964,10 @@ export default function DesktopApp() {
           setOnlyAvailable={setOnlyAvailable}
           selectedType={selectedType}
           setSelectedType={setSelectedType}
+          selectedCampus={selectedCampus}
+          setSelectedCampus={setSelectedCampus}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
           onNavigateHome={() => setActiveTab('home')}
         />
       )}

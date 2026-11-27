@@ -3,12 +3,9 @@ import {
   Filter,
   RotateCcw,
   Check,
-  BookOpen,
   Layers,
-  Sparkles,
   CheckCircle2,
   MapPin,
-  Calendar,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -34,8 +31,9 @@ export default function FilterSidebarPC({
 }) {
   const documentTypes = [
     { key: 'ALL', label: 'Tất cả loại hình' },
-    { key: 'PRINT', label: 'Sách in tại quầy' },
-    { key: 'EBOOK', label: 'E-Book / Giáo trình số' },
+    { key: 'Giáo trình chính', label: 'Giáo trình chính' },
+    { key: 'Sách tham khảo', label: 'Sách tham khảo' },
+    { key: 'Sách chuyên ngành', label: 'Sách chuyên ngành' },
   ];
 
   const campusList = [

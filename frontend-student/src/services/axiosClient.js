@@ -9,7 +9,7 @@ import axios from 'axios';
  * - Xử lý tập trung các lỗi HTTP phổ biến (401 Hết hạn phiên, 403, 500)
  */
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -53,9 +53,14 @@ axiosClient.interceptors.response.use(
           localStorage.removeItem('token');
           localStorage.removeItem('accessToken');
           localStorage.removeItem('user');
-          // Nếu không đang ở trang đăng nhập thì chuyển hướng
-          if (!window.location.pathname.includes('/login')) {
-            // window.location.href = '/login';
+          // Nếu không đang ở trang đăng nhập/đăng ký (tránh điều hướng trong môi trường test)
+          if (
+            typeof window !== 'undefined' &&
+            !import.meta.env.VITEST &&
+            !window.location.pathname.includes('/login') &&
+            !window.location.pathname.includes('/register')
+          ) {
+            window.location.assign('/login');
           }
           break;
 
