@@ -41,6 +41,7 @@ export default function BookDetailPage({
   isInCart = false,
   onOpenCart,
   allBooks = [],
+  cartItems = [],
   onSelectBook,
   cartCount = 0,
 }) {
@@ -747,7 +748,7 @@ export default function BookDetailPage({
                   book={relBook}
                   onAddToCart={onAddToCart}
                   onViewDetail={(item) => onSelectBook && onSelectBook(item || relBook)}
-                  isInCart={isInCart}
+                  isInCart={cartItems.some((item) => item.id === relBook.id)}
                   viewMode="grid"
                 />
               ))}

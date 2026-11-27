@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Calendar, X, QrCode } from 'lucide-react';
 
@@ -22,6 +22,7 @@ export default function ReturnScheduleModal({
   setAppointmentNote,
   onConfirm,
 }) {
+  const [todayIso] = useState(() => new Date().toISOString().split('T')[0]);
   if (!isOpen || typeof document === 'undefined') return null;
 
   return createPortal(
@@ -106,7 +107,7 @@ export default function ReturnScheduleModal({
               <input
                 type="date"
                 value={appointmentDate}
-                min={new Date().toISOString().split('T')[0]}
+                min={todayIso}
                 max={maxAllowedDueDate ? maxAllowedDueDate.toISOString().split('T')[0] : undefined}
                 onChange={(e) => setAppointmentDate(e.target.value)}
                 className="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#00666B]/30 focus:border-[#00666B] outline-none"

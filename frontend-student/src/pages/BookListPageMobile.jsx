@@ -119,7 +119,6 @@ export default function BookListPage({
   useEffect(() => {
     const q = searchQuery.trim();
     if (q.length < 3) {
-      setAiHint(null);
       return;
     }
     let cancelled = false;

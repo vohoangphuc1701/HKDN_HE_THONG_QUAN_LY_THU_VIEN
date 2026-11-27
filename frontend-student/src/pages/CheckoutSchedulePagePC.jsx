@@ -1,24 +1,14 @@
-﻿import React, { useState, useMemo } from 'react';
+﻿import React, { useState } from 'react';
 import {
-  Calendar,
-  Clock,
   MapPin,
   CheckCircle2,
   AlertCircle,
   BookOpen,
-  ArrowRight,
-  ShieldCheck,
-  Zap,
   ShoppingBag,
-  Info,
   Trash2,
   ArrowLeft,
   QrCode,
   AlertTriangle,
-  Phone,
-  Building,
-  User,
-  Sparkles,
 } from 'lucide-react';
 import borrowApi from '../services/borrowApi';
 
@@ -119,12 +109,12 @@ export default function CheckoutSchedulePagePC({
   const selectedTimeSlotObj = timeSlots.find((t) => t.id === pickupTimeSlot) || timeSlots[0];
 
   // Tính toán ngày mượn hợp lệ (từ hôm nay đến 7 ngày tới)
-  const minDate = new Date().toISOString().split('T')[0];
-  const maxDate = (() => {
+  const [minDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [maxDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 7);
     return d.toISOString().split('T')[0];
-  })();
+  });
 
   // Xử lý xác nhận đặt mượn
   const handleConfirmOrder = async (e) => {

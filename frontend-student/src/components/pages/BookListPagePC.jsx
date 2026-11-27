@@ -10,11 +10,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
   X,
-  BookOpen,
-  Filter,
-  ArrowUpDown,
-  CheckCircle2,
-  Bookmark
 } from 'lucide-react';
 import BookCard from '../common/BookCard';
 import FilterSidebarPC from '../responsive/FilterSidebarPC';
@@ -85,6 +80,8 @@ export default function BookListPage({
   setSelectedType: externalSetSelectedType,
   selectedCampus: externalSelectedCampus,
   setSelectedCampus: externalSetSelectedCampus,
+  sortBy: externalSortBy,
+  setSortBy: externalSetSortBy,
   onNavigateHome,
 }) {
   // Quản lý state tìm kiếm & bộ lọc (hỗ trợ cả mode controlled từ ngoài và uncontrolled)
@@ -93,6 +90,7 @@ export default function BookListPage({
   const [internalOnlyAvailable, setInternalOnlyAvailable] = useState(false);
   const [internalSelectedType, setInternalSelectedType] = useState('ALL');
   const [internalCampus, setInternalCampus] = useState('ALL');
+  const [internalSortBy, setInternalSortBy] = useState('relevant');
 
   const searchQuery = externalSearchQuery !== undefined ? externalSearchQuery : internalSearchQuery;
   const setSearchQuery = externalSetSearchQuery || setInternalSearchQuery;
@@ -111,29 +109,27 @@ export default function BookListPage({
 
   // Chế độ xem & Sắp xếp
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'compact'
-  const [sortBy, setSortBy] = useState('relevant');
+  const sortBy = externalSortBy !== undefined ? externalSortBy : internalSortBy;
+  const setSortBy = externalSetSortBy || setInternalSortBy;
 
   // State hỗ trợ tìm kiếm thông minh AI (Gemini Semantic Expansion & Typo Hint)
   const [aiSuggestion, setAiSuggestion] = useState(null);
-  const [isAiExpanding, setIsAiExpanding] = useState(false);
 
   // Kích hoạt AI phân tích câu truy vấn tự nhiên hoặc sửa lỗi chính tả
   useEffect(() => {
     const trimmed = searchQuery.trim();
     if (!trimmed || trimmed.length < 3) {
-      setAiSuggestion(null);
       return;
     }
 
     const timer = setTimeout(async () => {
-      setIsAiExpanding(true);
       try {
         const res = await expandQueryWithAI(trimmed);
         if (res && res.success) {
           const isCorrected = res.correctedQuery.toLowerCase() !== trimmed.toLowerCase();
           const hasExpansion = res.keywords && res.keywords.length > 1;
           if (isCorrected || hasExpansion) {
-            setAiSuggestion(res);
+            setAiSuggestion({ ...res, originalQuery: trimmed });
           } else {
             setAiSuggestion(null);
           }
@@ -142,8 +138,6 @@ export default function BookListPage({
         }
       } catch {
         setAiSuggestion(null);
-      } finally {
-        setIsAiExpanding(false);
       }
     }, 600);
 
@@ -154,6 +148,14 @@ export default function BookListPage({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12); // 8, 12, 16, 24 cuốn / trang
 
+  // Reset trang về 1 ngay khi điều kiện lọc thay đổi (tránh setState đồng bộ trong useEffect)
+  const filterKey = `${searchQuery}|${selectedCategory}|${onlyAvailable}|${selectedType}|${selectedCampus}|${sortBy}|${pageSize}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (prevFilterKey !== filterKey) {
+    setPrevFilterKey(filterKey);
+    setCurrentPage(1);
+  }
+
   // Trạng thái dữ liệu thời gian thực từ Spring Boot REST API (/api/books)
   const [liveBooks, setLiveBooks] = useState(null);
   const [liveTotalElements, setLiveTotalElements] = useState(null);
@@ -161,7 +163,9 @@ export default function BookListPage({
 
   useEffect(() => {
     let active = true;
-    setIsLoadingApi(true);
+    const loaderTimer = setTimeout(() => {
+      if (active) setIsLoadingApi(true);
+    }, 120);
 
     bookApi
       .getBooks({
@@ -199,11 +203,13 @@ export default function BookListPage({
         }
       })
       .finally(() => {
+        clearTimeout(loaderTimer);
         if (active) setIsLoadingApi(false);
       });
 
     return () => {
       active = false;
+      clearTimeout(loaderTimer);
     };
   }, [searchQuery, selectedCategory, onlyAvailable, currentPage, pageSize, sortBy]);
 
@@ -259,10 +265,12 @@ export default function BookListPage({
       });
   }, [books, selectedCategory, selectedType, onlyAvailable, selectedCampus, searchQuery, sortBy]);
 
-  // Reset về trang 1 mỗi khi đổi điều kiện lọc hoặc tìm kiếm
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory, selectedType, onlyAvailable, selectedCampus, sortBy, pageSize]);
+  const visibleAiSuggestion =
+    aiSuggestion &&
+    searchQuery.trim().length >= 3 &&
+    aiSuggestion.originalQuery === searchQuery.trim()
+      ? aiSuggestion
+      : null;
 
   // Tính toán chỉ số phân trang
   const totalResults = liveTotalElements !== null ? liveTotalElements : filteredBooks.length;
@@ -518,7 +526,7 @@ export default function BookListPage({
           )}
 
           {/* AI Search Assistance Banner (Gợi ý chính tả & Mở rộng ngữ nghĩa tự nhiên) */}
-          {aiSuggestion && (
+          {visibleAiSuggestion && (
             <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-[#003336] via-[#00474b] to-[#002f32] text-white border border-teal-500/40 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-start sm:items-center gap-2.5">
@@ -530,31 +538,31 @@ export default function BookListPage({
                       <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2 py-0.5 rounded-full border border-amber-400/30">
                         ✨ AI Gợi ý tìm kiếm
                       </span>
-                      {aiSuggestion.category && aiSuggestion.category !== 'ALL' && (
+                      {visibleAiSuggestion.category && visibleAiSuggestion.category !== 'ALL' && (
                         <span className="text-[10px] font-bold text-teal-200 bg-white/10 px-2 py-0.5 rounded-full">
-                          Ngành: {aiSuggestion.category}
+                          Ngành: {visibleAiSuggestion.category}
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-teal-100 font-medium mt-1">
-                      {aiSuggestion.explanation || `Có phải bạn muốn tìm: "${aiSuggestion.correctedQuery}"?`}
+                      {visibleAiSuggestion.explanation || `Có phải bạn muốn tìm: "${visibleAiSuggestion.correctedQuery}"?`}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  {aiSuggestion.correctedQuery && aiSuggestion.correctedQuery.toLowerCase() !== searchQuery.toLowerCase() && (
+                  {visibleAiSuggestion.correctedQuery && visibleAiSuggestion.correctedQuery.toLowerCase() !== searchQuery.toLowerCase() && (
                     <button
                       type="button"
                       onClick={() => {
-                        setSearchQuery(aiSuggestion.correctedQuery);
-                        if (aiSuggestion.category && aiSuggestion.category !== 'ALL') {
-                          setSelectedCategory(aiSuggestion.category);
+                        setSearchQuery(visibleAiSuggestion.correctedQuery);
+                        if (visibleAiSuggestion.category && visibleAiSuggestion.category !== 'ALL') {
+                          setSelectedCategory(visibleAiSuggestion.category);
                         }
                       }}
                       className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
                     >
-                      Áp dụng "{aiSuggestion.correctedQuery}"
+                      Áp dụng "{visibleAiSuggestion.correctedQuery}"
                     </button>
                   )}
                   <button
@@ -569,10 +577,10 @@ export default function BookListPage({
               </div>
 
               {/* Các từ khóa mở rộng */}
-              {aiSuggestion.keywords && aiSuggestion.keywords.length > 1 && (
+              {visibleAiSuggestion.keywords && visibleAiSuggestion.keywords.length > 1 && (
                 <div className="flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-white/10 flex-wrap text-xs">
                   <span className="text-[11px] text-teal-300 font-semibold">Chủ đề mở rộng:</span>
-                  {aiSuggestion.keywords.map((kw, i) => (
+                  {visibleAiSuggestion.keywords.map((kw, i) => (
                     <button
                       key={i}
                       type="button"

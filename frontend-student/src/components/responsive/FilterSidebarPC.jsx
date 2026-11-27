@@ -3,12 +3,9 @@ import {
   Filter,
   RotateCcw,
   Check,
-  BookOpen,
   Layers,
-  Sparkles,
   CheckCircle2,
   MapPin,
-  Calendar,
   ShieldCheck,
 } from 'lucide-react';
 

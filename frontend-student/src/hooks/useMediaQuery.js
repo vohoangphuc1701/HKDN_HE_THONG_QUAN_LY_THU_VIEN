@@ -22,9 +22,6 @@ export function useMediaQuery(query) {
     const mediaQueryList = window.matchMedia(query);
     const updateMatch = (e) => setMatches(e.matches);
 
-    // Đồng bộ giá trị khởi điểm
-    setMatches(mediaQueryList.matches);
-
     if (mediaQueryList.addEventListener) {
       mediaQueryList.addEventListener('change', updateMatch);
     } else {

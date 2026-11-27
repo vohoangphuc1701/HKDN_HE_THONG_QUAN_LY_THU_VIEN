@@ -136,6 +136,7 @@ export default function MobileApp() {
           isInCart={cartItems.some((item) => item.id === mobileDetailBook.id)}
           onOpenCart={() => setIsCartOpen(true)}
           allBooks={books}
+          cartItems={cartItems}
           onSelectBook={setMobileDetailBook}
           cartCount={cartItems.length}
         />

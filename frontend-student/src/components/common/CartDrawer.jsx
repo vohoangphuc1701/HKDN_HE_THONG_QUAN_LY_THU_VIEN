@@ -39,14 +39,14 @@ export default function CartDrawer({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  if (!isOpen) return null;
-
-  const minDate = new Date().toISOString().split('T')[0];
-  const maxDate = (() => {
+  const [minDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [maxDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 7);
     return d.toISOString().split('T')[0];
-  })();
+  });
+
+  if (!isOpen) return null;
 
   const campuses = [
     {

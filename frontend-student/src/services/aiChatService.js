@@ -1,4 +1,5 @@
 import mockBooks from '../mockPCBooks.json';
+import bookApi from './bookApi';
 import campusesData from '../data/campusesData';
 import { SYSTEM_PROMPT, findInstantAnswer } from '../data/chatbotKnowledge';
 
@@ -12,11 +13,23 @@ const GEMINI_MODEL = 'gemini-3.5-flash-lite';
 const getGeminiEndpoint = () =>
   `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
+async function loadCatalogContextBooks() {
+  try {
+    const res = await bookApi.getBooks({ size: 25 });
+    if (res && Array.isArray(res.content) && res.content.length > 0 && !res.isFallback) {
+      return res.content;
+    }
+  } catch {
+    // Fallback gracefully to bundled catalog when backend is unavailable
+  }
+  return mockBooks;
+}
+
 /**
  * Chuẩn bị ngữ cảnh tóm tắt kho sách và cơ sở để đưa vào System Instruction (RAG gọn nhẹ)
  */
-function buildLibraryContext() {
-  const booksSummary = mockBooks
+function buildLibraryContext(catalogBooks = mockBooks) {
+  const booksSummary = catalogBooks
     .slice(0, 25)
     .map(
       (b) =>
@@ -60,8 +73,9 @@ export async function sendMessageToAI(conversationHistory = [], userMessage) {
     throw new Error('Tin nhắn không được để trống.');
   }
 
-  // 1. Chuẩn bị payload theo định dạng Gemini API
-  const fullSystemInstruction = `${SYSTEM_PROMPT}\n\n${buildLibraryContext()}`;
+  // 1. Nạp danh mục sách thực tế từ API (fallback mockBooks) và chuẩn bị System Instruction
+  const catalogBooks = await loadCatalogContextBooks();
+  const fullSystemInstruction = `${SYSTEM_PROMPT}\n\n${buildLibraryContext(catalogBooks)}`;
 
   // Lọc lịch sử hội thoại: Bắt buộc lượt đầu tiên gửi lên Gemini phải là 'user'
   // (Loại bỏ tin nhắn chào mừng ban đầu của model để tránh lỗi cắt cụt câu trả lời)
@@ -148,7 +162,7 @@ export async function sendMessageToAI(conversationHistory = [], userMessage) {
     }
 
     // Tìm các sách liên quan được nhắc tới trong câu trả lời
-    const matchedBooks = extractRelatedBooks(replyText, userMessage);
+    const matchedBooks = extractRelatedBooks(replyText, userMessage, catalogBooks);
 
     return {
       text: replyText,
@@ -167,7 +181,7 @@ export async function sendMessageToAI(conversationHistory = [], userMessage) {
 - Xem quy định: Mượn tối đa 5 cuốn trong 14 ngày, phạt trễ 5.000đ/ngày/cuốn.
 Bạn vui lòng thử nhắn lại sau ít phút nhé!`;
 
-    const matchedBooks = extractRelatedBooks(fallbackAnswer, userMessage);
+    const matchedBooks = extractRelatedBooks(fallbackAnswer, userMessage, catalogBooks);
 
     return {
       text: fallbackAnswer,
@@ -182,15 +196,16 @@ Bạn vui lòng thử nhắn lại sau ít phút nhé!`;
  * Bóc tách các sách phù hợp từ kho dữ liệu dựa trên câu trả lời hoặc câu hỏi
  * @param {string} text
  * @param {string} query
+ * @param {Array} catalogBooks
  * @returns {Array}
  */
-function extractRelatedBooks(text = '', query = '') {
+function extractRelatedBooks(text = '', query = '', catalogBooks = mockBooks) {
   const combined = `${text} ${query}`.toLowerCase();
-  return mockBooks
+  return catalogBooks
     .filter((b) => {
-      const titleLower = b.title.toLowerCase();
-      const codeLower = b.code.toLowerCase();
-      return combined.includes(titleLower) || combined.includes(codeLower);
+      const titleLower = (b.title || '').toLowerCase();
+      const codeLower = (b.code || '').toLowerCase();
+      return (titleLower && combined.includes(titleLower)) || (codeLower && combined.includes(codeLower));
     })
     .slice(0, 3);
 }

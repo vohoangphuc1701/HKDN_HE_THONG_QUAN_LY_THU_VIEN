@@ -7,9 +7,6 @@ import {
   Clock,
   Zap,
   ShieldCheck,
-  LayoutGrid,
-  List,
-  RotateCcw,
   BookOpen,
   Compass,
   Sparkles,
@@ -21,30 +18,13 @@ import {
   ArrowUpRight,
   Boxes,
   Laptop,
-  Users,
-  FileText,
-  Headphones,
   MapPin,
-  Phone,
   ShoppingBag,
-  Menu,
-  Home,
-  BookMarked,
-  History,
-  User,
-  Bell,
-  HelpCircle,
-  LogOut,
-  ChevronRight,
-  QrCode,
-  RefreshCw,
-  AlertCircle
 } from 'lucide-react';
 import StudentLayout from '../components/layout/StudentLayout';
 import BookCard from '../components/common/BookCard';
 import CartDrawer from '../components/common/CartDrawer';
 import ReturnQrModal from '../components/common/ReturnQrModal';
-import FilterSidebarPC from '../components/responsive/FilterSidebarPC';
 import BookDetailPage from '../components/pages/BookDetailPage';
 import LoansTableViewPC from '../components/responsive/LoansTableViewPC';
 import LoanHistoryTableViewPC from '../components/responsive/LoanHistoryTableViewPC';
@@ -77,8 +57,8 @@ export default function DesktopApp() {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [selectedType, setSelectedType] = useState('ALL');
+  const [selectedCampus, setSelectedCampus] = useState('ALL');
   const [sortBy, setSortBy] = useState('relevant');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'compact'
 
   // Tab lọc đề xuất nhanh trên Trang Chủ
   const [recommendCategory, setRecommendCategory] = useState('ALL');
@@ -192,31 +172,6 @@ export default function DesktopApp() {
     showToast(`Đặt mượn thành công! Đơn hàng: ${newOrder.code}`);
   };
 
-  // Danh mục chuyên ngành UTH cho bộ lọc catalog
-  const categories = [
-    { key: 'ALL', label: 'Tất cả chuyên ngành', count: mockBooks.length },
-    {
-      key: 'CÔNG NGHỆ THÔNG TIN',
-      label: 'Công nghệ thông tin',
-      count: mockBooks.filter((b) => b.category === 'CÔNG NGHỆ THÔNG TIN').length,
-    },
-    {
-      key: 'KINH TẾ',
-      label: 'Kinh tế & Quản trị',
-      count: mockBooks.filter((b) => b.category === 'KINH TẾ').length,
-    },
-    {
-      key: 'LOGISTICS & VẬN TẢI',
-      label: 'Logistics & Vận tải',
-      count: mockBooks.filter((b) => b.category === 'LOGISTICS & VẬN TẢI').length,
-    },
-    {
-      key: 'NGOẠI NGỮ',
-      label: 'Ngoại ngữ chuyên ngành',
-      count: mockBooks.filter((b) => b.category === 'NGOẠI NGỮ').length,
-    },
-  ];
-
   // Tab lọc đề xuất nhanh trên Trang Chủ
   const recommendTabs = [
     { key: 'ALL', label: 'Tất cả đề xuất' },
@@ -243,37 +198,6 @@ export default function DesktopApp() {
     })
     .sort((a, b) => (b.borrowCount || 0) - (a.borrowCount || 0))
     .slice(0, 4);
-
-  // Lọc và sắp xếp sách cho trang Kho sách
-  const filteredBooks = mockBooks
-    .filter((book) => {
-      const matchCat = selectedCategory === 'ALL' || book.category === selectedCategory;
-      const matchType = selectedType === 'ALL' || book.type === selectedType;
-      const matchAvailable = !onlyAvailable || book.availableQuantity > 0;
-      const matchSearch =
-        !searchQuery.trim() ||
-        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (book.code && book.code.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchCat && matchType && matchAvailable && matchSearch;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'newest') return (b.publishYear || 0) - (a.publishYear || 0);
-      if (sortBy === 'available') return (b.availableQuantity || 0) - (a.availableQuantity || 0);
-      if (sortBy === 'borrowCount') return (b.borrowCount || 0) - (a.borrowCount || 0);
-      if (sortBy === 'title') return a.title.localeCompare(b.title);
-      return a.id - b.id;
-    });
-
-  const hasActiveFilters =
-    selectedCategory !== 'ALL' || onlyAvailable || selectedType !== 'ALL' || searchQuery !== '';
-
-  const handleResetFilters = () => {
-    setSelectedCategory('ALL');
-    setOnlyAvailable(false);
-    setSelectedType('ALL');
-    setSearchQuery('');
-  };
 
   const handleSearchFromHero = (e) => {
     e.preventDefault();
@@ -979,6 +903,7 @@ export default function DesktopApp() {
           {/* MỤC: HỆ THỐNG THƯ VIỆN 3 CƠ SỞ UTH */}
           <CampusExplorerSection
             onSelectCampusCatalog={(campusCode) => {
+              setSelectedCampus(campusCode || 'ALL');
               setActiveTab('catalog');
             }}
           />
@@ -1039,6 +964,10 @@ export default function DesktopApp() {
           setOnlyAvailable={setOnlyAvailable}
           selectedType={selectedType}
           setSelectedType={setSelectedType}
+          selectedCampus={selectedCampus}
+          setSelectedCampus={setSelectedCampus}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
           onNavigateHome={() => setActiveTab('home')}
         />
       )}

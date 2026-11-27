@@ -5,28 +5,17 @@ import { getStoredStudentProfile, mapOrderHistoryFromApi } from '../../utils/stu
 import {
   History,
   Search,
-  Filter,
   CheckCircle2,
   AlertCircle,
   XCircle,
   FileText,
   RotateCcw,
   Printer,
-  Download,
-  Calendar,
-  Clock,
   MapPin,
-  BookOpen,
-  ArrowUpDown,
   ChevronDown,
   X,
   Receipt,
-  Sparkles,
   ShieldCheck,
-  Building,
-  User,
-  CreditCard,
-  Check
 } from 'lucide-react';
 
 /**
@@ -241,7 +230,7 @@ const CAMPUSES = [
 /**
  * Component Bảng Lịch sử Mượn trả & Đối soát nợ phạt cho Desktop (TV3)
  */
-export default function LoanHistoryTableViewPC({ onBorrowAgain, onShowToast }) {
+export default function LoanHistoryTableViewPC({ onBorrowAgain }) {
   const studentProfile = getStoredStudentProfile();
   const [historyList, setHistoryList] = useState(MOCK_HISTORY_RECORDS);
   const [searchQuery, setSearchQuery] = useState('');
@@ -249,8 +238,6 @@ export default function LoanHistoryTableViewPC({ onBorrowAgain, onShowToast }) {
   const [selectedSemester, setSelectedSemester] = useState('Tất cả học kỳ');
   const [selectedCampus, setSelectedCampus] = useState('ALL');
   const [selectedReceipt, setSelectedReceipt] = useState(null); // Bản ghi đang xem biên nhận
-  const [sortField, setSortField] = useState('borrowDate');
-  const [sortAsc, setSortAsc] = useState(false);
 
   // Kết nối API lấy danh sách đơn mượn thực tế khi Backend hoạt động
   useEffect(() => {
@@ -494,7 +481,6 @@ export default function LoanHistoryTableViewPC({ onBorrowAgain, onShowToast }) {
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                 {filteredList.map((record) => {
                   const statusInfo = STATUS_CONFIG[record.status] || STATUS_CONFIG.ALL;
-                  const StatusIcon = statusInfo.icon || CheckCircle2;
 
                   return (
                     <tr

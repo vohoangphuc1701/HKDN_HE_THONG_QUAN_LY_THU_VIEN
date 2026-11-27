@@ -53,9 +53,14 @@ axiosClient.interceptors.response.use(
           localStorage.removeItem('token');
           localStorage.removeItem('accessToken');
           localStorage.removeItem('user');
-          // Nếu không đang ở trang đăng nhập thì chuyển hướng
-          if (!window.location.pathname.includes('/login')) {
-            // window.location.href = '/login';
+          // Nếu không đang ở trang đăng nhập/đăng ký (tránh điều hướng trong môi trường test)
+          if (
+            typeof window !== 'undefined' &&
+            !import.meta.env.VITEST &&
+            !window.location.pathname.includes('/login') &&
+            !window.location.pathname.includes('/register')
+          ) {
+            window.location.assign('/login');
           }
           break;
 
