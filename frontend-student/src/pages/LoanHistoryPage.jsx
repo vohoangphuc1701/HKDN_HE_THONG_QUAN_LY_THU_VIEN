@@ -209,7 +209,7 @@ export default function LoanHistoryPage({ onBorrowAgain, onShowToast }) {
           className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"
           aria-hidden="true"
         />
-        <div className="relative z-1 flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-teal-200 text-xs font-bold w-fit backdrop-blur-md shadow-xs">
               <History className="w-3.5 h-3.5" />
@@ -227,28 +227,28 @@ export default function LoanHistoryPage({ onBorrowAgain, onShowToast }) {
 
       {/* Thống kê tổng quan 4 cột trên Desktop */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-xs">
           <span className="text-xs text-slate-500 font-medium block">Tổng lượt giao dịch</span>
           <strong className="text-xl font-black text-slate-900 tabular-nums mt-1 block">
             {summary.total} <span className="text-xs font-normal text-slate-400">lượt</span>
           </strong>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-xs">
           <span className="text-xs text-slate-500 font-medium block">Trả đúng hạn</span>
           <strong className="text-xl font-black text-emerald-600 tabular-nums mt-1 block">
             {summary.onTime} <span className="text-xs font-normal text-slate-400">lượt</span>
           </strong>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-xs">
           <span className="text-xs text-slate-500 font-medium block">Lượt trả trễ</span>
           <strong className="text-xl font-black text-amber-600 tabular-nums mt-1 block">
             {summary.late} <span className="text-xs font-normal text-slate-400">lượt</span>
           </strong>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-xs">
           <span className="text-xs text-slate-500 font-medium block">Tổng phạt đã nộp</span>
           <strong className="text-xl font-black text-[#00666b] tabular-nums mt-1 block truncate">
             {summary.totalFine.toLocaleString('vi-VN')} VNĐ

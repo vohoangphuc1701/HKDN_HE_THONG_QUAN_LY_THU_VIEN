@@ -30,7 +30,7 @@ import HomePage from './HomePage';
 import BookListPage from './BookListPage';
 import LoansCardListMobile from '../components/responsive/LoansCardListMobile';
 import LoanHistoryPage from './LoanHistoryPage';
-import CartDrawer from '../components/common/CartDrawer';
+import CartDrawerMobile from '../components/responsive/CartDrawerMobile';
 import ReturnQrModal from '../components/common/ReturnQrModal';
 import ChatBotWidget from '../components/common/ChatBotWidget';
 import CheckoutSchedulePage from './CheckoutSchedulePage';
@@ -185,11 +185,11 @@ export default function MobileApp() {
     };
   }, []);
 
-  // Hiện nút Lên đầu trang (Back-to-Top) khi cuộn xuống > 350px
+  // Hiện nút Lên đầu trang (Back-to-Top) khi cuộn xuống > 280px
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 350);
+      setShowBackToTop(window.scrollY > 280);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -237,6 +237,11 @@ export default function MobileApp() {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const handleClearCart = () => {
+    setCartItems([]);
+    showMobileToast('Đã làm trống giỏ mượn giáo trình.');
+  };
+
   const handleMobileCheckoutSuccess = (newOrder) => {
     setCartItems([]);
     setIsCartOpen(false);
@@ -263,12 +268,21 @@ export default function MobileApp() {
           cartItems={cartItems}
           onSelectBook={setMobileDetailBook}
           cartCount={cartItems.length}
+          hideFloatingActions={isCartOpen || Boolean(mobileQrOrder)}
         />
-        <CartDrawer
+        <CartDrawerMobile
           isOpen={isCartOpen}
           onClose={() => setIsCartOpen(false)}
           cartItems={cartItems}
           onRemoveItem={handleRemoveCartItem}
+          onAddItem={handleAddToCart}
+          onClearCart={handleClearCart}
+          allBooks={books}
+          onSelectBook={setMobileDetailBook}
+          onBrowseCatalog={() => {
+            setMobileDetailBook(null);
+            setActiveTab('search');
+          }}
           onCheckoutSuccess={handleMobileCheckoutSuccess}
           onOpenSchedulePage={(items) => {
             setIsCartOpen(false);
@@ -327,7 +341,7 @@ export default function MobileApp() {
           </div>
           <div>
             <h1 className="text-sm font-bold leading-tight flex items-center gap-1.5">
-              Thư viện <span className="text-[10px] text-teal-200 px-1 py-0.2 bg-white/15 rounded">UTH</span>
+              Thư viện <span className="text-[10px] text-teal-200 px-1 py-0.5 bg-white/15 rounded">UTH</span>
             </h1>
             <p className="text-[10px] text-teal-100/80">Cổng Sinh Viên (Mobile &amp; Tablet)</p>
           </div>
@@ -376,8 +390,8 @@ export default function MobileApp() {
             title="Thanh điều hướng"
           >
             {isMenuSheetOpen
-              ? <X className="w-4.5 h-4.5" />
-              : <Menu className="w-4.5 h-4.5" />
+              ? <X className="w-[18px] h-[18px]" />
+              : <Menu className="w-[18px] h-[18px]" />
             }
           </button>
 
@@ -639,7 +653,11 @@ export default function MobileApp() {
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => { setActiveTab(item.id); setIsMenuSheetOpen(false); }}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    setIsMenuSheetOpen(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   className={`relative p-3.5 rounded-2xl border text-left transition-all active:scale-95 cursor-pointer flex flex-col justify-between ${
                     isActive ? item.activeBg + ' shadow-md' : item.color
                   }`}
@@ -681,7 +699,7 @@ export default function MobileApp() {
                 status: 'READY_FOR_PICKUP',
               });
             }}
-            className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm active:scale-98 transition-all cursor-pointer"
+            className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm active:scale-95 transition-all cursor-pointer"
           >
             <div className="flex items-center gap-3">
               <span className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white">
@@ -690,7 +708,7 @@ export default function MobileApp() {
               <div className="text-left">
                 <div className="text-xs font-bold leading-tight flex items-center gap-1.5">
                   Mã QR đơn mượn Pick &amp; Go
-                  <span className="text-[9px] bg-amber-400 text-slate-900 font-extrabold px-1.5 py-0.2 rounded-full">&lt; 30s</span>
+                  <span className="text-[9px] bg-amber-400 text-slate-900 font-extrabold px-1.5 py-0.5 rounded-full">&lt; 30s</span>
                 </div>
                 <div className="text-[10px] text-teal-100 mt-0.5">Mở sẵn mã QR để quét nhận sách tại quầy</div>
               </div>
@@ -747,7 +765,7 @@ export default function MobileApp() {
           <div className="p-4 bg-gradient-to-br from-[#00666b] via-teal-700 to-teal-800 text-white rounded-2xl shadow-sm relative overflow-hidden">
             <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
             <div className="flex items-center gap-3.5">
-              <div className="w-13 h-13 rounded-2xl bg-white/20 border-2 border-white/30 text-white flex items-center justify-center font-bold text-lg shadow-inner shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 border-2 border-white/30 text-white flex items-center justify-center font-bold text-lg shadow-inner shrink-0">
                 {studentProfile.initials}
               </div>
               <div className="flex-1 min-w-0">
@@ -801,7 +819,7 @@ export default function MobileApp() {
                 {savedBooks.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between gap-2 bg-white rounded-xl p-2 border border-slate-100 shadow-2xs"
+                    className="flex items-center justify-between gap-2 bg-white rounded-xl p-2 border border-slate-100 shadow-xs"
                   >
                     <button
                       type="button"
@@ -885,8 +903,19 @@ export default function MobileApp() {
             </button>
           </div>
 
-          {/* Nút Đăng xuất */}
-          <div className="pt-1">
+          {/* Cụm nút Đổi tài khoản / Đăng ký & Đăng xuất */}
+          <div className="pt-1 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setIsDrawerOpen(false);
+                navigate('/register');
+              }}
+              className="py-3 px-3 rounded-xl border border-teal-200 bg-teal-50/70 hover:bg-teal-100 text-[#00666b] text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+            >
+              <Plus className="w-4 h-4 text-[#00666b] shrink-0" />
+              <span>Đăng ký mới</span>
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -894,10 +923,10 @@ export default function MobileApp() {
                 clearAuthSession();
                 navigate('/login');
               }}
-              className="w-full py-3 px-4 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
+              className="py-3 px-3 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
             >
               <LogOut className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>Đăng xuất tài khoản</span>
+              <span>Đăng xuất</span>
             </button>
           </div>
         </div>
@@ -977,12 +1006,20 @@ export default function MobileApp() {
         </div>
       </div>
 
-      {/* Ngăn kéo Giỏ Mượn Sách & Đặt Lịch Hẹn Lấy Pick & Go trên Mobile */}
-      <CartDrawer
+      {/* Ngăn kéo Giỏ Mượn Sách 2 Bước & Đặt Lịch Hẹn Lấy Pick & Go trên Mobile */}
+      <CartDrawerMobile
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems}
         onRemoveItem={handleRemoveCartItem}
+        onAddItem={handleAddToCart}
+        onClearCart={handleClearCart}
+        allBooks={books}
+        onSelectBook={setMobileDetailBook}
+        onBrowseCatalog={() => {
+          setActiveTab('search');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
         onCheckoutSuccess={handleMobileCheckoutSuccess}
         onOpenSchedulePage={(items) => {
           setIsCartOpen(false);
@@ -1010,17 +1047,19 @@ export default function MobileApp() {
         </button>
       )}
 
-      {/* Trợ lý ảo Chatbot AI trên Mobile – Full-screen khi mở, kéo thả khi đóng */}
-      <ChatBotWidget
-        onNavigateToBook={(bookId) => {
-          const book = books.find((b) => b.id === bookId);
-          if (book) setMobileDetailBook(book);
-        }}
-        onNavigateToTab={(tab) => {
-          setActiveTab(tab === 'catalog' ? 'search' : tab === 'home' ? 'home' : tab);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-      />
+      {/* Trợ lý ảo Chatbot AI trên Mobile – Tự động ẩn khi đang mở Giỏ sách hoặc Bottom Sheet tránh che nút CTA */}
+      {!isCartOpen && !isDrawerOpen && !isMenuSheetOpen && !isNotifOpen && !mobileQrOrder && (
+        <ChatBotWidget
+          onNavigateToBook={(bookId) => {
+            const book = books.find((b) => b.id === bookId);
+            if (book) setMobileDetailBook(book);
+          }}
+          onNavigateToTab={(tab) => {
+            setActiveTab(tab === 'catalog' ? 'search' : tab === 'home' ? 'home' : tab);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
+      )}
 
       {/* Toast thông báo */}
       {toastMessage && (
