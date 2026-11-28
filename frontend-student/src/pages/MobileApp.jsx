@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
+  ArrowUp,
   BookOpen,
+  Bookmark,
   Menu,
+  Plus,
   X,
   ShoppingBag,
   MapPin,
@@ -60,6 +63,18 @@ const DEFAULT_MOBILE_NOTIFICATIONS = [
   },
 ];
 
+const BOOKMARKS_KEY = 'uth_mobile_bookmarks';
+
+function readMobileBookmarks() {
+  try {
+    const raw = localStorage.getItem(BOOKMARKS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function MobileApp() {
   const navigate = useNavigate();
   const studentProfile = getStoredStudentProfile();
@@ -73,6 +88,8 @@ export default function MobileApp() {
   const [isOnline, setIsOnline] = useState(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
+  const [bookmarkedIds, setBookmarkedIds] = useState(() => readMobileBookmarks());
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
@@ -167,6 +184,29 @@ export default function MobileApp() {
       window.removeEventListener('online', handleOnline);
     };
   }, []);
+
+  // Hiện nút Lên đầu trang (Back-to-Top) khi cuộn xuống > 350px
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 350);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleRemoveBookmark = (bookId) => {
+    const next = bookmarkedIds.filter((id) => id !== bookId);
+    setBookmarkedIds(next);
+    try {
+      localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(next));
+    } catch {
+      // Bỏ qua nếu bộ nhớ trình duyệt bị khóa
+    }
+    showMobileToast('Đã bỏ lưu tài liệu khỏi danh mục quan tâm.');
+  };
+
+  const savedBooks = books.filter((b) => bookmarkedIds.includes(b.id));
 
   const handleAddToCart = (book) => {
     if (!book) return;
@@ -366,6 +406,7 @@ export default function MobileApp() {
           <button
             type="button"
             onClick={() => {
+              setBookmarkedIds(readMobileBookmarks());
               setIsDrawerOpen((prev) => !prev);
               setIsMenuSheetOpen(false);
               setIsNotifOpen(false);
@@ -738,6 +779,69 @@ export default function MobileApp() {
             </div>
           </div>
 
+          {/* Sách quan tâm đã lưu (Bookmark từ BookDetailPage) */}
+          <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Bookmark className="w-3.5 h-3.5 text-[#00666b]" />
+                <span className="text-xs font-bold text-slate-800">
+                  Sách quan tâm đã lưu ({savedBooks.length})
+                </span>
+              </div>
+              {savedBooks.length > 0 && (
+                <span className="text-[10px] text-slate-400">Chạm để xem</span>
+              )}
+            </div>
+            {savedBooks.length === 0 ? (
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Chưa có sách nào được lưu. Bấm biểu tượng đánh dấu trong trang chi tiết sách để lưu lại.
+              </p>
+            ) : (
+              <div className="space-y-1.5 max-h-40 overflow-y-auto pr-0.5">
+                {savedBooks.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-2 bg-white rounded-xl p-2 border border-slate-100 shadow-2xs"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsDrawerOpen(false);
+                        setMobileDetailBook(item);
+                      }}
+                      className="flex-1 min-w-0 text-left cursor-pointer"
+                    >
+                      <p className="text-xs font-bold text-slate-800 truncate hover:text-[#00666b]">
+                        {item.title}
+                      </p>
+                      <p className="text-[10px] text-slate-500 truncate">{item.author}</p>
+                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleAddToCart(item)}
+                        className="w-7 h-7 rounded-lg bg-teal-50 text-[#00666b] hover:bg-[#00666b] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                        title="Thêm vào giỏ mượn"
+                        aria-label={`Thêm ${item.title} vào giỏ mượn`}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBookmark(item.id)}
+                        className="w-7 h-7 rounded-lg bg-slate-100 text-slate-400 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition-colors cursor-pointer"
+                        title="Bỏ lưu"
+                        aria-label={`Bỏ lưu ${item.title}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Tiện ích tài khoản & Quy định */}
           <div className="space-y-1 bg-slate-50 rounded-2xl p-2 border border-slate-100">
             <button
@@ -892,6 +996,19 @@ export default function MobileApp() {
         onClose={() => setMobileQrOrder(null)}
         order={mobileQrOrder}
       />
+
+      {/* Nút cuộn nhanh lên đầu trang (Back-to-Top) trên Mobile */}
+      {showBackToTop && !isDrawerOpen && !isMenuSheetOpen && !isNotifOpen && !isCartOpen && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-20 right-4 z-30 w-10 h-10 rounded-full bg-[#00666b]/95 hover:bg-[#005155] text-white shadow-lg border border-white/30 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+          aria-label="Lên đầu trang"
+          title="Lên đầu trang"
+        >
+          <ArrowUp className="w-4 h-4" />
+        </button>
+      )}
 
       {/* Trợ lý ảo Chatbot AI trên Mobile – Full-screen khi mở, kéo thả khi đóng */}
       <ChatBotWidget
