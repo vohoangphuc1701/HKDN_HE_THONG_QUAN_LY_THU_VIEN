@@ -20,6 +20,7 @@ import {
   LogOut,
   Check,
   CheckCircle2,
+  WifiOff,
 } from 'lucide-react';
 import BookDetailPageMobile from './BookDetailPage';
 import HomePage from './HomePage';
@@ -69,6 +70,9 @@ export default function MobileApp() {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notificationsRead, setNotificationsRead] = useState(false);
   const [notifications, setNotifications] = useState(DEFAULT_MOBILE_NOTIFICATIONS);
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
@@ -146,6 +150,23 @@ export default function MobileApp() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 2500);
   };
+
+  // Theo dõi trạng thái mạng (Offline / Online) trên thiết bị di động
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => {
+      setIsOnline(true);
+      setToastMessage('Đã khôi phục kết nối mạng!');
+      setTimeout(() => setToastMessage(''), 2500);
+    };
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
 
   const handleAddToCart = (book) => {
     if (!book) return;
@@ -361,6 +382,14 @@ export default function MobileApp() {
           </button>
         </div>
       </header>
+
+      {/* Thanh cảnh báo chế độ Ngoại tuyến (Offline) trên thiết bị di động */}
+      {!isOnline && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-center gap-2 text-[11px] font-semibold text-amber-800">
+          <WifiOff className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+          <span>Đang ở chế độ ngoại tuyến — Dữ liệu hiển thị từ bộ nhớ dự phòng an toàn.</span>
+        </div>
+      )}
 
       {/* TAB TRANG CHỦ: SỬ DỤNG HOMEPAGE CHUẨN RESPONSIVE ĐỒNG BỘ TV3 PC */}
       {activeTab === 'home' && (
