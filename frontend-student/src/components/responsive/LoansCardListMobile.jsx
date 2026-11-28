@@ -160,6 +160,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
   const [copiedBarcode, setCopiedBarcode] = useState(false);
 
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [todayIso] = useState(() => new Date().toISOString().split('T')[0]);
   const [appointmentDate, setAppointmentDate] = useState('2026-11-14');
   const [appointmentTimeSlot, setAppointmentTimeSlot] = useState('14:00 - 16:30');
   const [appointmentCampus, setAppointmentCampus] = useState('Cơ sở 1 - Võ Oanh (Bình Thạnh)');
@@ -408,7 +409,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
           <button
             type="button"
             onClick={handleOpenPickupQr}
-            className="w-full sm:w-auto shrink-0 px-3.5 py-2.5 rounded-xl bg-white text-[#00666b] hover:bg-teal-50 font-bold text-xs flex items-center justify-center gap-2 shadow-sm active:scale-98 transition-all cursor-pointer"
+            className="w-full sm:w-auto shrink-0 px-3.5 py-2.5 rounded-xl bg-white text-[#00666b] hover:bg-teal-50 font-bold text-xs flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-all cursor-pointer"
           >
             <QrCode className="w-4 h-4 shrink-0" />
             <span>Mở QR nhận sách</span>
@@ -696,7 +697,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
                   <button
                     type="button"
                     onClick={() => handleOpenSinglePickupQr(loan)}
-                    className="min-h-[40px] px-2 py-2 rounded-xl border border-[#00666b] bg-teal-50 hover:bg-teal-100 text-[#00666b] text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                    className="min-h-[40px] px-2 py-2 rounded-xl border border-[#00666b] bg-teal-50 hover:bg-teal-100 text-[#00666b] text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-xs"
                     title="Mở mã QR nhận sách nhanh"
                   >
                     <QrCode className="w-3.5 h-3.5 shrink-0" />
@@ -747,7 +748,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
       {selectedDetailLoan && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
             onClick={() => setSelectedDetailLoan(null)}
           />
           <div className="relative z-10 w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[88vh] flex flex-col overflow-hidden">
@@ -859,7 +860,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
       {isScheduleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
             onClick={() => setIsScheduleModalOpen(false)}
           />
           <form
@@ -899,6 +900,7 @@ export default function LoansCardListMobile({ onOpenQrModal, onShowToast, onOpen
                   <label className="block font-semibold text-slate-700 mb-1">Ngày hẹn trả</label>
                   <input
                     type="date"
+                    min={todayIso}
                     value={appointmentDate}
                     onChange={(e) => setAppointmentDate(e.target.value)}
                     required

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
+  ArrowUp,
   BookOpen,
   MapPin,
   Plus,
@@ -57,12 +58,38 @@ export default function BookDetailPage({
   cartItems = [],
   onSelectBook,
   cartCount = 0,
+  hideFloatingActions = false,
 }) {
   const [fetchedBook, setFetchedBook] = useState(null);
   const [copiedCode, setCopiedCode] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState(() => readStoredBookmarks());
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'toc' | 'copies' | 'reviews'
   const [toastMsg, setToastMsg] = useState('');
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const toastTimerRef = useRef(null);
+  const copyTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 280);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [propBook?.id]);
 
   // Đồng bộ tồn kho & thông tin chi tiết thời gian thực từ Backend TV4 (fallback propBook)
   useEffect(() => {
@@ -89,7 +116,8 @@ export default function BookDetailPage({
 
   const showToast = (msg) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(''), 2500);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToastMsg(''), 2500);
   };
 
   if (!book) {
@@ -119,7 +147,8 @@ export default function BookDetailPage({
     navigator.clipboard?.writeText(book.code || 'UTH-BOOK');
     setCopiedCode(true);
     showToast(`Đã sao chép mã tài liệu: ${book.code}`);
-    setTimeout(() => setCopiedCode(false), 2000);
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopiedCode(false), 2000);
   };
 
   // Chia sẻ liên kết
@@ -403,7 +432,7 @@ export default function BookDetailPage({
             {/* Bìa sách 3D vật lý */}
             <div
               style={{ backgroundColor: book.coverTheme?.bg || '#00666B' }}
-              className="w-36 h-52 sm:w-44 sm:h-64 rounded-r-xl rounded-l-xs text-white p-3 flex flex-col justify-between shadow-2xl relative transition-transform hover:scale-102"
+              className="w-36 h-52 sm:w-44 sm:h-64 rounded-r-xl rounded-l-xs text-white p-3 flex flex-col justify-between shadow-2xl relative transition-transform hover:scale-105"
             >
               {/* Gáy sách dập nổi */}
               <div className="absolute inset-y-0 left-0 w-3 bg-black/30 rounded-l-xs border-r border-white/20 shadow-inner" />
@@ -435,7 +464,7 @@ export default function BookDetailPage({
           <div className="space-y-2.5">
             {/* Chips thể loại và chuyên ngành */}
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#00666B] text-white shadow-2xs">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#00666B] text-white shadow-xs">
                 {book.type || 'Giáo trình chính quy'}
               </span>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-[#00666B] border border-teal-200">
@@ -549,7 +578,7 @@ export default function BookDetailPage({
           </h3>
 
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+            <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-1">
               <div className="flex items-center gap-1.5 text-teal-700 font-bold text-[11px]">
                 <Clock className="w-3.5 h-3.5" />
                 <span>Thời hạn (BR02)</span>
@@ -560,7 +589,7 @@ export default function BookDetailPage({
               </span>
             </div>
 
-            <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+            <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-1">
               <div className="flex items-center gap-1.5 text-teal-700 font-bold text-[11px]">
                 <Zap className="w-3.5 h-3.5 text-amber-500" />
                 <span>Gia hạn (BR03)</span>
@@ -571,7 +600,7 @@ export default function BookDetailPage({
               </span>
             </div>
 
-            <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+            <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-1">
               <div className="flex items-center gap-1.5 text-teal-700 font-bold text-[11px]">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Pick & Go UTH</span>
@@ -582,7 +611,7 @@ export default function BookDetailPage({
               </span>
             </div>
 
-            <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+            <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-1">
               <div className="flex items-center gap-1.5 text-teal-700 font-bold text-[11px]">
                 <Calendar className="w-3.5 h-3.5 text-rose-500" />
                 <span>Phí trễ (BR04)</span>
@@ -691,7 +720,7 @@ export default function BookDetailPage({
               {tableOfContents.map((item, idx) => (
                 <div
                   key={idx}
-                  className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-1.5"
+                  className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs space-y-1.5"
                 >
                   <div className="flex items-center justify-between text-teal-800">
                     <span className="font-bold text-[11px] bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
@@ -718,14 +747,14 @@ export default function BookDetailPage({
               {physicalCopies.map((copy) => (
                 <div
                   key={copy.id}
-                  className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs flex items-start justify-between gap-2"
+                  className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs flex items-start justify-between gap-2"
                 >
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="font-mono font-bold text-slate-900 text-xs">
                         {copy.barcode}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-mono">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">
                         {copy.callNumber}
                       </span>
                     </div>
@@ -758,7 +787,7 @@ export default function BookDetailPage({
               {studentReviews.map((rev) => (
                 <div
                   key={rev.id}
-                  className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs space-y-1.5"
+                  className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs space-y-1.5"
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -802,6 +831,19 @@ export default function BookDetailPage({
           </section>
         )}
       </main>
+
+      {/* Nút Lên đầu trang (Back-to-Top) trên trang Chi tiết sách */}
+      {showBackToTop && !hideFloatingActions && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-20 right-4 z-30 w-10 h-10 rounded-full bg-[#00666b]/95 hover:bg-[#005155] text-white shadow-lg border border-white/30 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+          aria-label="Lên đầu trang"
+          title="Lên đầu trang"
+        >
+          <ArrowUp className="w-4 h-4" />
+        </button>
+      )}
 
       {/* 6. NÚT THÊM GIỎ MƯỢN DÍNH ĐÁY (Sticky Bottom Bar) */}
       <footer

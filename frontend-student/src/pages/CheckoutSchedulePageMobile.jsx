@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ArrowLeft,
+  ArrowUp,
   Calendar,
   CheckCircle2,
   Clock,
@@ -105,6 +106,29 @@ export default function CheckoutSchedulePageMobile({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [confirmedOrder, setConfirmedOrder] = useState(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+  }, [confirmedOrder]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 240);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleSelectCampus = (campusId) => {
+    setSelectedCampus(campusId);
+    if (campusId !== 'CS1' && selectedSlot === 'evening') {
+      setSelectedSlot('morning');
+    }
+  };
 
   const campusObj = useMemo(
     () => CAMPUSES.find((c) => c.id === selectedCampus) || CAMPUSES[0],
@@ -323,7 +347,7 @@ export default function CheckoutSchedulePageMobile({
       </header>
 
       {/* Nội dung cuộn */}
-      <main className="flex-1 overflow-y-auto p-4 pb-32 space-y-4 max-w-lg mx-auto w-full">
+      <main className="flex-1 p-4 pb-32 space-y-4 max-w-lg mx-auto w-full">
 
         {/* ── 1. Giỏ sách / sách trả ── */}
         <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
@@ -394,7 +418,7 @@ export default function CheckoutSchedulePageMobile({
                 <button
                   key={campus.id}
                   type="button"
-                  onClick={() => setSelectedCampus(campus.id)}
+                  onClick={() => handleSelectCampus(campus.id)}
                   className={`w-full text-left p-3.5 rounded-2xl border flex items-center gap-3 transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-teal-50 border-[#00666b] ring-2 ring-[#00666b]/15 shadow-xs'
@@ -580,6 +604,19 @@ export default function CheckoutSchedulePageMobile({
           </ul>
         </section>
       </main>
+
+      {/* Nút Lên đầu trang (Back-to-Top) */}
+      {showBackToTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-32 right-4 z-30 w-10 h-10 rounded-full bg-[#00666b]/95 hover:bg-[#005155] text-white shadow-lg border border-white/30 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+          aria-label="Lên đầu trang"
+          title="Lên đầu trang"
+        >
+          <ArrowUp className="w-4 h-4" />
+        </button>
+      )}
 
       {/* ── Sticky Bottom CTA ── */}
       <div

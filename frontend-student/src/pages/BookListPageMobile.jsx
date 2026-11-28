@@ -302,15 +302,15 @@ export default function BookListPage({
 
           {/* 3 Chỉ số nhanh */}
           <div className="grid grid-cols-3 gap-2 pt-1 text-center">
-            <div className="bg-white/10 backdrop-blur-xs rounded-xl py-1.5 px-2 border border-white/10">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl py-1.5 px-2 border border-white/10">
               <span className="block text-[9px] font-bold text-teal-200 uppercase">Tài liệu</span>
               <strong className="text-xs font-black text-white font-mono">50.000+</strong>
             </div>
-            <div className="bg-white/10 backdrop-blur-xs rounded-xl py-1.5 px-2 border border-white/10">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl py-1.5 px-2 border border-white/10">
               <span className="block text-[9px] font-bold text-teal-200 uppercase">Mạng lưới</span>
               <strong className="text-xs font-black text-teal-100 font-mono">3 Cơ sở</strong>
             </div>
-            <div className="bg-white/10 backdrop-blur-xs rounded-xl py-1.5 px-2 border border-white/10">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl py-1.5 px-2 border border-white/10">
               <span className="block text-[9px] font-bold text-amber-300 uppercase">Hạn mức BR01</span>
               <strong className="text-xs font-black text-amber-300 font-mono">5 cuốn / SV</strong>
             </div>
@@ -395,7 +395,7 @@ export default function BookListPage({
             {recentSearches.map((kw) => (
               <span
                 key={kw}
-                className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-medium text-slate-700 shrink-0 shadow-2xs"
+                className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-medium text-slate-700 shrink-0 shadow-xs"
               >
                 <button
                   type="button"
@@ -436,7 +436,7 @@ export default function BookListPage({
               >
                 <span>{cat.label}</span>
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
                     isSelected ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
                   }`}
                 >
@@ -460,7 +460,7 @@ export default function BookListPage({
           </span>
 
           {searchQuery && (
-            <span className="inline-flex items-center gap-1 bg-white border border-teal-300 text-teal-900 px-2 py-0.5 rounded-full text-[11px] font-medium shadow-2xs">
+            <span className="inline-flex items-center gap-1 bg-white border border-teal-300 text-teal-900 px-2 py-0.5 rounded-full text-[11px] font-medium shadow-xs">
               <span className="max-w-[120px] truncate">"{searchQuery}"</span>
               <button
                 type="button"
@@ -474,7 +474,7 @@ export default function BookListPage({
           )}
 
           {selectedCategory !== 'ALL' && (
-            <span className="inline-flex items-center gap-1 bg-white border border-teal-300 text-teal-900 px-2 py-0.5 rounded-full text-[11px] font-medium shadow-2xs">
+            <span className="inline-flex items-center gap-1 bg-white border border-teal-300 text-teal-900 px-2 py-0.5 rounded-full text-[11px] font-medium shadow-xs">
               <span className="max-w-[120px] truncate">{selectedCategory}</span>
               <button
                 type="button"
@@ -488,7 +488,7 @@ export default function BookListPage({
           )}
 
           {selectedType !== 'ALL' && (
-            <span className="inline-flex items-center gap-1 bg-white border border-teal-300 text-teal-900 px-2 py-0.5 rounded-full text-[11px] font-medium shadow-2xs">
+            <span className="inline-flex items-center gap-1 bg-white border border-teal-300 text-teal-900 px-2 py-0.5 rounded-full text-[11px] font-medium shadow-xs">
               <span>{selectedType}</span>
               <button
                 type="button"
@@ -502,7 +502,7 @@ export default function BookListPage({
           )}
 
           {onlyAvailable && (
-            <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-full text-[11px] font-medium shadow-2xs">
+            <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-full text-[11px] font-medium shadow-xs">
               <span>Còn sẵn trong kho</span>
               <button
                 type="button"
@@ -516,7 +516,7 @@ export default function BookListPage({
           )}
 
           {sortBy !== 'default' && (
-            <span className="inline-flex items-center gap-1 bg-white border border-teal-300 text-teal-900 px-2 py-0.5 rounded-full text-[11px] font-medium shadow-2xs">
+            <span className="inline-flex items-center gap-1 bg-white border border-teal-300 text-teal-900 px-2 py-0.5 rounded-full text-[11px] font-medium shadow-xs">
               <span>
                 {sortBy === 'newest' && 'Mới xuất bản'}
                 {sortBy === 'available' && 'Còn nhiều bản'}
@@ -576,7 +576,7 @@ export default function BookListPage({
               onClick={() => setViewMode('grid')}
               className={`p-1 rounded-md transition-colors cursor-pointer ${
                 viewMode === 'grid'
-                  ? 'bg-[#00666b] text-white shadow-2xs'
+                  ? 'bg-[#00666b] text-white shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
               title="Xem dạng lưới"
@@ -589,7 +589,7 @@ export default function BookListPage({
               onClick={() => setViewMode('compact')}
               className={`p-1 rounded-md transition-colors cursor-pointer ${
                 viewMode === 'compact'
-                  ? 'bg-[#00666b] text-white shadow-2xs'
+                  ? 'bg-[#00666b] text-white shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
               title="Xem dạng danh sách gọn"
