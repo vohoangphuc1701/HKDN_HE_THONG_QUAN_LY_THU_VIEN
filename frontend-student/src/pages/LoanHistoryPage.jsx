@@ -8,6 +8,7 @@ import {
   History,
   MapPin,
   Receipt,
+  RefreshCw,
   RotateCcw,
   Search,
   X,
@@ -146,6 +147,21 @@ export default function LoanHistoryPage({ onBorrowAgain, onShowToast }) {
     };
   }, []);
 
+  const handleRefreshHistory = () => {
+    setIsLoading(true);
+    borrowApi
+      .getMyOrders()
+      .then((data) => {
+        setHistory(Array.isArray(data) && data.length > 0 ? data : INITIAL_HISTORY);
+        setIsLoading(false);
+        if (onShowToast) onShowToast('Đã cập nhật lịch sử mượn trả mới nhất!');
+      })
+      .catch(() => {
+        setHistory(INITIAL_HISTORY);
+        setIsLoading(false);
+      });
+  };
+
   const summary = useMemo(() => {
     const total = history.length;
     const onTime = history.filter((h) => h.status === 'ON_TIME').length;
@@ -242,25 +258,38 @@ export default function LoanHistoryPage({ onBorrowAgain, onShowToast }) {
 
       {/* Tìm kiếm & Bộ lọc */}
       <div className="space-y-2.5">
-        <div className="relative flex items-center">
-          <Search className="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm theo tên sách, tác giả, mã đơn..."
-            className="w-full bg-white text-slate-800 placeholder-slate-400 pl-10 pr-9 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00666b] shadow-xs"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 text-slate-400 hover:text-slate-600 cursor-pointer"
-              aria-label="Xóa tìm kiếm"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 flex items-center">
+            <Search className="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm theo tên sách, tác giả, mã đơn..."
+              className="w-full bg-white text-slate-800 placeholder-slate-400 pl-10 pr-9 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00666b] shadow-xs"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                aria-label="Xóa tìm kiếm"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleRefreshHistory}
+            disabled={isLoading}
+            className="shrink-0 h-[38px] px-3 rounded-xl bg-white border border-slate-200 hover:bg-teal-50 hover:border-[#00666b]/40 text-slate-700 hover:text-[#00666b] text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer disabled:opacity-60"
+            title="Làm mới lịch sử mượn trả"
+            aria-label="Làm mới lịch sử mượn trả"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#00666b]' : ''}`} />
+            <span className="hidden sm:inline">Làm mới</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">

@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  AlertCircle,
+  ArrowUp,
   BookOpen,
+  Bookmark,
   Menu,
+  Plus,
   X,
   ShoppingBag,
   MapPin,
@@ -17,7 +21,9 @@ import {
   HelpCircle,
   Bell,
   LogOut,
-  Check
+  Check,
+  CheckCircle2,
+  WifiOff,
 } from 'lucide-react';
 import BookDetailPageMobile from './BookDetailPage';
 import HomePage from './HomePage';
@@ -29,6 +35,7 @@ import ReturnQrModal from '../components/common/ReturnQrModal';
 import ChatBotWidget from '../components/common/ChatBotWidget';
 import CheckoutSchedulePage from './CheckoutSchedulePage';
 import bookApi from '../services/bookApi';
+import { borrowApi } from '../services/borrowApi';
 import {
   loadCartItems,
   saveCartItems,
@@ -37,6 +44,37 @@ import {
 } from '../utils/studentSession';
 import mockBooks from '../mockPCBooks.json';
 
+const DEFAULT_MOBILE_NOTIFICATIONS = [
+  {
+    id: 'default-due',
+    type: 'warning',
+    title: 'Sách sắp đến hạn trả hôm nay!',
+    message: 'Cuốn "Lập trình Python" đến hạn trả. Bấm để gia hạn trực tuyến.',
+    time: '10 phút trước',
+    tab: 'loans',
+  },
+  {
+    id: 'default-ready',
+    type: 'info',
+    title: 'Đơn mượn sẵn sàng tại quầy',
+    message: 'Thủ thư đã gom xong tài liệu. Nhận tại quầy tiếp nhận trước 17:30.',
+    time: '1 giờ trước',
+    tab: 'loans',
+  },
+];
+
+const BOOKMARKS_KEY = 'uth_mobile_bookmarks';
+
+function readMobileBookmarks() {
+  try {
+    const raw = localStorage.getItem(BOOKMARKS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function MobileApp() {
   const navigate = useNavigate();
   const studentProfile = getStoredStudentProfile();
@@ -44,6 +82,14 @@ export default function MobileApp() {
   const [activeTab, setActiveTab] = useState('home');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notificationsRead, setNotificationsRead] = useState(false);
+  const [notifications, setNotifications] = useState(DEFAULT_MOBILE_NOTIFICATIONS);
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
+  const [bookmarkedIds, setBookmarkedIds] = useState(() => readMobileBookmarks());
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
@@ -79,10 +125,88 @@ export default function MobileApp() {
     };
   }, []);
 
+  // Nạp thông báo nhắc hạn trả sách động khi đã đăng nhập (đồng bộ với NavbarPC)
+  useEffect(() => {
+    const token =
+      typeof window !== 'undefined' &&
+      (localStorage.getItem('token') || localStorage.getItem('accessToken'));
+    if (!token) return;
+
+    let cancelled = false;
+    borrowApi
+      .getMyLoans()
+      .then((list) => {
+        if (cancelled || !Array.isArray(list)) return;
+        const dynamicAlerts = list
+          .filter((l) => l.status === 'OVERDUE' || l.status === 'WARNING')
+          .slice(0, 4)
+          .map((l) => ({
+            id: `loan-${l.id}`,
+            type: 'warning',
+            title:
+              l.status === 'OVERDUE'
+                ? `Quá hạn trả ${Math.abs(l.daysLeft ?? l.daysRemaining ?? 0)} ngày`
+                : 'Sách sắp đến hạn trả!',
+            message: `Cuốn "${l.title || l.bookTitle}" — bấm để xem chi tiết hoặc gia hạn trực tuyến.`,
+            time: `Hạn: ${l.dueDate || 'Đang cập nhật'}`,
+            tab: 'loans',
+          }));
+
+        if (dynamicAlerts.length > 0) {
+          setNotifications(dynamicAlerts);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const showMobileToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 2500);
   };
+
+  // Theo dõi trạng thái mạng (Offline / Online) trên thiết bị di động
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => {
+      setIsOnline(true);
+      setToastMessage('Đã khôi phục kết nối mạng!');
+      setTimeout(() => setToastMessage(''), 2500);
+    };
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
+
+  // Hiện nút Lên đầu trang (Back-to-Top) khi cuộn xuống > 350px
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 350);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleRemoveBookmark = (bookId) => {
+    const next = bookmarkedIds.filter((id) => id !== bookId);
+    setBookmarkedIds(next);
+    try {
+      localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(next));
+    } catch {
+      // Bỏ qua nếu bộ nhớ trình duyệt bị khóa
+    }
+    showMobileToast('Đã bỏ lưu tài liệu khỏi danh mục quan tâm.');
+  };
+
+  const savedBooks = books.filter((b) => bookmarkedIds.includes(b.id));
 
   const handleAddToCart = (book) => {
     if (!book) return;
@@ -191,6 +315,7 @@ export default function MobileApp() {
             setIsMenuSheetOpen(false);
             setIsDrawerOpen(false);
             setIsCartOpen(false);
+            setIsNotifOpen(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           className="flex items-center gap-2.5 text-left cursor-pointer rounded-xl -m-1 p-1 hover:bg-white/10 active:scale-95 transition-all"
@@ -208,13 +333,39 @@ export default function MobileApp() {
           </div>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* Nút Chuông Thông Báo (Đồng bộ NavbarPC TV3) */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsNotifOpen((prev) => !prev);
+              setIsMenuSheetOpen(false);
+              setIsDrawerOpen(false);
+              setIsCartOpen(false);
+            }}
+            className={`relative w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer border ${
+              isNotifOpen
+                ? 'bg-white text-[#00666b] border-white shadow-md scale-95'
+                : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
+            }`}
+            aria-label="Thông báo thư viện"
+            title="Thông báo nhắc hạn & đơn mượn"
+          >
+            <Bell className="w-4 h-4" />
+            {!notificationsRead && notifications.length > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow">
+                {notifications.length}
+              </span>
+            )}
+          </button>
+
           {/* VỊ TRÍ 3 TỪ PHẢI: Nút Menu ☰ – Mở thanh điều hướng */}
           <button
             type="button"
             onClick={() => {
               setIsMenuSheetOpen((prev) => !prev);
               setIsDrawerOpen(false);
+              setIsNotifOpen(false);
             }}
             className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer border ${
               isMenuSheetOpen
@@ -237,6 +388,7 @@ export default function MobileApp() {
               setIsCartOpen(true);
               setIsMenuSheetOpen(false);
               setIsDrawerOpen(false);
+              setIsNotifOpen(false);
             }}
             className="relative p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
             aria-label="Giỏ mượn sách"
@@ -254,8 +406,10 @@ export default function MobileApp() {
           <button
             type="button"
             onClick={() => {
+              setBookmarkedIds(readMobileBookmarks());
               setIsDrawerOpen((prev) => !prev);
               setIsMenuSheetOpen(false);
+              setIsNotifOpen(false);
             }}
             className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all cursor-pointer border ${
               isDrawerOpen
@@ -269,6 +423,14 @@ export default function MobileApp() {
           </button>
         </div>
       </header>
+
+      {/* Thanh cảnh báo chế độ Ngoại tuyến (Offline) trên thiết bị di động */}
+      {!isOnline && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-center gap-2 text-[11px] font-semibold text-amber-800">
+          <WifiOff className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+          <span>Đang ở chế độ ngoại tuyến — Dữ liệu hiển thị từ bộ nhớ dự phòng an toàn.</span>
+        </div>
+      )}
 
       {/* TAB TRANG CHỦ: SỬ DỤNG HOMEPAGE CHUẨN RESPONSIVE ĐỒNG BỘ TV3 PC */}
       {activeTab === 'home' && (
@@ -617,6 +779,69 @@ export default function MobileApp() {
             </div>
           </div>
 
+          {/* Sách quan tâm đã lưu (Bookmark từ BookDetailPage) */}
+          <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Bookmark className="w-3.5 h-3.5 text-[#00666b]" />
+                <span className="text-xs font-bold text-slate-800">
+                  Sách quan tâm đã lưu ({savedBooks.length})
+                </span>
+              </div>
+              {savedBooks.length > 0 && (
+                <span className="text-[10px] text-slate-400">Chạm để xem</span>
+              )}
+            </div>
+            {savedBooks.length === 0 ? (
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Chưa có sách nào được lưu. Bấm biểu tượng đánh dấu trong trang chi tiết sách để lưu lại.
+              </p>
+            ) : (
+              <div className="space-y-1.5 max-h-40 overflow-y-auto pr-0.5">
+                {savedBooks.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-2 bg-white rounded-xl p-2 border border-slate-100 shadow-2xs"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsDrawerOpen(false);
+                        setMobileDetailBook(item);
+                      }}
+                      className="flex-1 min-w-0 text-left cursor-pointer"
+                    >
+                      <p className="text-xs font-bold text-slate-800 truncate hover:text-[#00666b]">
+                        {item.title}
+                      </p>
+                      <p className="text-[10px] text-slate-500 truncate">{item.author}</p>
+                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleAddToCart(item)}
+                        className="w-7 h-7 rounded-lg bg-teal-50 text-[#00666b] hover:bg-[#00666b] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                        title="Thêm vào giỏ mượn"
+                        aria-label={`Thêm ${item.title} vào giỏ mượn`}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBookmark(item.id)}
+                        className="w-7 h-7 rounded-lg bg-slate-100 text-slate-400 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition-colors cursor-pointer"
+                        title="Bỏ lưu"
+                        aria-label={`Bỏ lưu ${item.title}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Tiện ích tài khoản & Quy định */}
           <div className="space-y-1 bg-slate-50 rounded-2xl p-2 border border-slate-100">
             <button
@@ -678,6 +903,80 @@ export default function MobileApp() {
         </div>
       </div>
 
+      {/* Ngăn kéo Thông Báo Nhắc Hạn Trả Sách & Đơn Pick & Go */}
+      {isNotifOpen && (
+        <div
+          onClick={() => setIsNotifOpen(false)}
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm"
+          aria-hidden
+        />
+      )}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-50 max-w-lg mx-auto bg-white rounded-t-3xl shadow-2xl border-t border-slate-100 transform transition-transform duration-300 ease-out max-h-[80vh] flex flex-col ${
+          isNotifOpen ? 'translate-y-0' : 'translate-y-full'
+        }`}
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
+      >
+        <div
+          className="w-10 h-1.5 bg-slate-300 rounded-full mx-auto mt-3 mb-2 cursor-pointer"
+          onClick={() => setIsNotifOpen(false)}
+        />
+        <div className="px-5 pb-3 flex items-center justify-between border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <Bell className="w-4 h-4 text-[#00666b]" />
+            <h2 className="text-sm font-bold text-slate-800">Thông báo thư viện</h2>
+            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-teal-50 text-[#00666b] rounded-full">
+              {notificationsRead ? 0 : notifications.length} mới
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setNotificationsRead(true);
+              setIsNotifOpen(false);
+            }}
+            className="text-xs font-semibold text-[#00666b] hover:underline cursor-pointer"
+          >
+            Đánh dấu đã đọc
+          </button>
+        </div>
+
+        <div className="overflow-y-auto divide-y divide-slate-100 px-2 py-2">
+          {notifications.map((notif) => (
+            <button
+              key={notif.id}
+              type="button"
+              onClick={() => {
+                setNotificationsRead(true);
+                setIsNotifOpen(false);
+                setActiveTab(notif.tab || 'loans');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="w-full p-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors flex items-start gap-3 text-left cursor-pointer"
+            >
+              <span
+                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                  notif.type === 'warning'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-teal-50 text-[#00666b]'
+                }`}
+              >
+                {notif.type === 'warning' ? (
+                  <AlertCircle className="w-4 h-4" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4" />
+                )}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-slate-900 truncate">{notif.title}</p>
+                <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">{notif.message}</p>
+                <span className="text-[10px] text-slate-400 mt-1 inline-block">{notif.time}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Ngăn kéo Giỏ Mượn Sách & Đặt Lịch Hẹn Lấy Pick & Go trên Mobile */}
       <CartDrawer
         isOpen={isCartOpen}
@@ -697,6 +996,19 @@ export default function MobileApp() {
         onClose={() => setMobileQrOrder(null)}
         order={mobileQrOrder}
       />
+
+      {/* Nút cuộn nhanh lên đầu trang (Back-to-Top) trên Mobile */}
+      {showBackToTop && !isDrawerOpen && !isMenuSheetOpen && !isNotifOpen && !isCartOpen && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-20 right-4 z-30 w-10 h-10 rounded-full bg-[#00666b]/95 hover:bg-[#005155] text-white shadow-lg border border-white/30 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+          aria-label="Lên đầu trang"
+          title="Lên đầu trang"
+        >
+          <ArrowUp className="w-4 h-4" />
+        </button>
+      )}
 
       {/* Trợ lý ảo Chatbot AI trên Mobile – Full-screen khi mở, kéo thả khi đóng */}
       <ChatBotWidget

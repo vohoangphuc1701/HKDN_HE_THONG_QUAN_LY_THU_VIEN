@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowLeft,
   BookOpen,
@@ -20,6 +20,7 @@ import {
   Zap,
 } from 'lucide-react';
 import BookCard from '../components/common/BookCard';
+import { bookApi } from '../services/bookApi';
 
 /**
  * BookDetailPage - Giao diện Chi tiết giáo trình & Tài liệu học thuật (Mobile Web & Tablet < 1024px - TV2)
@@ -33,8 +34,20 @@ import BookCard from '../components/common/BookCard';
  * 6. Khối sách cùng chuyên ngành đề xuất (Related Books).
  * 7. NÚT THÊM GIỎ MƯỢN DÍNH ĐÁY (Sticky Bottom Bar) luôn nổi ở đáy màn hình kèm nút Mượn ngay và xem giỏ.
  */
+const BOOKMARKS_KEY = 'uth_mobile_bookmarks';
+
+function readStoredBookmarks() {
+  try {
+    const raw = localStorage.getItem(BOOKMARKS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function BookDetailPage({
-  book,
+  book: propBook,
   onBack,
   onGoHome,
   onAddToCart,
@@ -45,10 +58,34 @@ export default function BookDetailPage({
   onSelectBook,
   cartCount = 0,
 }) {
+  const [fetchedBook, setFetchedBook] = useState(null);
   const [copiedCode, setCopiedCode] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [bookmarkedIds, setBookmarkedIds] = useState(() => readStoredBookmarks());
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'toc' | 'copies' | 'reviews'
   const [toastMsg, setToastMsg] = useState('');
+
+  // Đồng bộ tồn kho & thông tin chi tiết thời gian thực từ Backend TV4 (fallback propBook)
+  useEffect(() => {
+    if (!propBook?.id) return;
+    let cancelled = false;
+    bookApi
+      .getBookById(propBook.id)
+      .then((fresh) => {
+        if (!cancelled && fresh) {
+          setFetchedBook({ id: propBook.id, data: fresh });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [propBook]);
+
+  const book =
+    fetchedBook && propBook?.id && fetchedBook.id === propBook.id
+      ? { ...propBook, ...fetchedBook.data }
+      : propBook;
+  const isBookmarked = Boolean(book?.id && bookmarkedIds.includes(book.id));
 
   const showToast = (msg) => {
     setToastMsg(msg);
@@ -91,10 +128,19 @@ export default function BookDetailPage({
     showToast('Đã sao chép liên kết tài liệu vào bộ nhớ tạm!');
   };
 
-  // Lưu sách quan tâm
+  // Lưu sách quan tâm vào localStorage
   const handleToggleBookmark = () => {
-    setIsBookmarked((prev) => !prev);
-    showToast(!isBookmarked ? 'Đã thêm vào danh mục sách quan tâm!' : 'Đã bỏ lưu tài liệu.');
+    const nextState = !isBookmarked;
+    const nextList = nextState
+      ? Array.from(new Set([...bookmarkedIds, book.id]))
+      : bookmarkedIds.filter((id) => id !== book.id);
+    setBookmarkedIds(nextList);
+    try {
+      localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(nextList));
+    } catch {
+      // Bỏ qua nếu bộ nhớ trình duyệt bị khóa
+    }
+    showToast(nextState ? 'Đã lưu vào danh mục sách quan tâm!' : 'Đã bỏ lưu tài liệu.');
   };
 
   // Thêm vào giỏ mượn

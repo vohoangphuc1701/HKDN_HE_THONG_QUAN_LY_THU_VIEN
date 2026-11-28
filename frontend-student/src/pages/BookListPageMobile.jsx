@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
+  Clock,
   Filter,
   GraduationCap,
   LayoutGrid,
@@ -42,6 +43,18 @@ const QUICK_KEYWORDS = [
  * 8. Trạng thái rỗng (Empty state) thân thiện khi không tìm thấy kết quả.
  * 9. Tích hợp Bottom Sheet FilterModalMobile hoàn chỉnh.
  */
+const RECENT_SEARCHES_KEY = 'uth_mobile_recent_searches';
+
+function readRecentSearches() {
+  try {
+    const raw = localStorage.getItem(RECENT_SEARCHES_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.slice(0, 5) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function BookListPage({
   books: propBooks,
   searchQuery: propSearchQuery,
@@ -92,10 +105,11 @@ export default function BookListPage({
   const [internalSelectedType, setInternalSelectedType] = useState('ALL');
   const [internalSortBy, setInternalSortBy] = useState('default');
 
-  // Quản lý Modal Bộ Lọc, AI Search Hint và Chế độ xem Lưới / Danh sách
+  // Quản lý Modal Bộ Lọc, AI Search Hint, Lịch sử tìm kiếm và Chế độ xem
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'compact'
   const [aiHint, setAiHint] = useState(null);
+  const [recentSearches, setRecentSearches] = useState(() => readRecentSearches());
 
   // Hợp nhất dữ liệu Controlled / Uncontrolled
   const searchQuery = propSearchQuery !== undefined ? propSearchQuery : internalSearchQuery;
@@ -146,6 +160,36 @@ export default function BookListPage({
       clearTimeout(timer);
     };
   }, [searchQuery]);
+
+  // Lưu từ khóa tìm kiếm gần đây vào localStorage (tối đa 5 từ khóa)
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length < 2) return;
+    const timer = setTimeout(() => {
+      setRecentSearches((prev) => {
+        const next = [q, ...prev.filter((item) => item.toLowerCase() !== q.toLowerCase())].slice(0, 5);
+        try {
+          localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
+        } catch {
+          // Bỏ qua nếu bộ nhớ trình duyệt bị khóa
+        }
+        return next;
+      });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleRemoveRecentSearch = (kw) => {
+    setRecentSearches((prev) => {
+      const next = prev.filter((item) => item !== kw);
+      try {
+        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
+      } catch {
+        // Bỏ qua nếu bộ nhớ trình duyệt bị khóa
+      }
+      return next;
+    });
+  };
 
   // Danh mục chuyên ngành UTH kèm số lượng sách tương ứng
   const categories = useMemo(() => {
@@ -338,6 +382,38 @@ export default function BookListPage({
             >
               <X className="w-3.5 h-3.5" />
             </button>
+          </div>
+        )}
+
+        {/* Lịch sử tìm kiếm gần đây (Recent Searches) */}
+        {recentSearches.length > 0 && !searchQuery.trim() && (
+          <div className="mt-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase shrink-0">
+              <Clock className="w-3 h-3" />
+              Gần đây:
+            </span>
+            {recentSearches.map((kw) => (
+              <span
+                key={kw}
+                className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-medium text-slate-700 shrink-0 shadow-2xs"
+              >
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery(kw)}
+                  className="hover:text-[#00666b] cursor-pointer"
+                >
+                  {kw}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveRecentSearch(kw)}
+                  className="text-slate-400 hover:text-rose-500 cursor-pointer"
+                  aria-label={`Xóa từ khóa ${kw}`}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
           </div>
         )}
       </div>
